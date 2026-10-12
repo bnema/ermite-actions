@@ -1,0 +1,12 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    services:
+      s:
+        image: a
+        entrypoint: b
+        command: c
+        options: --x
+        volumes: [a:b]
+    steps: [{run: a}]

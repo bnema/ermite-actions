@@ -1,0 +1,20 @@
+on:
+  schedule:
+    - cron: bad
+    - cron: '61 * * * *'
+    - cron: '*/0 * * * *'
+    - cron: '0 0 * * 7'
+    - cron: '0 0 * jan-mar mon'
+    - cron: '0 0 * mar-jan mon'
+    - cron: '* * * * * *'
+    - cron: '1-5/2 * * * *'
+    - cron: '*/5 */2 1,15 * *'
+    - cron: '5 4 * * sun'
+    - timezone: UTC
+    - cron: '0 0 * * *'
+      timezone: Europe/Paris
+      extra: 1
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

@@ -283,3 +283,8 @@ func trimDisplay(s string) string {
 	}
 	return s
 }
+
+// Node returns the parsed expression, or nil when the text did not parse or
+// is empty. Callers that only inspect the tree (to look for function calls,
+// for instance) use it with the types of package expr.
+func (t *BasicExpression) Node() expr.Node { return t.node }

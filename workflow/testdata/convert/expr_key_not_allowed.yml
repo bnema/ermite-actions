@@ -1,0 +1,7 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    outputs:
+      ${{ github.ref }}: 1
+    steps: [{run: a}]

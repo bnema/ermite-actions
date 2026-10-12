@@ -1,0 +1,10 @@
+on: push
+permissions: read-all
+jobs:
+  a:
+    runs-on: x
+    permissions:
+      contents: write
+      packages: none
+      id-token: read
+    steps: [{run: a}]

@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    concurrency: {group: x, queue: max}
+    steps: [{run: a}]

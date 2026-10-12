@@ -1,0 +1,11 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        a: [1, 2]
+        include:
+          - a: 3
+        exclude: []
+    steps: [{run: a}]

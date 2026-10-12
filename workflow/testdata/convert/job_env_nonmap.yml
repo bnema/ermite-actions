@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    env: x
+    steps: [{run: a}]

@@ -1,0 +1,8 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    outputs:
+      a: ${{ steps.x.outputs.y }}
+      b: ${{ secrets.z }}
+    steps: [{run: a}]

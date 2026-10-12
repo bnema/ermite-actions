@@ -1,0 +1,13 @@
+on:
+  workflow_call:
+    inputs:
+      b:
+        type: boolean
+        default: ${{ github.ref }}
+      c:
+        type: string
+        default: 5
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

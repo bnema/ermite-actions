@@ -1,0 +1,11 @@
+on: push
+jobs:
+  a:
+    runs-on: {group: g, labels: [a, b]}
+    steps: [{run: a}]
+  b:
+    runs-on: {labels: c}
+    steps: [{run: a}]
+  c:
+    runs-on: [a, '${{ matrix.x }}']
+    steps: [{run: a}]

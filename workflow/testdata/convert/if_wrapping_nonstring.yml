@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    if: 5
+    steps: [{run: a, if: null}, {run: b, if: false}]

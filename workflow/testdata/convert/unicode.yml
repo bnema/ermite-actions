@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    name: héllo ${{ github.ref }} 日本
+    runs-on: x
+    steps: [{run: 'é${{ foo }}'}]

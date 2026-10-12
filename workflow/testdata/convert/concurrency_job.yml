@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    concurrency: {group: x, cancel-in-progress: 1}
+    steps: [{run: a}]

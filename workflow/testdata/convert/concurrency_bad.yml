@@ -1,0 +1,6 @@
+on: push
+concurrency: {group: x, bogus: 1}
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

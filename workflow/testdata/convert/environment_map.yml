@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    environment: {name: prod, url: 'https://x', deployment: false}
+    steps: [{run: a}]

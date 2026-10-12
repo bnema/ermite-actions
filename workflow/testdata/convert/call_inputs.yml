@@ -1,0 +1,22 @@
+on:
+  workflow_call:
+    inputs:
+      a:
+        type: string
+        required: true
+        default: ${{ github.ref }}
+      b:
+        type: boolean
+        default: 1
+    secrets:
+      s:
+        required: true
+      t:
+    outputs:
+      o:
+        value: ${{ jobs.a.outputs.x }}
+jobs:
+  a:
+    runs-on: x
+    outputs: {x: 1}
+    steps: [{run: a}]

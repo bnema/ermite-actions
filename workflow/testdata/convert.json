@@ -1,0 +1,2445 @@
+{
+ "alias.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "alias_scalar.yml": {
+  "errors": [
+   "alias_scalar.yml (Line: 2, Col: 1): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "background_steps.yml": {
+  "errors": [
+   "background_steps.yml (Line: 7, Col: 9): Unexpected value 'background'",
+   "background_steps.yml (Line: 8, Col: 9): Unexpected value 'wait'"
+  ],
+  "jobs": []
+ },
+ "bad_cron.yml": {
+  "errors": [
+   "bad_cron.yml (Line: 13, Col: 7): Required property is missing: cron",
+   "bad_cron.yml (Line: 16, Col: 7): Unexpected value 'extra'"
+  ],
+  "jobs": []
+ },
+ "bad_if.yml": {
+  "errors": [
+   "bad_if.yml (Line: 5, Col: 9): Unexpected end of expression: '&&'"
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "bad_job_ids.yml": {
+  "errors": [
+   "bad_job_ids.yml (Line: 3, Col: 3): The identifier '1a' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and and must be less than 100 characters.",
+   "bad_job_ids.yml (Line: 6, Col: 3): The identifier '__b' is invalid. IDs starting with '__' are reserved.",
+   "bad_job_ids.yml (Line: 9, Col: 3): The identifier 'a b' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and and must be less than 100 characters."
+  ],
+  "jobs": [
+   {
+    "id": "1a",
+    "name": "1a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "__b",
+    "name": "__b",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "a b",
+    "name": "a b",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "bad_needs_cycle.yml": {
+  "errors": [
+   "bad_needs_cycle.yml (Line: 3, Col: 3): The workflow must contain at least one job with no dependencies."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [
+     "b"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [
+     "a"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "bad_needs_cycle_with_root.yml": {
+  "errors": [
+   "bad_needs_cycle_with_root.yml (Line: 8, Col: 13): Job 'a' depends on job 'b' which creates a cycle in the dependency graph.",
+   "bad_needs_cycle_with_root.yml (Line: 12, Col: 13): Job 'b' depends on job 'a' which creates a cycle in the dependency graph."
+  ],
+  "jobs": [
+   {
+    "id": "r",
+    "name": "r",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [
+     "b"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [
+     "a",
+     "r"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "bad_needs_self.yml": {
+  "errors": [
+   "bad_needs_self.yml (Line: 8, Col: 13): Job 'a' depends on job 'a' which creates a cycle in the dependency graph."
+  ],
+  "jobs": [
+   {
+    "id": "r",
+    "name": "r",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [
+     "a"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "bad_needs_unknown.yml": {
+  "errors": [
+   "bad_needs_unknown.yml (Line: 8, Col: 13): Job 'a' depends on unknown job 'zz'."
+  ],
+  "jobs": [
+   {
+    "id": "r",
+    "name": "r",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [
+     "zz",
+     "r"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "bad_step_id.yml": {
+  "errors": [
+   "bad_step_id.yml (Line: 5, Col: 96): Unexpected value ''"
+  ],
+  "jobs": []
+ },
+ "bad_yaml_flow.yml": {
+  "errors": [
+   "bad_yaml_flow.yml: Flow sequence in block collection must be sufficiently indented and end with a ] at line 2, column 1:\n\non: [push\n\n^\n"
+  ]
+ },
+ "bad_yaml_tab.yml": {
+  "errors": [
+   "bad_yaml_tab.yml: Tabs are not allowed as indentation at line 3, column 1:\n\njobs:\n\ta: 1\n^\n"
+  ]
+ },
+ "big_ids.yml": {
+  "errors": [
+   "big_ids.yml (Line: 3, Col: 3): The identifier 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and and must be less than 100 characters."
+  ],
+  "jobs": [
+   {
+    "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "name": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "bool_scalars.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     },
+     {
+      "id": "__run_2",
+      "if": "success()"
+     },
+     {
+      "id": "__run_3",
+      "if": "success()"
+     },
+     {
+      "id": "__run_4",
+      "if": "success()"
+     },
+     {
+      "id": "__run_5",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "call_inputs.yml": {
+  "errors": [
+   "call_inputs.yml (Line: 10, Col: 18): Unexpected type 'NumberToken' encountered while reading 'input default'. The type 'BooleanToken' was expected."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "workflow_call": {
+    "inputs": {
+     "a": {
+      "type": "string",
+      "required": true
+     },
+     "b": {
+      "type": "boolean"
+     }
+    },
+    "secrets": {
+     "s": {
+      "required": true
+     },
+     "t": {}
+    }
+   }
+  }
+ },
+ "call_inputs_expr_default.yml": {
+  "errors": [
+   "call_inputs_expr_default.yml (Line: 9, Col: 18): Unexpected type 'NumberToken' encountered while reading 'input default'. The type 'StringToken' was expected."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "workflow_call": {
+    "inputs": {
+     "b": {
+      "type": "boolean"
+     },
+     "c": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ },
+ "comment_doc.yml": {
+  "errors": [
+   "comment_doc.yml: Expected a scalar value, a sequence, or a mapping"
+  ]
+ },
+ "concurrency_bad.yml": {
+  "errors": [
+   "concurrency_bad.yml (Line: 2, Col: 25): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "concurrency_converter.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "concurrency_job.yml": {
+  "errors": [
+   "concurrency_job.yml (Line: 5, Col: 49): Unexpected value '1'"
+  ],
+  "jobs": []
+ },
+ "concurrency_queue.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "concurrency_queue_bad.yml": {
+  "errors": [
+   "concurrency_queue_bad.yml (Line: 5, Col: 36): Unexpected value 'other'"
+  ],
+  "jobs": []
+ },
+ "concurrency_string.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "container_bad.yml": {
+  "errors": [
+   "container_bad.yml (Line: 5, Col: 27): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "container_converter.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "container_empty_image.yml": {
+  "errors": [
+   "container_empty_image.yml (Line: 5, Col: 24): Unexpected value ''"
+  ],
+  "jobs": []
+ },
+ "container_entrypoint.yml": {
+  "errors": [
+   "container_entrypoint.yml (Line: 5, Col: 27): Unexpected value 'entrypoint'"
+  ],
+  "jobs": []
+ },
+ "container_expr.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "container_no_image.yml": {
+  "errors": [
+   "container_no_image.yml (Line: 5, Col: 16): Container image cannot be empty"
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "container_string.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "context_always_job_env.yml": {
+  "errors": [
+   "context_always_job_env.yml (Line: 6, Col: 10): Unrecognized function: 'always'"
+  ],
+  "jobs": []
+ },
+ "context_defaults_run.yml": {
+  "errors": [
+   "context_defaults_run.yml (Line: 7, Col: 28): Unrecognized named-value: 'steps'"
+  ],
+  "jobs": []
+ },
+ "context_env_secrets.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "context_job_name.yml": {
+  "errors": [
+   "context_job_name.yml (Line: 5, Col: 11): Unrecognized named-value: 'steps'"
+  ],
+  "jobs": []
+ },
+ "context_job_outputs.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "context_outputs_hash.yml": {
+  "errors": [
+   "context_outputs_hash.yml (Line: 6, Col: 10): Unrecognized function: 'hashFiles'"
+  ],
+  "jobs": []
+ },
+ "context_run_name.yml": {
+  "errors": [
+   "context_run_name.yml (Line: 2, Col: 11): Unrecognized named-value: 'matrix'"
+  ],
+  "jobs": []
+ },
+ "context_runs_on_secrets.yml": {
+  "errors": [
+   "context_runs_on_secrets.yml (Line: 5, Col: 5): 'runs-on' is already defined"
+  ],
+  "jobs": []
+ },
+ "context_step_run.yml": {
+  "errors": [
+   "context_step_run.yml (Line: 5, Col: 19): Unexpected symbol: '\"a\"'. Located at position 11 within expression: hashFiles(\"a\")"
+  ],
+  "jobs": []
+ },
+ "context_success_in_run.yml": {
+  "errors": [
+   "context_success_in_run.yml (Line: 5, Col: 19): Unrecognized function: 'success'"
+  ],
+  "jobs": []
+ },
+ "context_unknown_func.yml": {
+  "errors": [
+   "context_unknown_func.yml (Line: 5, Col: 19): Unrecognized function: 'nope'"
+  ],
+  "jobs": []
+ },
+ "context_workflow_env.yml": {
+  "errors": [
+   "context_workflow_env.yml (Line: 3, Col: 6): Unrecognized named-value: 'matrix'"
+  ],
+  "jobs": []
+ },
+ "credentials_bad.yml": {
+  "errors": [
+   "credentials_bad.yml (Line: 5, Col: 54): Unexpected value 'token'"
+  ],
+  "jobs": []
+ },
+ "cron_only_bad.yml": {
+  "errors": [
+   "cron_only_bad.yml (Line: 3, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 4, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 5, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 6, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 8, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 9, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 14, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 15, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 16, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 17, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 18, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)",
+   "cron_only_bad.yml (Line: 19, Col: 13): Invalid cron expression. Expected format: '* * * * *' (minute hour day month weekday)"
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "schedule": [
+    {
+     "cron": "bad"
+    },
+    {
+     "cron": "61 * * * *"
+    },
+    {
+     "cron": "*/0 * * * *"
+    },
+    {
+     "cron": "0 0 * * 7"
+    },
+    {
+     "cron": "0 0 * jan-mar mon"
+    },
+    {
+     "cron": "0 0 * mar-jan mon"
+    },
+    {
+     "cron": "* * * * * *"
+    },
+    {
+     "cron": "1-5/2 * * * *"
+    },
+    {
+     "cron": "*/5 */2 1,15 * *"
+    },
+    {
+     "cron": "5 4 * * sun"
+    },
+    {
+     "cron": "0  0 * * *"
+    },
+    {
+     "cron": " 0 0 * * *"
+    },
+    {
+     "cron": "1,,2 * * * *"
+    },
+    {
+     "cron": "*/5/2 * * * *"
+    },
+    {
+     "cron": "1-2-3 * * * *"
+    },
+    {
+     "cron": "*-5 * * * *"
+    },
+    {
+     "cron": "5-1 * * * *"
+    },
+    {
+     "cron": "0 0 1-31/2 * *"
+    },
+    {
+     "cron": "0 0 * * MON"
+    },
+    {
+     "cron": "0 0 * Feb *"
+    }
+   ]
+  }
+ },
+ "description_key.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "dispatch_inputs.yml": {
+  "errors": [
+   "dispatch_inputs.yml (Line: 5, Col: 9): Missing 'options' for choice input",
+   "dispatch_inputs.yml (Line: 7, Col: 9): Input type is not 'choice', but 'options' is defined",
+   "dispatch_inputs.yml (Line: 11, Col: 18): Unexpected type 'StringToken' encountered while reading 'input default'. The type 'BooleanToken' was expected."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "workflow_dispatch": {
+    "inputs": {
+     "a": {
+      "type": "choice"
+     },
+     "b": {
+      "type": "string",
+      "options": [
+       "x"
+      ]
+     },
+     "c": {
+      "type": "boolean"
+     },
+     "d": {
+      "type": "environment"
+     },
+     "e": {
+      "type": "string",
+      "description": "x",
+      "required": true,
+      "default": "y"
+     },
+     "f": {}
+    }
+   }
+  }
+ },
+ "dup_job_ids_case.yml": {
+  "errors": [
+   "dup_job_ids_case.yml (Line: 6, Col: 3): 'A' is already defined"
+  ],
+  "jobs": []
+ },
+ "dup_keys.yml": {
+  "errors": [
+   "dup_keys.yml (Line: 2, Col: 1): 'on' is already defined",
+   "dup_keys.yml (Line: 3, Col: 1): Unexpected value 'Name'",
+   "dup_keys.yml (Line: 4, Col: 1): 'name' is already defined",
+   "dup_keys.yml (Line: 8, Col: 5): 'runs-on' is already defined"
+  ],
+  "jobs": []
+ },
+ "empty_doc.yml": {
+  "errors": [
+   "empty_doc.yml: Expected a scalar value, a sequence, or a mapping"
+  ]
+ },
+ "env_nonmap_converter.yml": {
+  "errors": [
+   "env_nonmap_converter.yml (Line: 2, Col: 6): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "environment_converter.yml": {
+  "errors": [
+   "environment_converter.yml (Line: 5, Col: 40): Unexpected value '1'"
+  ],
+  "jobs": []
+ },
+ "environment_forms.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "environment_map.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "environment_no_name.yml": {
+  "errors": [
+   "environment_no_name.yml (Line: 5, Col: 18): Required property is missing: name"
+  ],
+  "jobs": []
+ },
+ "expr_empty.yml": {
+  "errors": [
+   "expr_empty.yml (Line: 6, Col: 14): An expression was expected"
+  ],
+  "jobs": []
+ },
+ "expr_in_key_env.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "expr_insert_embedded.yml": {
+  "errors": [
+   "expr_insert_embedded.yml (Line: 7, Col: 12): The directive 'insert' is not allowed in this context. Directives are not supported for expressions that are embedded within a string. Directives are only supported when the entire value is an expression.",
+   "expr_insert_embedded.yml (Line: 7, Col: 12): Unexpected value 'x ${{ insert }}'"
+  ],
+  "jobs": []
+ },
+ "expr_insert_key.yml": {
+  "errors": [
+   "expr_insert_key.yml (Line: 6, Col: 15): Unexpected value '${{ insert }}'"
+  ],
+  "jobs": []
+ },
+ "expr_insert_matrix.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "expr_insert_params.yml": {
+  "errors": [
+   "expr_insert_params.yml (Line: 7, Col: 9): Exactly 0 parameter(s) were expected following the directive 'insert'. Actual parameter count: 1",
+   "expr_insert_params.yml (Line: 7, Col: 26): Unexpected value '1'"
+  ],
+  "jobs": []
+ },
+ "expr_key_not_allowed.yml": {
+  "errors": [
+   "expr_key_not_allowed.yml (Line: 6, Col: 7): Unrecognized named-value: 'github'"
+  ],
+  "jobs": []
+ },
+ "expr_literal.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "expr_multi.yml": {
+  "errors": [
+   "expr_multi.yml (Line: 6, Col: 14): Unrecognized named-value: 'foo'",
+   "expr_multi.yml (Line: 6, Col: 14): Unexpected symbol: '+'. Located at position 3 within expression: 1 +"
+  ],
+  "jobs": []
+ },
+ "expr_not_closed.yml": {
+  "errors": [
+   "expr_not_closed.yml (Line: 6, Col: 14): The expression is not closed. An unescaped ${{ sequence was found, but the closing }} sequence was not found."
+  ],
+  "jobs": []
+ },
+ "expr_string_braces.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "if_bad_arity.yml": {
+  "errors": [
+   "if_bad_arity.yml (Line: 5, Col: 26): Too many parameters supplied: 'failure'"
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "if_job_ctx.yml": {
+  "errors": [
+   "if_job_ctx.yml (Line: 5, Col: 9): Unrecognized named-value: 'steps'"
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "if_step_job_funcs.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success(1)",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "if_wrapping.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success() && (github.ref == 'x')",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success() && (hashFiles('a'))"
+     },
+     {
+      "id": "__run_2",
+      "if": "always()"
+     },
+     {
+      "id": "__run_3",
+      "if": "failure()"
+     },
+     {
+      "id": "__run_4",
+      "if": "success()"
+     },
+     {
+      "id": "__run_5",
+      "if": "!cancelled()"
+     },
+     {
+      "id": "__run_6",
+      "if": "contains(github.ref, 'a') || success()"
+     },
+     {
+      "id": "__run_7",
+      "if": "toJSON(success())"
+     },
+     {
+      "id": "__run_8",
+      "if": "success() && (true)"
+     },
+     {
+      "id": "__run_9",
+      "if": "success() && (format('{0} == ''x''', github.ref))"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "if_wrapping_nonstring.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success() && (5)",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     },
+     {
+      "id": "__run_2",
+      "if": "success() && (false)"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "inputs_converter_errors.yml": {
+  "errors": [
+   "inputs_converter_errors.yml (Line: 21, Col: 18): Unrecognized named-value: 'github'"
+  ],
+  "jobs": []
+ },
+ "job_env_nonmap.yml": {
+  "errors": [
+   "job_env_nonmap.yml (Line: 5, Col: 10): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "job_name_empty.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "job_name_expr.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "${{ format('x-{0}', matrix.a) }}",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "job_not_map.yml": {
+  "errors": [
+   "job_not_map.yml (Line: 3, Col: 6): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "jobs_dropped_job.yml": {
+  "errors": [
+   "jobs_dropped_job.yml (Line: 8, Col: 10): Unexpected value 'x'",
+   "jobs_dropped_job.yml (Line: 9, Col: 14): Unexpected value 'y'"
+  ],
+  "jobs": []
+ },
+ "jobs_empty.yml": {
+  "errors": [
+   "jobs_empty.yml (Line: 2, Col: 7): The workflow must contain at least one job with no dependencies."
+  ],
+  "jobs": [],
+  "events": {
+   "push": {}
+  }
+ },
+ "jobs_not_map.yml": {
+  "errors": [
+   "jobs_not_map.yml (Line: 2, Col: 7): A sequence was not expected"
+  ],
+  "jobs": []
+ },
+ "multiline_folded.yml": {
+  "errors": [
+   "multiline_folded.yml (Line: 6, Col: 14): Unrecognized named-value: 'bar'"
+  ],
+  "jobs": []
+ },
+ "multiline_plain.yml": {
+  "errors": [
+   "multiline_plain.yml (Line: 6, Col: 14): Unrecognized named-value: 'bar'"
+  ],
+  "jobs": []
+ },
+ "needs_bad_type.yml": {
+  "errors": [
+   "needs_bad_type.yml (Line: 3, Col: 3): The workflow must contain at least one job with no dependencies."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [
+     "3"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "needs_case.yml": {
+  "errors": [
+   "needs_case.yml (Line: 7, Col: 13): Job 'b' depends on unknown job 'A'."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [
+     "A"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "needs_dup.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [
+     "a",
+     "a"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "needs_empty.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "needs_string.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [
+     "a"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "no_jobs.yml": {
+  "errors": [
+   "no_jobs.yml (Line: 1, Col: 1): Required property is missing: jobs"
+  ],
+  "jobs": []
+ },
+ "no_on.yml": {
+  "errors": [
+   "no_on.yml (Line: 1, Col: 1): Required property is missing: on"
+  ],
+  "jobs": []
+ },
+ "no_runs_on.yml": {
+  "errors": [
+   "no_runs_on.yml (Line: 4, Col: 5): Required property is missing: runs-on"
+  ],
+  "jobs": []
+ },
+ "no_steps.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": []
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "null_doc.yml": {
+  "errors": [
+   "null_doc.yml (Line: 1, Col: 1): Unexpected value ''"
+  ],
+  "jobs": []
+ },
+ "on_bad_type.yml": {
+  "errors": [
+   "on_bad_type.yml (Line: 1, Col: 5): Unexpected value '3'"
+  ],
+  "jobs": []
+ },
+ "on_call_secrets.yml": {
+  "errors": [
+   "on_call_secrets.yml (Line: 6, Col: 19): Unexpected value '3'"
+  ],
+  "jobs": []
+ },
+ "on_dispatch_input_unknown_key.yml": {
+  "errors": [
+   "on_dispatch_input_unknown_key.yml (Line: 5, Col: 9): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "on_event_non_mapping.yml": {
+  "errors": [
+   "on_event_non_mapping.yml (Line: 2, Col: 9): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "on_expression.yml": {
+  "errors": [
+   "on_expression.yml (Line: 1, Col: 5): Unrecognized named-value: 'x'",
+   "on_expression.yml (Line: 1, Col: 5): Unexpected value '${{ x }}'"
+  ],
+  "jobs": []
+ },
+ "on_filter_empty_item.yml": {
+  "errors": [
+   "on_filter_empty_item.yml (Line: 3, Col: 16): Unexpected value ''"
+  ],
+  "jobs": []
+ },
+ "on_filter_item_types.yml": {
+  "errors": [
+   "on_filter_item_types.yml (Line: 4, Col: 13): A sequence was not expected"
+  ],
+  "jobs": []
+ },
+ "on_filter_types.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {
+    "branches": [
+     "1"
+    ]
+   }
+  }
+ },
+ "on_filters_both.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {
+    "branches": [
+     "a"
+    ],
+    "branches-ignore": [
+     "b"
+    ],
+    "tags": [
+     "v*"
+    ],
+    "tags-ignore": [
+     "x"
+    ],
+    "paths": [
+     "**.go"
+    ],
+    "paths-ignore": []
+   }
+  }
+ },
+ "on_forms.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {},
+   "pull_request": {},
+   "issues": {
+    "types": [
+     "opened"
+    ]
+   }
+  }
+ },
+ "on_schedule_non_seq.yml": {
+  "errors": [
+   "on_schedule_non_seq.yml (Line: 2, Col: 13): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "on_unknown_event.yml": {
+  "errors": [
+   "on_unknown_event.yml (Line: 1, Col: 12): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "on_unknown_key.yml": {
+  "errors": [
+   "on_unknown_key.yml (Line: 3, Col: 5): Unexpected value 'foo'"
+  ],
+  "jobs": []
+ },
+ "outputs_nonmap.yml": {
+  "errors": [
+   "outputs_nonmap.yml (Line: 5, Col: 14): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "permissions_bad.yml": {
+  "errors": [
+   "permissions_bad.yml (Line: 3, Col: 3): Unexpected value 'bogus'",
+   "permissions_bad.yml (Line: 4, Col: 13): Unexpected value 'maybe'"
+  ],
+  "jobs": []
+ },
+ "permissions_forms.yml": {
+  "errors": [
+   "permissions_forms.yml (Line: 9, Col: 17): Unexpected value 'read'"
+  ],
+  "jobs": []
+ },
+ "quoted_multiline.yml": {
+  "errors": [
+   "quoted_multiline.yml (Line: 6, Col: 14): Unrecognized named-value: 'bar'"
+  ],
+  "jobs": []
+ },
+ "reusable_needs.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [
+     "a"
+    ],
+    "steps": []
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "reusable_ok.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": []
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "reusable_with_runs_on.yml": {
+  "errors": [
+   "reusable_with_runs_on.yml (Line: 5, Col: 5): Unexpected value 'runs-on'"
+  ],
+  "jobs": []
+ },
+ "reusable_with_steps.yml": {
+  "errors": [
+   "reusable_with_steps.yml (Line: 5, Col: 5): Unexpected value 'steps'"
+  ],
+  "jobs": []
+ },
+ "runs_on_bad.yml": {
+  "errors": [
+   "runs_on_bad.yml (Line: 4, Col: 15): A sequence was not expected",
+   "runs_on_bad.yml (Line: 10, Col: 14): Unexpected value ''"
+  ],
+  "jobs": []
+ },
+ "runs_on_converter_labels.yml": {
+  "errors": [
+   "runs_on_converter_labels.yml (Line: 4, Col: 24): A sequence was not expected"
+  ],
+  "jobs": []
+ },
+ "runs_on_forms.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "c",
+    "name": "c",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "runs_on_group_bad.yml": {
+  "errors": [
+   "runs_on_group_bad.yml (Line: 4, Col: 22): Invalid runs-on group name 'foo/bar/baz. Please use 'organization/' or 'enterprise/' prefix to target a single runner group.'",
+   "runs_on_group_bad.yml (Line: 7, Col: 22): Invalid runs-on group name 'org/'.",
+   "runs_on_group_bad.yml (Line: 10, Col: 22): Invalid runs-on group name 'bogus/x. Please use 'organization/' or 'enterprise/' prefix to target a single runner group.'"
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "b",
+    "name": "b",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "c",
+    "name": "c",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "d",
+    "name": "d",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "scalar_doc.yml": {
+  "errors": [
+   "scalar_doc.yml (Line: 1, Col: 1): Unexpected value 'hello'"
+  ],
+  "jobs": []
+ },
+ "seq_doc.yml": {
+  "errors": [
+   "seq_doc.yml (Line: 1, Col: 1): A sequence was not expected"
+  ],
+  "jobs": []
+ },
+ "services_bad.yml": {
+  "errors": [
+   "services_bad.yml (Line: 5, Col: 30): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "services_not_map.yml": {
+  "errors": [
+   "services_not_map.yml (Line: 5, Col: 15): A sequence was not expected"
+  ],
+  "jobs": []
+ },
+ "services_ok.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "snapshot.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "step_both.yml": {
+  "errors": [
+   "step_both.yml (Line: 7, Col: 9): Unexpected value 'uses'"
+  ],
+  "jobs": []
+ },
+ "step_coe_bad.yml": {
+  "errors": [
+   "step_coe_bad.yml (Line: 5, Col: 41): Unexpected value 'yes'"
+  ],
+  "jobs": []
+ },
+ "step_coe_expr.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "step_continue_on_error_num.yml": {
+  "errors": [
+   "step_continue_on_error_num.yml (Line: 5, Col: 41): Unexpected value '1'"
+  ],
+  "jobs": []
+ },
+ "step_empty_uses.yml": {
+  "errors": [
+   "step_empty_uses.yml (Line: 6, Col: 15): Unexpected value ''"
+  ],
+  "jobs": []
+ },
+ "step_env_nonmap.yml": {
+  "errors": [
+   "step_env_nonmap.yml (Line: 5, Col: 27): Unexpected value 'x'"
+  ],
+  "jobs": []
+ },
+ "step_id_100.yml": {
+  "errors": [
+   "step_id_100.yml (Line: 5, Col: 141): The identifier 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and and must be less than 100 characters."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "if": "success()"
+     },
+     {
+      "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "step_ids_only_bad.yml": {
+  "errors": [
+   "step_ids_only_bad.yml (Line: 5, Col: 26): The identifier '1x' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and and must be less than 100 characters.",
+   "step_ids_only_bad.yml (Line: 5, Col: 60): The identifier 's' may not be used more than once within the same scope.",
+   "step_ids_only_bad.yml (Line: 5, Col: 77): The identifier '__x' is invalid. IDs starting with '__' are reserved.",
+   "step_ids_only_bad.yml (Line: 5, Col: 113): The identifier 'a b' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and and must be less than 100 characters.",
+   "step_ids_only_bad.yml (Line: 5, Col: 134): The identifier 'x.y' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and and must be less than 100 characters."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "1x",
+      "if": "success()"
+     },
+     {
+      "id": "s",
+      "if": "success()"
+     },
+     {
+      "id": "s",
+      "if": "success()"
+     },
+     {
+      "id": "__x",
+      "if": "success()"
+     },
+     {
+      "id": "S",
+      "if": "success()"
+     },
+     {
+      "id": "a b",
+      "if": "success()"
+     },
+     {
+      "id": "x.y",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "step_neither.yml": {
+  "errors": [
+   "step_neither.yml (Line: 6, Col: 9): There's not enough info to determine what you meant. Add one of these properties: run, shell, uses, with, working-directory"
+  ],
+  "jobs": []
+ },
+ "step_run_names_collide.yml": {
+  "errors": [
+   "step_run_names_collide.yml (Line: 5, Col: 26): The identifier '__run' is invalid. IDs starting with '__' are reserved."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     },
+     {
+      "id": "_run",
+      "if": "success()"
+     },
+     {
+      "id": "__run",
+      "if": "success()"
+     },
+     {
+      "id": "__run_2",
+      "if": "success()"
+     },
+     {
+      "id": "___x__y",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "step_shell_empty.yml": {
+  "errors": [
+   "step_shell_empty.yml (Line: 5, Col: 29): Unexpected value ''"
+  ],
+  "jobs": []
+ },
+ "step_wd_empty.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "step_with_nonstring.yml": {
+  "errors": [
+   "step_with_nonstring.yml (Line: 5, Col: 53): A sequence was not expected"
+  ],
+  "jobs": []
+ },
+ "steps_empty_list.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": []
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "steps_not_seq.yml": {
+  "errors": [
+   "steps_not_seq.yml (Line: 5, Col: 12): Unexpected value 'a'"
+  ],
+  "jobs": []
+ },
+ "strategy_bad_key.yml": {
+  "errors": [
+   "strategy_bad_key.yml (Line: 6, Col: 7): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "strategy_ctx.yml": {
+  "errors": [
+   "strategy_ctx.yml (Line: 7, Col: 12): Unrecognized named-value: 'steps'",
+   "strategy_ctx.yml (Line: 7, Col: 12): Unexpected value '${{ steps.x.outputs.y }}'"
+  ],
+  "jobs": []
+ },
+ "strategy_matrix_bad.yml": {
+  "errors": [
+   "strategy_matrix_bad.yml (Line: 7, Col: 13): Unexpected value 'foo'"
+  ],
+  "jobs": []
+ },
+ "strategy_matrix_expr.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "strategy_matrix_ok.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "timeout_expr.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "timeout_str.yml": {
+  "errors": [
+   "timeout_str.yml (Line: 5, Col: 22): Unexpected value 'abc'"
+  ],
+  "jobs": []
+ },
+ "two_docs.yml": {
+  "errors": [
+   "two_docs.yml: Source contains multiple documents; please use YAML.parseAllDocuments() at line 3, column 1:\n\njobs: {}\n---\n^\n"
+  ]
+ },
+ "unicode.yml": {
+  "errors": [
+   "unicode.yml (Line: 6, Col: 19): Unrecognized named-value: 'foo'"
+  ],
+  "jobs": []
+ },
+ "unknown_job_key.yml": {
+  "errors": [
+   "unknown_job_key.yml (Line: 5, Col: 5): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "unknown_top_key.yml": {
+  "errors": [
+   "unknown_top_key.yml (Line: 2, Col: 1): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "uses_ids.yml": {
+  "errors": [
+   "uses_ids.yml (Line: 5, Col: 240): The identifier '__run' is invalid. IDs starting with '__' are reserved."
+  ],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__actions_checkout",
+      "if": "success()"
+     },
+     {
+      "id": "__self",
+      "if": "success()"
+     },
+     {
+      "id": "__alpine_3",
+      "if": "success()"
+     },
+     {
+      "id": "__run",
+      "if": "success()"
+     },
+     {
+      "id": "__run_2",
+      "if": "success()"
+     },
+     {
+      "id": "__actions_checkout_2",
+      "if": "success()"
+     },
+     {
+      "id": "__run_3",
+      "if": "success()"
+     },
+     {
+      "id": "__a_b",
+      "if": "success()"
+     },
+     {
+      "id": "__self_2",
+      "if": "success()"
+     },
+     {
+      "id": "__run_4",
+      "if": "success()"
+     },
+     {
+      "id": "__a_b_2",
+      "if": "success()"
+     },
+     {
+      "id": "__self_3",
+      "if": "success()"
+     },
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "valid_full.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "build",
+    "name": "${{ format('Build {0}', matrix.os) }}",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__actions_checkout",
+      "if": "success()"
+     },
+     {
+      "id": "s",
+      "if": "success() && (github.ref == 'refs/heads/main')"
+     },
+     {
+      "id": "__run",
+      "if": "always()"
+     }
+    ]
+   },
+   {
+    "id": "test",
+    "name": "test",
+    "if": "success() && (needs.build.result == 'success')",
+    "needs": [
+     "build"
+    ],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   },
+   {
+    "id": "deploy",
+    "name": "deploy",
+    "if": "success()",
+    "needs": [
+     "build",
+     "test"
+    ],
+    "steps": []
+   }
+  ],
+  "events": {
+   "push": {
+    "branches": [
+     "main",
+     "release/**"
+    ],
+    "tags": [
+     "v*"
+    ],
+    "paths": [
+     "src/**"
+    ]
+   },
+   "pull_request": {
+    "branches-ignore": [
+     "wip"
+    ]
+   },
+   "schedule": [
+    {
+     "cron": "30 5,17 * * 1-5"
+    }
+   ],
+   "workflow_dispatch": {
+    "inputs": {
+     "level": {
+      "type": "choice",
+      "options": [
+       "a",
+       "b"
+      ],
+      "default": "a"
+     }
+    }
+   }
+  }
+ },
+ "valid_minimal.yml": {
+  "errors": [],
+  "jobs": [
+   {
+    "id": "a",
+    "name": "a",
+    "if": "success()",
+    "needs": [],
+    "steps": [
+     {
+      "id": "__run",
+      "if": "success()"
+     }
+    ]
+   }
+  ],
+  "events": {
+   "push": {}
+  }
+ },
+ "workflow_defaults_bad.yml": {
+  "errors": [
+   "workflow_defaults_bad.yml (Line: 4, Col: 5): Unexpected value 'bogus'"
+  ],
+  "jobs": []
+ },
+ "yes_no.yml": {
+  "errors": [
+   "yes_no.yml (Line: 5, Col: 24): Unexpected value 'yes'"
+  ],
+  "jobs": []
+ }
+}

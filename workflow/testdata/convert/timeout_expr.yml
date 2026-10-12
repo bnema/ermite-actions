@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.t }}
+    steps: [{run: a}]

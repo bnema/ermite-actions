@@ -1,0 +1,25 @@
+on:
+  workflow_dispatch:
+    inputs:
+      a:
+        type: choice
+        options: []
+      b:
+        type: string
+        options: [x]
+      c:
+        type: boolean
+        default: foo
+      d:
+        type: string
+        default: 5
+      e:
+        type: number
+        default: 'x'
+      f:
+        type: boolean
+        default: ${{ github.ref }}
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]
