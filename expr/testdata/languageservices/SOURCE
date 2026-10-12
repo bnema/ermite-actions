@@ -1,0 +1,6 @@
+The *.json files in this directory are copied unmodified from
+https://github.com/actions/languageservices, directory expressions/testdata,
+commit 4043eda158e16579cc5fb1b0b07a4bce2a76f0b5 (MIT, Copyright GitHub, Inc.;
+see ../../../THIRD_PARTY.md). They are shared by the TypeScript and the C#
+implementations of GitHub Actions expressions. ../../xlang_test.go replays
+them the way expressions/src/xlang.test.ts of that repository does.
