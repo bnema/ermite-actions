@@ -55,20 +55,67 @@ func errorTexts(errs []Error) []string {
 // the JavaScript expression library: no position suffix, and the function name
 // in arity errors. package expr follows the C# runner, which is what runs the
 // workflow: "<description>: '<token>'. Located at position N within
-// expression: <expression>", with the "(" token in arity errors. The tests
-// compare after reducing both to the part the two share.
+// expression: <expression>", with the "(" token in arity errors. Only the
+// reference's side is rewritten (sameErrorAsReference); what this package reports
+// is compared as it is, and must carry the runner's suffix.
 var (
-	runnerSuffix = regexp.MustCompile(`(?s)\. Located at position \d+ within expression: .*$`)
-	runnerArity  = regexp.MustCompile(`((?:Too few|Too many) parameters supplied|Even number of parameters supplied, requires an odd number of parameters): '[^']*'`)
+	runnerArity = regexp.MustCompile(`((?:Too few|Too many) parameters supplied|Even number of parameters supplied, requires an odd number of parameters): '[^']*'`)
+	// exprError recognises the messages of package expr that the runner ends
+	// with its position suffix.
+	exprError    = regexp.MustCompile(`: (?:Unrecognized named-value|Unrecognized function|Unexpected symbol|Unexpected end of expression|Too few parameters supplied|Too many parameters supplied|Even number of parameters supplied, requires an odd number of parameters): '`)
+	runnerSuffix = regexp.MustCompile(`^\. Located at position \d+ within expression: .+$`)
 )
 
-func runnerNeutral(msgs []string) []string {
-	out := make([]string, len(msgs))
-	for i, m := range msgs {
-		m = runnerSuffix.ReplaceAllString(m, "")
-		out[i] = runnerArity.ReplaceAllString(m, "$1: '...'")
+// sameErrorAsReference reports whether got, the message of this package, is the
+// reference's want in the runner's wording: the reference's arity errors name
+// the function where the runner names "(", and its expression errors lack the
+// position suffix that the runner adds (when the reference has it already, as
+// for lexer errors, the message must be the same).
+func sameErrorAsReference(got, want string) bool {
+	want = runnerArity.ReplaceAllString(want, "$1: '('")
+	if !exprError.MatchString(want) {
+		return got == want
 	}
-	return out
+	if strings.Contains(want, ". Located at position ") {
+		return got == want
+	}
+	rest, ok := strings.CutPrefix(got, want)
+	return ok && runnerSuffix.MatchString(rest)
+}
+
+func sameErrorsAsReference(got, want []string) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	for i := range got {
+		if !sameErrorAsReference(got[i], want[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func TestSameErrorAsReference(t *testing.T) {
+	const loc = ". Located at position 3 within expression: a b"
+	for _, tc := range []struct {
+		name, got, want string
+		ok              bool
+	}{
+		{"suffix added", "f.yml (Line: 1, Col: 1): Unrecognized named-value: 'a'" + loc, "f.yml (Line: 1, Col: 1): Unrecognized named-value: 'a'", true},
+		{"suffix missing", "f.yml (Line: 1, Col: 1): Unrecognized named-value: 'a'", "f.yml (Line: 1, Col: 1): Unrecognized named-value: 'a'", false},
+		{"suffix empty expression", "f.yml (Line: 1, Col: 1): Unexpected symbol: 'a'. Located at position 3 within expression: ", "f.yml (Line: 1, Col: 1): Unexpected symbol: 'a'", false},
+		{"arity names the paren", "f.yml (Line: 1, Col: 1): Too many parameters supplied: '('" + loc, "f.yml (Line: 1, Col: 1): Too many parameters supplied: 'failure'", true},
+		{"arity names the function", "f.yml (Line: 1, Col: 1): Too many parameters supplied: 'failure'" + loc, "f.yml (Line: 1, Col: 1): Too many parameters supplied: 'failure'", false},
+		{"different token", "f.yml (Line: 1, Col: 1): Unrecognized named-value: 'b'" + loc, "f.yml (Line: 1, Col: 1): Unrecognized named-value: 'a'", false},
+		{"reference has the suffix", "f.yml (Line: 1, Col: 1): Unexpected symbol: '+'. Located at position 3 within expression: 1 +", "f.yml (Line: 1, Col: 1): Unexpected symbol: '+'. Located at position 3 within expression: 1 +", true},
+		{"reference suffix differs", "f.yml (Line: 1, Col: 1): Unexpected symbol: '+'. Located at position 4 within expression: 1 +", "f.yml (Line: 1, Col: 1): Unexpected symbol: '+'. Located at position 3 within expression: 1 +", false},
+		{"not an expression error", "f.yml (Line: 1, Col: 1): Unexpected value '${{ x }}'", "f.yml (Line: 1, Col: 1): Unexpected value '${{ x }}'", true},
+		{"not an expression error with a suffix", "f.yml (Line: 1, Col: 1): Unexpected value '${{ x }}'" + loc, "f.yml (Line: 1, Col: 1): Unexpected value '${{ x }}'", false},
+	} {
+		if got := sameErrorAsReference(tc.got, tc.want); got != tc.ok {
+			t.Errorf("%s: got %v, want %v", tc.name, got, tc.ok)
+		}
+	}
 }
 
 // isYAMLError recognises the reference's YAML syntax errors, whose text is
@@ -122,7 +169,7 @@ func TestConvertAgainstReference(t *testing.T) {
 				}
 				return
 			}
-			if !reflect.DeepEqual(runnerNeutral(nonNil(got)), runnerNeutral(nonNil(want.Errors))) {
+			if !sameErrorsAsReference(nonNil(got), nonNil(want.Errors)) {
 				t.Errorf("errors differ\n got: %q\nwant: %q", got, want.Errors)
 			}
 			if len(want.Errors) > 0 {
