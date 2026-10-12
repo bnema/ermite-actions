@@ -1,0 +1,1 @@
+{"action":"opened","number":1,"pull_request":{"id":1,"draft":false,"labels":[{"name":"bug","color":"d73a4a"},{"name":"docs","color":null}],"head":{"ref":"feat/x","sha":"abc123"}},"repository":{"full_name":"octo/repo","private":true,"topics":[]}}

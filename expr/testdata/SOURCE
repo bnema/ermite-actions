@@ -1,0 +1,11 @@
+oracle.json.gz and tojson/*.golden are outputs of @actions/expressions 0.3.61
+(https://github.com/actions/languageservices, MIT, Copyright GitHub, Inc.) run
+on expressions and JSON inputs written for this repository. They are generated
+by ../gen/oracle.mjs and ../gen/golden.mjs. See ../../THIRD_PARTY.md.
+
+Reference package: @actions/expressions 0.3.61
+  integrity (sha512 of actions-expressions-0.3.61.tgz, computed locally in
+  the format of the npm registry "dist.integrity" field):
+  sha512-Ig+tXELvTjlqxQAWBQnLNn2dPpNraLMdSnT+vDzDPmJtbNUhIAH/Z9kVT8pZ8UtJi9vUGs8hwHE8JFJmbOnLEA==
+Generated with: node v25.2.1 (V8 14.1.146.11-node.14, Unicode 16.0)
+The same values are in the "reference" field of oracle.json.gz.
