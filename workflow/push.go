@@ -47,7 +47,8 @@ type PushInfo struct {
 //   - when both a branches and a tags filter exist, a ref is checked against
 //     the filter for its kind;
 //   - paths and paths-ignore apply to branch pushes only, against the first
-//     3000 changed files; when the list is truncated they pass;
+//     3000 changed files; when the list is unavailable (see
+//     [PushInfo.FilesTruncated]) they pass;
 //   - patterns are evaluated in order and the last one that matches wins.
 //
 // Commit-message directives are separate: see [SkipCI].

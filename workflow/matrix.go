@@ -34,8 +34,9 @@ type MatrixCombo struct {
 	// they were first added.
 	Values *expr.Dictionary
 	// Segments are the scalar values of Values, in order, shown in the name
-	// of the job: "build (ubuntu-latest, 14)". Arrays, mappings, null and the
-	// empty string are left out, like GitHub does (matrix-edge-values).
+	// of the job: "build (ubuntu-latest, 14)". Null and the empty string are
+	// left out, as recorded (matrix-edge-values); arrays and mappings are
+	// left out too, which is assumed.
 	Segments []string
 }
 
@@ -62,23 +63,26 @@ func (c MatrixCombo) DisplayName(base string) string {
 //     mentions no vector key matches all), without overwriting the original
 //     values; an entry that matches no combination becomes a combination of
 //     its own;
-//   - more than 256 jobs is a a limit error. A strategy without a
-//     matrix gives a single combination.
+//   - more than 256 jobs is an error. A strategy without a matrix gives a
+//     single combination.
 //
 // The work is bounded: the product of the vectors may not exceed
 // [MaxMatrixProduct], include and exclude may have [MaxMatrixEntries] entries
 // each, and ctx is checked every few thousand combinations.
 //
-// Recorded on github.com (scenarios matrix-edge-values and matrix-over-256):
-// the unknown exclude key error, reported once per offending entry, the 256
-// limit with the number of configurations produced, and the omission of null
-// and ” from the default name. Still assumed, from the documented semantics
-// of include and exclude: the order of the cross product (first key slowest),
-// the display name listing every scalar value including those added by
-// include (see [MatrixCombo.DisplayName]), the comparison of values (same
-// kind, strings compared exactly, mappings by containment), an include key
-// matching a vector key case-insensitively, the error when every combination
-// is excluded, the other limits above, and the wording of the other errors.
+// What github.com settled. Recorded (matrix-edge-values): null and the empty
+// string are left out of the default job name. For matrix-edge-values (exclude key not
+// in the matrix) and matrix-over-256 the recordings hold only a failed run
+// with no job: the wording of the two errors below, and the unknown exclude
+// key being reported once per offending entry, were observed on the github.com
+// run page, not in the recordings. Still assumed, from the documented
+// semantics of include and exclude: the order of the cross product (first key
+// slowest), the display name listing every scalar value including those
+// added by include (see [MatrixCombo.DisplayName]), the comparison of values
+// (same kind, strings compared exactly, mappings by containment), an include
+// key matching a vector key case-insensitively, the error when every
+// combination is excluded, the other limits above, and the wording of the
+// other errors.
 func ExpandMatrix(ctx context.Context, strategy expr.Value) ([]MatrixCombo, error) {
 	s, err := ParseStrategy(ctx, strategy)
 	if err != nil {
@@ -159,10 +163,12 @@ func (m message) Error() string { return string(m) }
 var errProductTooBig = fmt.Errorf("matrix too large: the cross product of the vectors exceeds %d combinations", MaxMatrixProduct)
 
 // configurationLimitError is returned when a matrix produces more than
-// [MaxMatrixJobs] configurations. Its text is GitHub's (recorded by
-// matrix-over-256): "Strategy for job 'too-many' produced 272 configurations
-// which exceeds the maximum of 256 configurations". Job is empty when the
-// matrix was expanded without a job, see [Job.EvaluateStrategy].
+// [MaxMatrixJobs] configurations. Its text is the one observed on the
+// github.com run page for matrix-over-256 (not in the recordings, which only
+// hold the failed run): "Strategy for job 'too-many' produced 272
+// configurations which exceeds the maximum of 256 configurations". Job is
+// empty when the matrix was expanded without a job, see
+// [Job.EvaluateStrategy].
 type configurationLimitError struct {
 	// Job is the id of the job.
 	Job string
@@ -412,10 +418,11 @@ func valuesMatch(have, want expr.Value) bool {
 	return false
 }
 
-// segment is the text a matrix value adds to the name of a job; arrays,
-// mappings, null and the empty string add nothing (matrix-edge-values:
-// "default-name", "two-axes (x)"); numbers and booleans are shown as in an
-// expression ("1.5", "true").
+// segment is the text a matrix value adds to the name of a job. Null and the
+// empty string add nothing, numbers and booleans are shown as in an
+// expression ("1.5", "true"); all recorded (matrix-edge-values:
+// "default-name", "two-axes (x)"). Arrays and mappings add nothing: assumed,
+// not recorded.
 func segment(v expr.Value) (string, bool) {
 	switch v.(type) {
 	case nil, expr.Null, *expr.Array, *expr.Dictionary:

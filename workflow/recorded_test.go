@@ -9,8 +9,11 @@ import (
 
 // TestRecordedInvalidWorkflows parses the workflow files of the recorded
 // scenarios expr-status-in-env, expr-status-in-run, invalid-needs and
-// invalid-schema, which GitHub refused (a failed run without jobs), and checks
-// the messages. The valid sibling of each scenario is in TestRecordedValid.
+// invalid-schema, which GitHub refused (a failed run without jobs; the
+// recordings do not hold the messages), and checks that this package refuses
+// them, with the reference parser's messages, except for the status functions
+// whose message was observed on the github.com run page. The valid sibling of
+// each scenario is in TestRecordedValid.
 func TestRecordedInvalidWorkflows(t *testing.T) {
 	const on = "on:\n  push:\n    branches: ['scn/**']\n"
 	tests := []struct {

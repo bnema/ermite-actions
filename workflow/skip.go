@@ -23,10 +23,12 @@ var skipMarkers = []string{"[skip ci]", "[ci skip]", "[no ci]", "[skip actions]"
 //     trailer, with another value ("false", "yes"), or with any change of case
 //     in the key or the value.
 //
-// Not recorded, so assumed: more than two blank lines before the trailer
-// count like two, trailing blank lines and CRLF line ends are ignored, more
-// than one space after the colon is not accepted, and a message
-// made of the trailer alone does not skip.
+// Not recorded, so assumed: only the head commit of a push is looked at (the
+// scenarios push one commit at a time); more than two blank lines before the
+// trailer count like two; a line holding only spaces or tabs is not blank
+// (the two lines before the trailer must be empty); trailing blank lines and
+// CRLF line ends are ignored; more than one space after the colon is not
+// accepted; and a message made of the trailer alone does not skip.
 func SkipCI(headCommitMessage string) bool {
 	for _, m := range skipMarkers {
 		if strings.Contains(headCommitMessage, m) {

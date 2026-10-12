@@ -382,15 +382,17 @@ func TestRecordedMatrixNames(t *testing.T) {
 	if got := names(`{"os": ["a", "b"], "n": [1, 2]}`); !reflect.DeepEqual(got, want) {
 		t.Errorf("matrix-job-name: got %q, want %q", got, want)
 	}
-	// matrix-value-types: objects are not listed ("types 2.5 false" has a
-	// custom name, so only the default name is checked here).
+	// Objects are not listed. Assumed, not recorded: matrix-value-types has
+	// custom names only.
 	if got := names(`{"n": [1], "obj": [{"k": "v"}]}`); !reflect.DeepEqual(got, []string{"default-name (1)"}) {
 		t.Errorf("object value: got %q", got)
 	}
 }
 
 // TestRecordedExcludeUnknownKey is matrix-edge-values a-exclude-unknown-key.yml:
-// exclude: [{nokey: x}, {os: one, nokey: y}] made the workflow invalid.
+// exclude: [{nokey: x}, {os: one, nokey: y}] made the workflow invalid. The
+// recording holds only the failed run; the message, once per offending entry,
+// was observed on the github.com run page.
 func TestRecordedExcludeUnknownKey(t *testing.T) {
 	_, err := ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"os": ["one", "two"], "exclude": [{"nokey": "x"}, {"os": "one", "nokey": "y"}]}}`))
 	const one = "Matrix exclude key 'nokey' does not match any key within the matrix"
@@ -405,7 +407,9 @@ func TestRecordedExcludeUnknownKey(t *testing.T) {
 }
 
 // TestRecordedMatrixOver256 is the scenario matrix-over-256: 17 x 16 = 272
-// configurations in job too-many made the workflow invalid.
+// configurations in job too-many made the workflow invalid. The recording
+// holds only the failed run; the message was observed on the github.com run
+// page.
 func TestRecordedMatrixOver256(t *testing.T) {
 	w, errs := Parse("ci.yml", []byte(`on: push
 jobs:

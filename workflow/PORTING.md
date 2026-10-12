@@ -43,16 +43,19 @@ code.
 ## Recorded (github.com, ermite-conformance corpus)
 
 - Status functions (`success()`, `failure()`, `always()`, `cancelled()`) in
-  `env` or `run` expressions make the workflow invalid with
-  `Unrecognized function: 'success'. Located at position 1 within expression:
-  success()` (expr-status-in-env, expr-status-in-run); `TestRecordedInvalidWorkflows`.
-- Invalid workflow messages: `The workflow must contain at least one job with
+  `env` or `run` expressions make the workflow invalid (recorded:
+  expr-status-in-env, expr-status-in-run, each a failed run with no job). The
+  text `Unrecognized function: 'success'. Located at position 1 within
+  expression: success()` is the one observed on the github.com run page, not in
+  the recordings; `TestRecordedInvalidWorkflows`.
+- Invalid workflow messages (the recordings hold the failed run only, not the
+  text; the messages are those of the reference parser, which refuses the same
+  files): `The workflow must contain at least one job with
   no dependencies.` (no root job: needs on an unknown job or a cycle with no
   other root), `Job 'x' depends on unknown job 'y'.`, `Job 'x' depends on job
   'y' which creates a cycle in the dependency graph.`, `Required property is
   missing: runs-on`, `Unexpected value 'unknown-key'` (invalid-needs,
-  invalid-schema). GitHub's recordings do not keep the text of the message; ours
-  are the reference parser's, which the corpus shows refuses the same files.
+  invalid-schema).
 
 ## To verify (recordings)
 
@@ -75,10 +78,15 @@ code.
       skip-checks-trailer, skip-directive-tag): markers are case-sensitive,
       anywhere; `skip-checks: true` needs two blank lines before it and
       nothing after it, in exact case. The tag case is the caller's: the
-      message of the commit the tag points at. Only the head commit counts.
-- [ ] **`ExpandMatrix`** (recorded: the unknown exclude key, once per
-      offending entry, and the 256 limit message, see
-      `configurationLimitError`; matrix-edge-values, matrix-over-256): order of the product (first key slowest), include
+      message of the commit the tag points at. Assumed, not recorded: only
+      the head commit counts (the scenarios push one commit at a time); a
+      line of spaces or tabs is not a blank line; more than two blank lines
+      count like two.
+- [ ] **`ExpandMatrix`**: the unknown exclude key error (once per offending
+      entry) and the over-256 message (`configurationLimitError`) are the
+      texts observed on the github.com run page for matrix-edge-values and
+      matrix-over-256, not in the recordings (a failed run with no job). To
+      verify: order of the product (first key slowest), include
       semantics (added to every matching combination, never overwriting
       original values, later includes overwrite earlier added values, a
       non-matching include is a new combination, match by vector keys only),
@@ -86,15 +94,16 @@ code.
       combinations after include, key case-insensitivity, value comparison
       (same kind; objects by containment), the error when all combinations are
       excluded (GitHub may fail the run differently), empty vector error.
-- [x] A **null or empty matrix value** is not shown in the job name
+- [x] A **null or empty (`''`) matrix value** is not shown in the job name
       (recorded: matrix-edge-values).
-- [x] **Job display names** (`MatrixCombo.DisplayName`, `Job.DisplayName`;
-      recorded: matrix-job-name, matrix-edge-values):
-      `name (v1, v2)` listing every scalar value of the combination in key
-      order, then keys added by include; a name that reads the `matrix`
+- [ ] **Job display names** (`MatrixCombo.DisplayName`, `Job.DisplayName`):
+      recorded in matrix-job-name and matrix-edge-values: `name (v1, v2)`
+      listing the values in key order, numbers and booleans as
+      `CoerceString` shows them, a name that does not read `matrix` followed
+      by the values. Assumed: the keys added by include come after the vector
+      keys; arrays and objects are left out; a name that reads the `matrix`
       context (found in the expression's syntax tree, not by searching the
-      text) is used as is. Booleans and numbers are shown with `CoerceString`; null, `''`, arrays
-      and objects are left out.
+      text) is used as is.
 - [ ] **`strategy` context** (`Strategy.Context`): `fail-fast`, `job-index`,
       `job-total`, `max-parallel` (the job count when unlimited).
 - [ ] `fail-fast` and `max-parallel` accept strings (`"false"`, `"2"`) after

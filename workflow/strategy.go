@@ -167,8 +167,8 @@ func (s *Strategy) MatrixEnv(env template.Env, index int) (template.Env, error) 
 // already include the matrix and strategy contexts, see [Strategy.MatrixEnv].
 //
 // Recorded on github.com (matrix-job-name): "default-name (a, 1)", a custom
-// name using the matrix as is, and a custom name that does not read the matrix
-// followed by the values ("same name for every leg (1)").
+// name using the matrix as is, and a custom name that does not read the
+// matrix followed by the values ("same name for every leg (1)").
 func (j *Job) DisplayName(ctx context.Context, env template.Env, s *Strategy, index int) (string, error) {
 	if index < 0 || index >= len(s.Combos) {
 		return "", fmt.Errorf("matrix combination %d out of range (%d combinations)", index, len(s.Combos))

@@ -60,6 +60,10 @@ func TestSkipCI(t *testing.T) {
 		{"crlf", "x\r\n\r\n\r\nskip-checks: true\r\n", true},
 		{"three blank lines", "x\n\n\n\nskip-checks: true", true},
 		{"trailer alone", "\n\n\nskip-checks: true", false},
+		// A line with only white space is not blank (GO-006, assumed).
+		{"space-only lines before trailer", "x\n \n \nskip-checks: true", false},
+		{"one space-only line before trailer", "x\n\n \nskip-checks: true", false},
+		{"tab-only lines before trailer", "x\n\t\n\t\nskip-checks: true", false},
 		{"empty", "", false},
 	}
 	for _, tc := range tests {
