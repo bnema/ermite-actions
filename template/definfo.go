@@ -39,7 +39,8 @@ func newDefinitionInfo(s *Schema, parent *DefinitionInfo, d *Definition) *Defini
 			}
 		}
 	} else if parent != nil {
-		di.allowed = parent.allowed
+		di.allowed, di.named, di.funcs = parent.allowed, parent.named, parent.funcs
+		return di
 	}
 	di.named, di.funcs = splitAllowedContext(di.allowed)
 	return di

@@ -20,12 +20,25 @@ type Error struct {
 	Pos Pos
 	// Raw is the message without the "file (Line: l, Col: c): " prefix.
 	Raw string
+
+	// fileOnly makes the prefix the file name alone, for errors of the YAML
+	// parser, which the reference reports without a position.
+	fileOnly bool
+
+	cause error
 }
+
+// Unwrap returns the error of package expr behind an evaluation error, if any.
+func (e *Error) Unwrap() error { return e.cause }
 
 // Error returns the message with its prefix, as the reference does:
 // "file.yml (Line: 3, Col: 5): message".
 func (e *Error) Error() string {
-	if p := errorPrefix(e.File, e.Pos); p != "" {
+	pos := e.Pos
+	if e.fileOnly {
+		pos = Pos{}
+	}
+	if p := errorPrefix(e.File, pos); p != "" {
 		return p + ": " + e.Raw
 	}
 	return e.Raw

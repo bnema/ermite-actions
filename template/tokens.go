@@ -140,7 +140,8 @@ type BasicExpression struct {
 	// Source is the unprocessed text of the value the token was read from.
 	Source string
 
-	node expr.Node
+	node     expr.Node
+	parseErr error
 }
 
 // InsertExpression is the ${{ insert }} directive.
@@ -192,14 +193,19 @@ func NewSequence(o Origin, items ...Token) *Sequence {
 // NewMapping returns an empty mapping token.
 func NewMapping(o Origin) *Mapping { return &Mapping{tokenBase: mk(o)} }
 
-// NewExpression returns an expression token. It is parsed when first
-// evaluated, against the contexts and functions allowed by def, or, when def
-// is nil, against whatever the evaluation environment provides.
+// NewExpression returns an expression token. The text is parsed at once
+// against the contexts and functions allowed by def; with a nil def no
+// context and no function besides the built-in ones is allowed. A parse error
+// is returned by [Evaluate] and [BasicExpression.Err].
 func NewExpression(o Origin, expression string, def *DefinitionInfo) *BasicExpression {
 	t := &BasicExpression{tokenBase: mk(o), Expression: expression}
 	t.def = def
+	t.node, t.parseErr = parseWith(expression, def)
 	return t
 }
+
+// Err returns the error of parsing the expression, or nil.
+func (t *BasicExpression) Err() error { return t.parseErr }
 
 // Add appends a pair.
 func (m *Mapping) Add(key, value Token) { m.Pairs = append(m.Pairs, Pair{key, value}) }
