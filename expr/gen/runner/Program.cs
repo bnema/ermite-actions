@@ -121,6 +121,19 @@ internal static class P
             }
             return 0;
         }
+        if (args[0] == "--num")
+        {
+            // Debug aid: each input line is a string as dot-separated hexadecimal UTF-16 code units ("-" for the
+            // empty string); prints the IEEE 754 bits (hexadecimal) of ExpressionUtility.ParseNumber of it.
+            foreach (var line in File.ReadLines(args[1]))
+            {
+                var sb = new StringBuilder();
+                if (line.Trim() != "-") foreach (var u in line.Trim().Split('.')) sb.Append((char)Convert.ToInt32(u, 16));
+                var d = ExpressionUtility.ParseNumber(sb.ToString());
+                Console.WriteLine(double.IsNaN(d) ? "NaN" : BitConverter.DoubleToInt64Bits(d).ToString("x"));
+            }
+            return 0;
+        }
         if (args[0] == "--g15")
         {
             // Debug aid: one hexadecimal IEEE 754 bit pattern per input line, the G15 form per output line.

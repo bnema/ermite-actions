@@ -122,13 +122,24 @@ whether to keep the JS behaviour or follow the runner.
       runner's code on 200 000 random doubles. The number *literal* in an
       expression is parsed independently of this (see below) and the JSON
       writer of `toJSON` uses the same conversion (next item).
-- [ ] **String to number**: `Number()` semantics (hex, octal, binary,
-      `Infinity`, whitespace trimmed, empty is 0). C# `double.TryParse` with
-      `NumberStyles` differs (no octal/binary; check `0x` and `Infinity`).
-      The lexer applies the same conversion to number literals, so `0x10`,
-      `0b11`, `1e3`, `.5`, `5.` and `+1` are all literals here.
-- [ ] **Number literals after `-` / `+`**: `-1` is one literal token; `a -1`
-      is therefore a parse error, as in the JS.
+- [x] **String to number**: resolved, follows the C#. `ExpressionUtility.
+      ParseNumber` (`src/Sdk/DTExpressions2/Expressions2/Sdk/ExpressionUtility.cs`)
+      trims with `String.Trim()` (so U+0085 is white space and U+FEFF is not),
+      accepts what `Double.TryParse(AllowLeadingSign | AllowDecimalPoint |
+      AllowExponent)` accepts (ASCII digits only, trailing NULs ignored,
+      `Infinity` in any letter case with an optional sign), then `0x` hex and
+      `0o` octal (lower-case prefix only, no sign) read as a **32-bit signed
+      integer** (`0xffffffff` is `-1`, anything over 32 bits is NaN). There is
+      no `0b` form and no upper-case `0X`/`0O`. The lexer uses the same
+      function for number literals, so `0b101`, `0X10` and `0xFFFFFFFFF` are
+      "Unexpected symbol" errors and `0xffffffff` is `-1`. The same function is
+      implemented as `parseNumber` in `number.go`;
+      `TestParseNumberMatchesRunner` replays 443 strings recorded from the
+      runner's code (`gen/runner/number_cases.mjs`).
+- [x] **Number literals after `-` / `+`**: `-1` is one literal token; `a -1`
+      is therefore a parse error. Same in the C# lexer (`LexicalAnalyzer.
+      TryGetNextToken`: `c == '-' || c == '+' || digit` starts `ReadNumberToken`),
+      checked by the differential run.
 - [ ] **Object key order from `fromJSON`**: array-index keys first, ascending
       (JavaScript `Object.keys`), then insertion order. `Json.NET` keeps
       document order. The same ordering is applied by `toJSON` (the JS

@@ -253,7 +253,7 @@ func toNumber(v Value) float64 {
 	case Number:
 		return float64(x)
 	case String:
-		return jsToNumber(string(x))
+		return parseNumber(string(x))
 	}
 	return nan
 }

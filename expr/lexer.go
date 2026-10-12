@@ -271,7 +271,7 @@ func (l *lexer) consumeNumber() error {
 		l.next()
 	}
 	lexeme := l.substring(l.start, l.offset)
-	v := jsToNumber(lexeme)
+	v := parseNumber(lexeme)
 	if math.IsNaN(v) {
 		return l.unexpected(lexeme)
 	}

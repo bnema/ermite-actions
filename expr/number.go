@@ -4,7 +4,6 @@ package expr
 
 import (
 	"math"
-	"math/big"
 	"strconv"
 	"strings"
 )
@@ -78,55 +77,112 @@ func numberToCoercedString(x float64) string {
 	return sign + digits[:exp+1] + "." + digits[exp+1:]
 }
 
-// jsToNumber is Number(string): the StringToNumber algorithm of ECMAScript.
-// Surrounding whitespace is ignored, the empty string is 0, and the accepted
-// forms are decimal literals with optional sign, fraction and exponent,
-// [+-]Infinity, and unsigned 0x, 0o and 0b integers. Everything else, including
-// digit separators and "inf" or "nan", is NaN.
-func jsToNumber(s string) float64 {
-	s = jsTrim(s)
+// isNetSpace reports whether r is white space for .NET's Char.IsWhiteSpace,
+// which String.Trim() removes: U+0009..U+000D, U+0020, U+0085, U+00A0,
+// U+1680, U+2000..U+200A, U+2028, U+2029, U+202F, U+205F and U+3000. (The
+// JavaScript trim also removes U+FEFF and not U+0085.)
+func isNetSpace(r rune) bool {
+	switch {
+	case r >= 0x09 && r <= 0x0D, r == 0x20, r == 0x85, r == 0xA0, r == 0x1680,
+		r >= 0x2000 && r <= 0x200A, r == 0x2028, r == 0x2029, r == 0x202F, r == 0x205F, r == 0x3000:
+		return true
+	}
+	return false
+}
+
+// parseNumber converts a string to a number the way the runner does,
+// ExpressionUtility.ParseNumber (src/Sdk/DTExpressions2/Expressions2/Sdk/
+// ExpressionUtility.cs), which is used for number literals in expressions and
+// for every implicit string-to-number conversion:
+//
+//   - the string is trimmed (see isNetSpace); empty means 0;
+//   - Double.TryParse with AllowLeadingSign | AllowDecimalPoint |
+//     AllowExponent in the invariant culture: [sign] digits [. digits]
+//     [e [sign] digits], at least one digit around the point, ASCII digits
+//     only, an out-of-range exponent giving an infinity, "Infinity" and
+//     "-Infinity" in any letter case, NaN, and any number of trailing NUL
+//     characters, which .NET ignores;
+//   - "0x" followed by hexadecimal digits and "0o" followed by octal digits
+//     (lower-case prefix, no sign), read as a 32-bit two's-complement
+//     integer: 0xffffffff is -1, and a value that does not fit in 32 bits is
+//     NaN. There is no binary form;
+//   - everything else is NaN.
+//
+// The JavaScript reference uses Number(), which differs: 0X, 0O and 0B
+// prefixes, 64-bit exactness, no 32-bit wrap, and U+FEFF as white space.
+func parseNumber(s string) float64 {
+	s = strings.TrimFunc(s, isNetSpace)
 	if s == "" {
 		return 0
 	}
+	t := strings.TrimRight(s, "\x00")
+	if body, neg := strings.CutPrefix(t, "-"); neg {
+		if v, ok := parseDecimal(body); ok {
+			return -v
+		}
+	} else {
+		body, _ = strings.CutPrefix(t, "+")
+		if v, ok := parseDecimal(body); ok {
+			return v
+		}
+	}
 	if len(s) > 2 && s[0] == '0' {
-		base := 0
 		switch s[1] {
-		case 'x', 'X':
-			base = 16
-		case 'o', 'O':
-			base = 8
-		case 'b', 'B':
-			base = 2
-		}
-		if base != 0 {
-			n, ok := new(big.Int).SetString(s[2:], base)
-			if !ok || strings.ContainsAny(s[2:], "_+-") {
-				return nan
+		case 'x':
+			if v, ok := parseRadix32(s[2:], 16); ok {
+				return v
 			}
-			f, _ := new(big.Float).SetInt(n).Float64()
-			return f
+		case 'o':
+			if v, ok := parseRadix32(s[2:], 8); ok {
+				return v
+			}
 		}
 	}
-	body := s
-	neg := false
-	if body[0] == '+' || body[0] == '-' {
-		neg = body[0] == '-'
-		body = body[1:]
-	}
-	if body == "Infinity" {
-		if neg {
-			return math.Inf(-1)
-		}
-		return math.Inf(1)
+	return nan
+}
+
+// parseDecimal parses an unsigned decimal literal or "Infinity".
+func parseDecimal(body string) (float64, bool) {
+	if len(body) == 8 && strings.EqualFold(body, "infinity") && isASCII(body) {
+		return posInf, true
 	}
 	if !isDecimalLiteral(body) {
-		return nan
+		return 0, false
 	}
-	v, _ := strconv.ParseFloat(body, 64) // out of range yields ±Inf, which is what JS does too
-	if neg {
-		v = -v
+	v, _ := strconv.ParseFloat(body, 64) // out of range yields an infinity, as in .NET
+	return v, true
+}
+
+// parseRadix32 reads digits in base 16 or 8 as an unsigned 32-bit value and
+// returns it as a signed one (Int32.TryParse with AllowHexSpecifier,
+// Convert.ToInt32(s, 8)). Leading zeros are free; digits beyond 32 bits fail.
+func parseRadix32(digits string, base int) (float64, bool) {
+	if digits == "" {
+		return 0, false
 	}
-	return v
+	var v uint64
+	for i := 0; i < len(digits); i++ {
+		c := digits[i]
+		var d int
+		switch {
+		case c >= '0' && c <= '9':
+			d = int(c - '0')
+		case c >= 'a' && c <= 'f':
+			d = int(c-'a') + 10
+		case c >= 'A' && c <= 'F':
+			d = int(c-'A') + 10
+		default:
+			return 0, false
+		}
+		if d >= base {
+			return 0, false
+		}
+		v = v*uint64(base) + uint64(d)
+		if v > math.MaxUint32 {
+			return 0, false
+		}
+	}
+	return float64(int32(uint32(v))), true
 }
 
 // isDecimalLiteral reports whether s matches

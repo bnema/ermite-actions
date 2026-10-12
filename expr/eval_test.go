@@ -80,7 +80,14 @@ func TestEvalLiteralsAndOperators(t *testing.T) {
 		{"1e3", "Number:1000"},
 		{"0x10", "Number:16"},
 		{"0o17", "Number:15"},
-		{"0b101", "Number:5"},
+		{"0xffffffff", "Number:-1"}, // read as a 32-bit integer, like the runner
+		{"0b101", "PARSE Unexpected symbol: '0b101'. Located at position 1 within expression: 0b101"},
+		{"0X10", "PARSE Unexpected symbol: '0X10'. Located at position 1 within expression: 0X10"},
+		{"'0b11' == 3", "Boolean:false"},
+		{"'0x1F' == 31", "Boolean:true"},
+		{"'infinity' == Infinity", "Boolean:true"},
+		{"'\u0085 1 \u0085' == 1", "Boolean:true"},
+		{"'\ufeff1' == 1", "Boolean:false"},
 		{"-0x10", "PARSE Unexpected symbol: '-0x10'. Located at position 1 within expression: -0x10"},
 		{"NaN", "Number:NaN"},
 		{"Infinity", "Number:Infinity"},
@@ -862,28 +869,6 @@ func TestJSNumberToString(t *testing.T) {
 	for _, tc := range tests {
 		if got := jsNumberToString(tc.in); got != tc.want {
 			t.Errorf("jsNumberToString(%v) = %q, want %q", tc.in, got, tc.want)
-		}
-	}
-}
-
-func TestJSToNumber(t *testing.T) {
-	nan := math.NaN()
-	tests := []struct {
-		in   string
-		want float64
-	}{
-		{"", 0}, {"  ", 0}, {"\n\t", 0}, {"1", 1}, {" 1 ", 1}, {"\u00a01\u2003", 1}, {"\ufeff1", 1}, {"+1", 1}, {"-1", -1},
-		{"1.", 1}, {".5", 0.5}, {"-.5", -0.5}, {"1e3", 1000}, {"1E-3", 0.001}, {"1e+3", 1000}, {"0x10", 16}, {"0X1f", 31},
-		{"0o17", 15}, {"0b101", 5}, {"0x", nan}, {"0xg", nan}, {"-0x10", nan}, {"+0x10", nan}, {"0b2", nan}, {"1_000", nan},
-		{"Infinity", math.Inf(1)}, {"-Infinity", math.Inf(-1)}, {"+Infinity", math.Inf(1)}, {"infinity", nan}, {"inf", nan},
-		{"NaN", nan}, {"nan", nan}, {"abc", nan}, {"1e", nan}, {"1e+", nan}, {".", nan}, {"e5", nan}, {"1 2", nan}, {"1,5", nan},
-		{"00", 0}, {"007", 7}, {"0.0", 0}, {"1e999", math.Inf(1)}, {"-1e999", math.Inf(-1)}, {"0x1fffffffffffff", 9007199254740991},
-		{"12345678901234567890", 12345678901234567890}, {"٣", nan}, {"--1", nan}, {"+-1", nan}, {"1e1.5", nan}, {"0x1.8", nan},
-	}
-	for _, tc := range tests {
-		got := jsToNumber(tc.in)
-		if got != tc.want && !(math.IsNaN(got) && math.IsNaN(tc.want)) {
-			t.Errorf("jsToNumber(%q) = %v, want %v", tc.in, got, tc.want)
 		}
 	}
 }
