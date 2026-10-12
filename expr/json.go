@@ -210,6 +210,9 @@ func (p *jsonParser) number() (Value, error) {
 		}
 	}
 	f, _ := strconv.ParseFloat(tok, 64) // range errors give ±Inf
+	if f == 0 && isBigInteger(body) {
+		f = 0 // an integer token is read as a long: "-0" and "-00" are plain 0
+	}
 	return Number(f), nil
 }
 

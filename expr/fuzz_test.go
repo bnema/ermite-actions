@@ -4,6 +4,7 @@ package expr
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -192,7 +193,8 @@ func FuzzFromJSON(f *testing.F) {
 		if err != nil {
 			t.Fatalf("round trip failed: %v\n%s", err, j)
 		}
-		if j2 := ToJSON(v2); j2 != j {
+		// A negative zero is written "-0" and read back as the integer 0.
+		if j2 := ToJSON(v2); j2 != j && negZeroLine.ReplaceAllString(j, "${1}0${2}") != j2 {
 			t.Fatalf("round trip changed output:\n%s\n%s", j, j2)
 		}
 	})
@@ -203,3 +205,6 @@ func FuzzFromJSON(f *testing.F) {
 func hasNonFinite(j string) bool {
 	return strings.Contains(j, "NaN") || strings.Contains(j, "Infinity")
 }
+
+// negZeroLine matches a written negative zero: "-0" alone on its value.
+var negZeroLine = regexp.MustCompile(`(^|[\s\[:,])-0($|[\s,\]}])`)

@@ -26,10 +26,10 @@ var (
 // value satisfies -5 < X < 15, and as d.dddE+XX otherwise, with the trailing
 // zeros of the mantissa removed and at least two exponent digits. NaN is
 // "NaN" and the infinities are "Infinity" and "-Infinity". Negative zero is
-// "0": .NET Core prints "-0", which Sdk/Expressions/EvaluationResult.cs
-// (ConvertToString, "keep our behavior consistent") and the shared fixtures
-// (coerce_string.json, format('{0}', -0)) undo; the older
-// DTExpressions2 copy of the runner lacks that fix and prints "-0".
+// "-0", as .NET Core prints it and as the legacy engine of the runner
+// (DTExpressions2/EvaluationResult.ConvertToString, the one that runs today)
+// leaves it; the newer engine (Expressions/EvaluationResult.cs) maps it to "0".
+// See PORTING.md.
 func numberToCoercedString(x float64) string {
 	switch {
 	case math.IsNaN(x):
@@ -39,6 +39,9 @@ func numberToCoercedString(x float64) string {
 	case math.IsInf(x, -1):
 		return "-Infinity"
 	case x == 0:
+		if math.Signbit(x) {
+			return "-0"
+		}
 		return "0"
 	}
 	sign := ""

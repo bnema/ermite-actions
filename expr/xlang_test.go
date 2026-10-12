@@ -59,6 +59,11 @@ type xlangCase struct {
 // xlangKnownDifferences maps "file: group (expr prefix)" keys to the reason
 // the fixture is not satisfied. Keep it empty if possible.
 var xlangKnownDifferences = map[string]string{
+	"coerce_string: number#10":       "negative zero: the fixture says \"0\" (as the newer engine, src/Sdk/Expressions/EvaluationResult.cs); the legacy engine that runs today prints \"-0\" (DTExpressions2/EvaluationResult.cs, no -0 special case), checked with gen/runner and engines.mjs",
+	"format: format#19":              "negative zero (format('{0}', -0)), same reason as coerce_string number#10",
+	"format: format#20":              "negative zero (-0.0 literal), same reason",
+	"tojson: basics#4":               "negative zero (tojson(-0)), same reason: toJson writes numbers with ConvertToString",
+	"coerce_string: number#11":       "negative zero (-0.0 literal), same reason as number#10",
 	"case: case#27":                  "the runner reports an even number of case() arguments on the '(' token (position 5), not on the name: ExpressionParser.FlushTopEndParameters passes the popped StartParameters token; checked by running the runner's code",
 	"syntax-errors: memory-errors#0": "memory accounting differs from the runner's EvaluationMemory",
 }

@@ -20,15 +20,14 @@ Three kinds of evidence back the tests:
   the few assemblies it needs, see `gen/runner/README.md`) and runs it;
   `TestRunnerOracle` holds the package to it: 34 765 cases with the same
   result, string form, `toJSON` text and, for errors, the same message (parse
-  errors included, to the position); the only exceptions are negative zero
-  (below) and the message texts of Json.NET failures, which must be `fromJSON`
-  failures on both sides.
+  errors included, to the position); the only exception is the message text of
+  Json.NET failures, which must be `fromJSON` failures on both sides.
   The same driver recorded `testdata/tojson/*.runner`, `ordinal_cases.txt`
   and `number_cases.txt`, and checked the number formatting on 200 000 random
   doubles.
 - `testdata/languageservices/*.json`: the 1 020 cross-language fixtures of
-  actions/languageservices (see `xlang_test.go`): 1 018 pass, 2 are known
-  differences with a reason: `case/27` (the runner reports an even `case()` on
+  actions/languageservices (see `xlang_test.go`): 1 013 pass, 7 are known
+  differences with a reason: negative zero (5 cases, below), `case/27` (the runner reports an even `case()` on
   the `(`, not the name) and `syntax-errors/memory-errors/0` (the runner's
   memory accounting). `testdata/languageservices/SOURCE` has the commit.
 
@@ -189,11 +188,7 @@ package follows the runner.
       `1.23456789012346E+17` (uppercase `E`, at least two exponent digits).
       So `1e15` is `1E+15`, `123456789012345678` is `1.23456789012346E+17`,
       `0.000001` is `1E-06`, `5e-324` is `4.94065645841247E-324`, `1e309` is
-      `Infinity`. Negative zero is `0`: .NET Core prints `-0`, and
-      `src/Sdk/Expressions/EvaluationResult.cs` (the copy used by the newer
-      evaluator) maps it back to `0` ("keep our behavior consistent"); the
-      older `DTExpressions2` copy still prints `-0`, but the shared fixtures
-      (`coerce_string.json`, `format('{0}', -0)`) say `0`. Checked against the
+      `Infinity`. Negative zero is `-0` (see the Negative zero item below). Checked against the
       runner's code on 200 000 random doubles. The number *literal* in an
       expression is parsed independently of this (see below) and the JSON
       writer of `toJSON` uses the same conversion (next item).
@@ -255,7 +250,7 @@ package follows the runner.
 - [x] **`toJSON`**: resolved, follows the C#. `Sdk/Functions/ToJson.cs` builds
       the text itself: two-space indentation, `[]`/`{}` for empties, numbers
       through `ConvertToString` (so `NaN`, `Infinity` and `-Infinity` appear
-      bare, `1E+21`, 15 significant digits, `-0` is `0`) and strings through
+      bare, `1E+21`, 15 significant digits, `-0` is `-0`) and strings through
       `JsonUtility.ToString` (Json.NET defaults: `\b \f \n \r \t`, `\u00XX`
       for other controls, `\u0085 \u2028 \u2029`, no escaping of `< > & '`, and
       non-ASCII as is). Checked against the runner's code
@@ -399,19 +394,21 @@ a bug.
       worth doing only if the error text matters ("The maximum allowed memory
       size was exceeded while evaluating the following expression: ...", which
       needs `ConvertToExpression` of the root, also not ported).
-- [ ] **Negative zero.** `-0` is `0` here (`format('{0}', -0)`, `toJSON(-0)`,
-      `-0` as a result). The legacy engine, the one that runs (see "The two
-      engines"), prints `-0`: `DTExpressions2/EvaluationResult.ConvertToString`
-      formats with `G15` and .NET Core writes `-0`. The newer engine
-      (`Expressions/EvaluationResult.cs`, "keep our behavior consistent") maps
-      it to `0`, and the cross-language fixture `coerce_string.json` expects
-      `0`; the choice follows the fixture and the newer engine. Verified by
-      `engines.mjs`: this is the only result that differs between the engines,
-      and `TestRunnerOracle` lists the two corpus expressions as a known
-      difference. If the runner keeps the legacy engine for good and a user
-      needs `-0`, change `numberToCoercedString`: `x == 0` would return `-0`
-      for a negative zero (one line, plus the three tests and the two
-      `.runner` goldens that say `0`).
+- [x] **Negative zero**: `-0` is `-0`, as the legacy engine that runs today
+      (`DTExpressions2/EvaluationResult.ConvertToString` formats with `G15` and
+      has no special case; .NET Core writes `-0`): `format('{0}', -0)`, `-0`
+      as a result and `toJSON(-0)` (`toJSON` uses `ConvertToString`). A JSON
+      integer token `-0` or `-00` is read as the long 0, but `-0.0` keeps its
+      sign. The newer engine (`Expressions/EvaluationResult.cs`, "keep our
+      behavior consistent") maps it to `0`, and so do these shared fixtures:
+      `coerce_string/number#10-11`, `format/format#19-20` and
+      `tojson/basics#4` (5 cases) are listed in `xlangKnownDifferences` with this
+      evidence. `engines.mjs` shows it is the only result on which the engines
+      differ. **Track the runner's switch to `src/Sdk/Expressions`
+      (`TemplateEvaluatorMismatch` telemetry); re-run
+      `gen/runner-new/engines.mjs` on each runner release.** If it switches,
+      change `numberToCoercedString` back to `"0"` (one line) and the tests
+      that mention `-0`.
 - [ ] **Comments and constructors in `fromJSON`.** Json.NET accepts `/* */` and
       `//` comments and `new Date(1)` constructors; the first is read in a
       surprising way (`/*x*/1` is the string `x`). They fail here.

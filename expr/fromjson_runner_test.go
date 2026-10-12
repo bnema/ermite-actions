@@ -5,7 +5,6 @@ package expr
 import (
 	"encoding/json"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 )
@@ -29,9 +28,6 @@ func loadFromJSONCases(tb testing.TB) []fromJSONCase {
 	return cs
 }
 
-// negZero matches a written negative zero ("-0" not followed by more number).
-var negZero = regexp.MustCompile(`(^|[^0-9.eE+-])-0($|[^0-9.eE])`)
-
 // unportedJSON reports whether the input uses something of Json.NET that is not
 // ported: comments and constructors. The runner accepts them, this package
 // fails on them (see PORTING.md).
@@ -53,9 +49,6 @@ func TestFromJSONMatchesRunner(t *testing.T) {
 		}
 		gotOK := err == nil
 		if gotOK != c.OK || (gotOK && ToJSON(v) != c.Out) {
-			if gotOK && c.OK && negZero.ReplaceAllString(c.Out, "${1}0${2}") == ToJSON(v) {
-				continue // negative zero is written 0, see PORTING.md
-			}
 			if unportedJSON(c.In) {
 				skipped++
 				continue

@@ -10,16 +10,8 @@ import (
 
 // knownRunnerDifference classifies the answers of the corpus on which this
 // package knowingly differs from the runner. It returns the reason, or "".
-func knownRunnerDifference(g, r runnerCase) string {
-	switch r.E {
-	case "-0", "toJSON(-0)":
-		// .NET Core formats negative zero as "-0". The runner's newer copy
-		// (src/Sdk/Expressions/EvaluationResult.cs) maps it back to "0" and the
-		// shared fixtures (coerce_string.json) say "0", so "0" is kept.
-		return "negative zero is written 0"
-	}
-	return ""
-}
+// There is none left: negative zero is written "-0" like the legacy engine.
+func knownRunnerDifference(g, r runnerCase) string { return "" }
 
 // TestRunnerOracle holds the package to the answers of the runner's own code on
 // the 34 765 expressions of the oracle corpus: same result kind, string form

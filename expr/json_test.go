@@ -154,12 +154,16 @@ func TestFromJSONNumbers(t *testing.T) {
 			t.Errorf("FromJSON(%q) = %v, want %v", in, got, want)
 		}
 	}
-	v, _ := FromJSON([]byte("-0"))
-	if !math.Signbit(float64(v.(Number))) {
-		t.Error("-0 lost its sign")
+	// Json.NET reads the integer "-0" as 0, but "-0.0" is a float with a sign.
+	if v, _ := FromJSON([]byte("-0")); math.Signbit(float64(v.(Number))) {
+		t.Error(`"-0" kept its sign`)
 	}
-	if got := ToJSON(v); got != "0" {
-		t.Errorf("ToJSON(-0) = %q", got)
+	v, _ := FromJSON([]byte("-0.0"))
+	if !math.Signbit(float64(v.(Number))) {
+		t.Error("-0.0 lost its sign")
+	}
+	if got := ToJSON(v); got != "-0" {
+		t.Errorf("ToJSON(-0.0) = %q", got)
 	}
 }
 
@@ -250,7 +254,7 @@ func TestToJSONFormatting(t *testing.T) {
 		{Number(math.NaN()), "NaN"},
 		{Number(math.Inf(1)), "Infinity"},
 		{Number(math.Inf(-1)), "-Infinity"},
-		{Number(math.Copysign(0, -1)), "0"},
+		{Number(math.Copysign(0, -1)), "-0"},
 		{Number(1e21), "1E+21"},
 		{Number(1e-7), "1E-07"},
 		{Number(123456789), "123456789"},
@@ -343,7 +347,7 @@ func TestCoerceAndTruthy(t *testing.T) {
 		{Boolean(true), "true", true},
 		{Boolean(false), "false", false},
 		{Number(0), "0", false},
-		{Number(math.Copysign(0, -1)), "0", false},
+		{Number(math.Copysign(0, -1)), "-0", false},
 		{Number(math.NaN()), "NaN", false},
 		{Number(2), "2", true},
 		{Number(math.Inf(-1)), "-Infinity", true},

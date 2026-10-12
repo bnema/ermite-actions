@@ -409,7 +409,7 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"toJSON(1)", "String:1"},
 		{"toJSON(NaN)", "String:NaN"},
 		{"toJSON(Infinity)", "String:Infinity"},
-		{"toJSON(-0)", "String:0"},
+		{"toJSON(-0)", "String:-0"},
 		{"toJSON('x')", "String:\"x\""},
 		{"toJSON(1e21)", "String:1E+21"},
 		{"toJSON(1e-7)", "String:1E-07"},
@@ -838,7 +838,7 @@ func TestFloatCoercion(t *testing.T) {
 		want string
 	}{
 		{0, "0"},
-		{math.Copysign(0, -1), "0"}, // see numberToCoercedString
+		{math.Copysign(0, -1), "-0"}, // as the legacy engine of the runner
 		{1, "1"},
 		{-1, "-1"},
 		{1.5, "1.5"},
