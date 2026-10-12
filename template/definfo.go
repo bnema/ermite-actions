@@ -117,3 +117,13 @@ func isDigits(s string) bool {
 	}
 	return true
 }
+
+// Info returns the info of the schema definition called name, with the
+// contexts and functions that definition allows, or nil when there is none.
+func (s *Schema) Info(name string) *DefinitionInfo {
+	d := s.definitions[name]
+	if d == nil {
+		return nil
+	}
+	return newDefinitionInfo(s, nil, d)
+}
