@@ -24,10 +24,11 @@ import (
 // Every other character, "." included, stands for itself. Matching is
 // case-sensitive and covers the whole name.
 //
-// TODO(verify with recording): the exact GitHub implementation is not
-// public. The cheat sheet fixes the common cases; "**/" matching nothing,
-// "\" escapes and how ? and + behave after a wildcard or a bracket are
-// reconstructed.
+// Recorded on github.com (filter-branches, filter-paths, filter-paths-ignore,
+// see TestMatchPushRecordedGlobs): "*", "**", "scn/filter-*/**", "**.md",
+// "*.md" and negation order. TODO(verify with recording): "**/" matching
+// nothing, "\" escapes and how ? and + behave after a wildcard or a bracket
+// are reconstructed.
 type Pattern struct {
 	// Negated is set for a pattern that started with "!".
 	Negated bool

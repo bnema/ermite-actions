@@ -40,23 +40,45 @@ code.
   (`success() && (cond)` when the condition calls none of `success`,
   `failure`, `cancelled`, `always`, looking through nested calls).
 
+## Recorded (github.com, ermite-conformance corpus)
+
+- Status functions (`success()`, `failure()`, `always()`, `cancelled()`) in
+  `env` or `run` expressions make the workflow invalid with
+  `Unrecognized function: 'success'. Located at position 1 within expression:
+  success()` (expr-status-in-env, expr-status-in-run); `TestRecordedInvalidWorkflows`.
+- Invalid workflow messages: `The workflow must contain at least one job with
+  no dependencies.` (no root job: needs on an unknown job or a cycle with no
+  other root), `Job 'x' depends on unknown job 'y'.`, `Job 'x' depends on job
+  'y' which creates a cycle in the dependency graph.`, `Required property is
+  missing: runs-on`, `Unexpected value 'unknown-key'` (invalid-needs,
+  invalid-schema). GitHub's recordings do not keep the text of the message; ours
+  are the reference parser's, which the corpus shows refuses the same files.
+
 ## To verify (recordings)
 
 - [ ] **Glob syntax** (`glob.go`): `*`, `**`, `?`, `+`, `[]`, `\`, `!`. The
       cheat sheet's examples pass; `**/` matching nothing, `?` and `+` after a
       `]`, `*` or an escaped character, `[!x]`, an unclosed `[` (literal here)
       and `/`-prefixed patterns are assumed.
-- [ ] **`MatchPush`**: deletes never run; more than 3 tags run nothing for
-      tags (not for the branch); branches-only filter and a tag push (no run)
-      and the reverse; with both filters each ref uses its own; `paths` only
-      for branches; first 300 files (also for `paths-ignore`); truncated list
-      passes; a push whose diff is empty never matches a `paths` filter and
-      always matches a `paths-ignore` one; unknown ref kinds never match.
+- [x] **`MatchPush`** (recorded: push-tags-limit, filter-tags,
+      filter-branches-ignore, filter-tag-branches-only, filter-paths-tag,
+      filter-paths*, push-delete-*): deletes never run; more than 3 tags run
+      nothing for tags (not for the branch); branches-only filter and a tag
+      push (no run) and the reverse; with both filters each ref uses its own;
+      `paths` only for branches; the first **3000** files, also for
+      `paths-ignore` (not 300). Still assumed: a push whose diff is empty
+      never matches a `paths` filter and always matches a `paths-ignore` one;
+      unknown ref kinds never match; truncated list passes.
 - [ ] **`PushInfo.Created`** is not used: a new branch's file list is the
       caller's job (diff against the default branch merge-base).
-- [ ] **`SkipCI`**: marker case, trailer rules (see its doc comment); whether
-      only the head commit counts; `[skip ci]` in the subject vs the body.
-- [ ] **`ExpandMatrix`**: order of the product (first key slowest), include
+- [x] **`SkipCI`** (recorded: skip-directives, skip-directives-placement,
+      skip-checks-trailer, skip-directive-tag): markers are case-sensitive,
+      anywhere; `skip-checks: true` needs two blank lines before it and
+      nothing after it, in exact case. The tag case is the caller's: the
+      message of the commit the tag points at. Only the head commit counts.
+- [ ] **`ExpandMatrix`** (recorded: the unknown exclude key, once per
+      offending entry, and the 256 limit message, see
+      `ConfigurationLimitError`; matrix-edge-values, matrix-over-256): order of the product (first key slowest), include
       semantics (added to every matching combination, never overwriting
       original values, later includes overwrite earlier added values, a
       non-matching include is a new combination, match by vector keys only),
@@ -64,18 +86,20 @@ code.
       combinations after include, key case-insensitivity, value comparison
       (same kind; objects by containment), the error when all combinations are
       excluded (GitHub may fail the run differently), empty vector error.
-- [ ] A **null matrix value** is shown as an empty segment (`job (, 1)`);
-      GitHub may skip it.
-- [ ] **Job display names** (`MatrixCombo.DisplayName`, `Job.DisplayName`):
+- [x] A **null or empty matrix value** is not shown in the job name
+      (recorded: matrix-edge-values).
+- [x] **Job display names** (`MatrixCombo.DisplayName`, `Job.DisplayName`;
+      recorded: matrix-job-name, matrix-edge-values):
       `name (v1, v2)` listing every scalar value of the combination in key
       order, then keys added by include; a name that reads the `matrix`
       context (found in the expression's syntax tree, not by searching the
-      text) is used as is. Booleans/numbers/null are shown with `CoerceString`.
+      text) is used as is. Booleans and numbers are shown with `CoerceString`; null, `''`, arrays
+      and objects are left out.
 - [ ] **`strategy` context** (`Strategy.Context`): `fail-fast`, `job-index`,
       `job-total`, `max-parallel` (the job count when unlimited).
 - [ ] `fail-fast` and `max-parallel` accept strings (`"false"`, `"2"`) after
       evaluation; `max-parallel` must be a whole number ≥ 1.
-- [ ] The 1 000-commit and 300-file limits themselves are the caller's.
+- [ ] The 1 000-commit and 3 000-file limits themselves are the caller's.
 
 ## New in the second pass
 

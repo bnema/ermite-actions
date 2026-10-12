@@ -226,6 +226,85 @@ func TestMatchPushRecordedTags(t *testing.T) {
 	}
 }
 
+// TestMatchPushRecordedGlobs replays filter-branches (branch
+// scn/filter-branches/<run>: ran for b-match, b-negated-then-readded,
+// b-prefix-only, b-star-star and b-two-levels; not for b-negated, b-one-level
+// and b-other), filter-paths and filter-paths-ignore.
+func TestMatchPushRecordedGlobs(t *testing.T) {
+	br := PushInfo{Ref: "refs/heads/scn/filter-branches/1"}
+	for _, tc := range []struct {
+		name, filter string
+		want         bool
+	}{
+		{"b-match", "branches: ['scn/filter-branches/**']", true},
+		{"b-negated-then-readded", "branches: ['**', '!scn/**', 'scn/filter-branches/**']", true},
+		{"b-prefix-only", "branches: ['scn/filter-*/**']", true},
+		{"b-star-star", "branches: ['**']", true},
+		{"b-two-levels", "branches: ['scn/*/*']", true},
+		{"b-negated", "branches: ['scn/**', '!scn/filter-branches/**']", false},
+		{"b-one-level", "branches: ['scn/*']", false},
+		{"b-other", "branches: [main, 'release/**']", false},
+	} {
+		if got := pushWorkflow(t, "on:\n  push:\n    "+tc.filter).MatchPush(br); got != tc.want {
+			t.Errorf("filter-branches %s: %v, want %v", tc.name, got, tc.want)
+		}
+	}
+
+	// filter-paths: the files of each push.
+	pushes := [][]string{
+		{".github/workflows/p-docs.yml", "docs/readme.md", "other/x.txt", "src/a.txt", "top.md"}, // 1: the workflow files are new too
+		{"docs/readme.md"},             // 2
+		{"src/a.txt"},                  // 3
+		{"top.md"},                     // 4
+		{"docs/new.md", "other/x.txt"}, // 5
+	}
+	for _, tc := range []struct {
+		name, filter string
+		ran          [5]bool
+	}{
+		{"p-docs", "paths: ['docs/**']", [5]bool{true, true, false, false, true}},
+		{"p-double-star-md", "paths: ['**.md']", [5]bool{true, true, false, true, true}},
+		{"p-exact-file", "paths: ['src/a.txt']", [5]bool{true, false, true, false, false}},
+		{"p-negated", "paths: ['**', '!docs/**']", [5]bool{true, false, true, true, true}},
+		{"p-no-match", "paths: ['nothing/**']", [5]bool{}},
+		{"p-single-star-md", "paths: ['*.md']", [5]bool{true, false, false, true, false}},
+		{"p-src", "paths: ['src/**']", [5]bool{true, false, true, false, false}},
+	} {
+		w := pushWorkflow(t, "on:\n  push:\n    branches: ['scn/**']\n    "+tc.filter)
+		for n, files := range pushes {
+			got := w.MatchPush(PushInfo{Ref: "refs/heads/scn/filter-paths/1", ChangedFiles: files})
+			if got != tc.ran[n] {
+				t.Errorf("filter-paths %s push %d: %v, want %v", tc.name, n+1, got, tc.ran[n])
+			}
+		}
+	}
+
+	// filter-paths-ignore: pushes 1 to 4 changed these files.
+	ignorePushes := [][]string{
+		{".github/workflows/pi-docs.yml", "docs/readme.md", "src/a.txt"}, // 1: the workflow files are new too
+		{"docs/readme.md"},              // 2
+		{"docs/readme.md", "src/a.txt"}, // 3
+		{"src/a.txt"},                   // 4
+	}
+	for _, tc := range []struct {
+		name, filter string
+		ran          [4]bool
+	}{
+		{"pi-docs", "paths-ignore: ['docs/**']", [4]bool{true, false, true, true}},
+		{"pi-md", "paths-ignore: ['**.md']", [4]bool{true, false, true, true}},
+		{"pi-src-docs", "paths-ignore: ['docs/**', 'src/**']", [4]bool{true, false, false, false}},
+		{"pi-everything", "paths-ignore: ['**']", [4]bool{}},
+	} {
+		w := pushWorkflow(t, "on:\n  push:\n    branches: ['scn/**']\n    "+tc.filter)
+		for n, files := range ignorePushes {
+			got := w.MatchPush(PushInfo{Ref: "refs/heads/scn/filter-paths-ignore/1", ChangedFiles: files})
+			if got != tc.ran[n] {
+				t.Errorf("filter-paths-ignore %s push %d: %v, want %v", tc.name, n+1, got, tc.ran[n])
+			}
+		}
+	}
+}
+
 func TestMatchPushNilSafe(t *testing.T) {
 	var w *Workflow
 	if w.MatchPush(PushInfo{Ref: "refs/heads/main"}) {
