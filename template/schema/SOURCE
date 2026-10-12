@@ -1,0 +1,4 @@
+workflow-v1.0.min.json is dist/workflow-v1.0.min.json of the npm package
+@actions/workflow-parser 0.3.61 (https://github.com/actions/languageservices,
+MIT, Copyright GitHub, Inc.), copied unmodified. It drives validation and the
+contexts and functions allowed per key. See ../../THIRD_PARTY.md.
