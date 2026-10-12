@@ -4,6 +4,10 @@
 
 package expr
 
+// casingGoUnicodeVersion is the Unicode version of the Go toolchain that generated
+// the tables below: they are relative to its unicode.ToUpper and unicode.ToLower.
+const casingGoUnicodeVersion = "17.0.0"
+
 // jsUpperDelta maps the code points whose JavaScript String.prototype.toUpperCase result differs from the Go simple mapping.
 var jsUpperDelta = map[rune]string{
 	0x00DF:  "SS",  // "ß"

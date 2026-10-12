@@ -4,7 +4,7 @@
 // whose mapping is not the identity, as JSON on stdout. It is the input of
 // casing.go, which turns it into ../casing_tables.go:
 //
-//   node casing_dump.mjs | go run casing.go > ../casing_tables.go
+//   go generate ./expr      (runs: node gen/casing_dump.mjs | go run gen/casing.go -o casing_tables.go)
 //
 // The mapping is that of the JavaScript engine running the script (Node/V8),
 // which is what @actions/expressions uses for case-insensitive comparisons.
