@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"strings"
 	"testing"
@@ -29,15 +30,20 @@ type runnerFile struct {
 }
 
 type runnerCase struct {
-	E     string `json:"e"`
-	Empty bool   `json:"empty"`
-	K     string `json:"k"`
-	S     string `json:"s"`
-	J     string `json:"j"`
-	Err   *struct {
-		T string `json:"t"`
-		M string `json:"m"`
-	} `json:"err"`
+	E     string     `json:"e"`
+	Empty bool       `json:"empty"`
+	K     string     `json:"k"`
+	S     string     `json:"s"`
+	J     string     `json:"j"`
+	Err   *runnerErr `json:"err"`
+}
+
+// runnerErr is an error of the runner: the phase, the message, and the name of
+// the .NET exception class ("JsonReaderException" for a fromJSON failure).
+type runnerErr struct {
+	T string `json:"t"`
+	M string `json:"m"`
+	X string `json:"x"`
 }
 
 func loadRunner(tb testing.TB) *runnerFile {
@@ -83,10 +89,7 @@ func goAnswer(e string, ctxNames []string, ec EvalContext) runnerCase {
 	rc := runnerCase{E: e}
 	node, err := Parse(e, ctxNames, oracleFuncInfos)
 	if err != nil {
-		rc.Err = &struct {
-			T string `json:"t"`
-			M string `json:"m"`
-		}{"parse", err.Error()}
+		rc.Err = &runnerErr{T: "parse", M: err.Error()}
 		return rc
 	}
 	if node == nil {
@@ -95,10 +98,7 @@ func goAnswer(e string, ctxNames []string, ec EvalContext) runnerCase {
 	}
 	v, err := Evaluate(context.Background(), node, ec)
 	if err != nil {
-		rc.Err = &struct {
-			T string `json:"t"`
-			M string `json:"m"`
-		}{"eval", err.Error()}
+		rc.Err = &runnerErr{T: "eval", M: err.Error(), X: goErrorClass(err)}
 		return rc
 	}
 	rc.K = v.Kind().String()
@@ -107,11 +107,23 @@ func goAnswer(e string, ctxNames []string, ec EvalContext) runnerCase {
 	return rc
 }
 
+// goErrorClass names the kind of an evaluation error of this package in the
+// terms of runnerErr.X: "JsonReaderException" for the failures of fromJSON.
+func goErrorClass(err error) string {
+	var ee *EvalError
+	if errors.As(err, &ee) && (ee.Message == "empty input" || ee.Message == "Error parsing JSON when evaluating fromJson") {
+		return "JsonReaderException"
+	}
+	return ""
+}
+
 // sameAnswer reports whether a Go answer matches the runner's. Errors match
 // when they are of the same phase and, for parse errors, name the same kind of
-// problem (the text before the colon); the runner appends the position and
-// names the parenthesis rather than the function in arity errors, and its
-// fromJSON errors are Json.NET messages. Other evaluation errors must be equal.
+// problem (the text before the colon: the runner appends the position, and its
+// arity errors name the parenthesis). Evaluation errors must have the same
+// message, except a fromJSON failure, whose runner message is Json.NET's: it
+// matches only a fromJSON failure of this package (both are JSON reader
+// failures, never just "the expression mentions fromJSON").
 func sameAnswer(g, r runnerCase) bool {
 	if (g.Err == nil) != (r.Err == nil) {
 		return false
@@ -126,8 +138,8 @@ func sameAnswer(g, r runnerCase) bool {
 		desc := func(m string) string { d, _, _ := strings.Cut(m, ":"); return d }
 		return desc(g.Err.M) == desc(r.Err.M)
 	}
-	if strings.Contains(strings.ToLower(r.E), "fromjson") {
-		return true
+	if r.Err.X == "JsonReaderException" || g.Err.X == "JsonReaderException" {
+		return r.Err.X == g.Err.X
 	}
 	return g.Err.M == r.Err.M
 }
@@ -137,4 +149,31 @@ func clip(s string) string {
 		return s[:160] + "..."
 	}
 	return s
+}
+
+// TestSameAnswerFromJSON: an error is excused as "a fromJSON failure" only
+// when both sides are one; an expression that merely mentions fromJSON does not
+// get a free pass.
+func TestSameAnswerFromJSON(t *testing.T) {
+	ev := func(m, x string) runnerCase { return runnerCase{E: "fromJSON('x')", Err: &runnerErr{T: "eval", M: m, X: x}} }
+	reader := ev("Error parsing JSON when evaluating fromJson", "JsonReaderException")
+	runnerReader := ev("Unexpected character encountered while parsing value: x. Path '', line 0, position 0.", "JsonReaderException")
+	format := ev("The following format string is invalid: {", "FormatException")
+	value := runnerCase{E: "fromJSON('1')", K: "Number", S: "1", J: "1"}
+	for _, tc := range []struct {
+		name string
+		g, r runnerCase
+		want bool
+	}{
+		{"both reader failures", reader, runnerReader, true},
+		{"go fails, runner succeeds", reader, value, false},
+		{"runner fails, go succeeds", value, runnerReader, false},
+		{"go reader failure, runner format error", reader, format, false},
+		{"runner reader failure, go format error", format, runnerReader, false},
+		{"same non-reader error", format, format, true},
+	} {
+		if got := sameAnswer(tc.g, tc.r); got != tc.want {
+			t.Errorf("%s: sameAnswer = %v, want %v", tc.name, got, tc.want)
+		}
+	}
 }

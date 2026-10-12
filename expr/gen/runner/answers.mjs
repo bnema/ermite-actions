@@ -28,7 +28,6 @@ const git = (...a) => execFileSync("git", ["-C", runnerClone, ...a]).toString().
 const dotnet = execFileSync("dotnet", ["--list-runtimes"]).toString().split("\n").find(l => l.includes("Microsoft.NETCore.App 9")) ?? "";
 const cases = out.map((l, i) => {
   const r = JSON.parse(l);
-  if (r.err) delete r.err.x; // .NET exception type name
   return { e: oracle.cases[i].e, ...r };
 });
 process.stdout.write(JSON.stringify({
