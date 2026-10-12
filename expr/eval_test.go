@@ -388,12 +388,12 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"toJSON(null)", "String:null"},
 		{"toJSON(true)", "String:true"},
 		{"toJSON(1)", "String:1"},
-		{"toJSON(NaN)", "String:null"},
-		{"toJSON(Infinity)", "String:null"},
+		{"toJSON(NaN)", "String:NaN"},
+		{"toJSON(Infinity)", "String:Infinity"},
 		{"toJSON(-0)", "String:0"},
 		{"toJSON('x')", "String:\"x\""},
-		{"toJSON(1e21)", "String:1e+21"},
-		{"toJSON(1e-7)", "String:1e-7"},
+		{"toJSON(1e21)", "String:1E+21"},
+		{"toJSON(1e-7)", "String:1E-07"},
 		{"toJSON(0.1)", "String:0.1"},
 		{"toJSON(fromJSON('[]'))", "String:[]"},
 		{"toJSON(fromJSON('{}'))", "String:{}"},
@@ -782,13 +782,18 @@ func TestEvaluateDoesNotMutateContext(t *testing.T) {
 	}
 }
 
+// TestFloatCoercion checks the string form of numbers against the C# runner:
+// Double.ToString("G15", InvariantCulture) (ExpressionConstants.NumberFormat,
+// EvaluationResult.ConvertToString). Each expectation was obtained by running
+// the runner's own code (gen/runner, --g15), and numberToCoercedString agrees
+// with it on 200 000 random doubles.
 func TestFloatCoercion(t *testing.T) {
 	tests := []struct {
 		in   float64
 		want string
 	}{
 		{0, "0"},
-		{math.Copysign(0, -1), "0"},
+		{math.Copysign(0, -1), "0"}, // see numberToCoercedString
 		{1, "1"},
 		{-1, "-1"},
 		{1.5, "1.5"},
@@ -796,24 +801,34 @@ func TestFloatCoercion(t *testing.T) {
 		{0.30000000000000004, "0.3"},
 		{1.005, "1.005"},
 		{100, "100"},
-		{1e20, "100000000000000000000"},
-		{1e21, "1e+21"},
-		{123456789012345680000, "123456789012345680000"},
-		{1e-7, "1e-7"}, // toFixed(15) keeps 0.000000100000000, which prints as 1e-7
-		{0.000001, "0.000001"},
-		{5e-16, "1e-15"}, // toFixed rounds half up on the exact binary value
-		{1e-15, "1e-15"},
-		{1e-16, "0"},
-		{-1e-16, "0"},
-		{12345678901234567890, "12345678901234567000"},
+		{123456789012345, "123456789012345"},
+		{999999999999999, "999999999999999"},
+		{1e14, "100000000000000"},
+		{1e15, "1E+15"},
+		{1e16, "1E+16"},
+		{1e20, "1E+20"},
+		{1e21, "1E+21"},
+		{123456789012345680000, "1.23456789012346E+20"},
+		{1234567890123456, "1.23456789012346E+15"},
+		{0.0001, "0.0001"},
+		{0.00001, "1E-05"},
+		{1.5e-5, "1.5E-05"},
+		{1e-6, "1E-06"},
+		{1e-7, "1E-07"},
+		{5e-16, "5E-16"},
+		{-1e-16, "-1E-16"},
+		{9.999999999999995e-5, "0.0001"},
+		{99999999999999.95, "100000000000000"},
+		{999999999999999.5, "1E+15"},
+		{123456789.123456789, "123456789.123457"},
+		{123456789012345.5, "123456789012346"},
 		{math.NaN(), "NaN"},
 		{math.Inf(1), "Infinity"},
 		{math.Inf(-1), "-Infinity"},
 		{2.5, "2.5"},
 		{-0.25, "-0.25"},
-		{4503599627370497.5, "4503599627370498"}, // the literal itself rounds to the nearest double
-		{1.7976931348623157e308, "1.7976931348623157e+308"},
-		{5e-324, "0"},
+		{1.7976931348623157e308, "1.79769313486232E+308"},
+		{5e-324, "4.94065645841247E-324"},
 	}
 	for _, tc := range tests {
 		if got := CoerceString(Number(tc.in)); got != tc.want {

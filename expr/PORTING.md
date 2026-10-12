@@ -93,10 +93,23 @@ whether to keep the JS behaviour or follow the runner.
       the upper-cased UTF-16 code units. C# `OrdinalIgnoreCase` upper-cases
       per UTF-16 code unit with simple mappings only: `ß == 'SS'` should be
       false there.
-- [ ] **Number to string (`CoerceString`)**: `(+x.toFixed(15)).toString()`.
-      C# formats a `double` with `"G15"`-like rules. They agree for ordinary
-      values; check very small and very large numbers (`1e-7` here is `1e-7`,
-      `1e21` is `1e+21`), `-0`, and 16-17 significant digit values.
+- [x] **Number to string (`CoerceString`)**: resolved, follows the C#. The
+      runner converts every number with `Double.ToString("G15",
+      InvariantCulture)` (`ExpressionConstants.NumberFormat`,
+      `EvaluationResult.ConvertToString`, `src/Sdk/DTExpressions2/Expressions2/EvaluationResult.cs`),
+      not `(+x.toFixed(15)).toString()`: 15 significant digits, positional
+      for decimal exponents -5 < X < 15, otherwise `1E+21`, `1E-07`,
+      `1.23456789012346E+17` (uppercase `E`, at least two exponent digits).
+      So `1e15` is `1E+15`, `123456789012345678` is `1.23456789012346E+17`,
+      `0.000001` is `1E-06`, `5e-324` is `4.94065645841247E-324`, `1e309` is
+      `Infinity`. Negative zero is `0`: .NET Core prints `-0`, and
+      `src/Sdk/Expressions/EvaluationResult.cs` (the copy used by the newer
+      evaluator) maps it back to `0` ("keep our behavior consistent"); the
+      older `DTExpressions2` copy still prints `-0`, but the shared fixtures
+      (`coerce_string.json`, `format('{0}', -0)`) say `0`. Checked against the
+      runner's code on 200 000 random doubles. The number *literal* in an
+      expression is parsed independently of this (see below) and the JSON
+      writer of `toJSON` uses the same conversion (next item).
 - [ ] **String to number**: `Number()` semantics (hex, octal, binary,
       `Infinity`, whitespace trimmed, empty is 0). C# `double.TryParse` with
       `NumberStyles` differs (no octal/binary; check `0x` and `Infinity`).

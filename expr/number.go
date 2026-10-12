@@ -14,86 +14,68 @@ var (
 	posInf = math.Inf(1)
 )
 
-// jsNumberToString is Number.prototype.toString: the shortest decimal that
-// round-trips, in positional notation for exponents from -7 to 20 and in
-// exponent notation ("1e+21", "1.5e-7") beyond.
-func jsNumberToString(x float64) string {
+// numberToCoercedString is the string form of a number: .NET's
+// Double.ToString("G15", InvariantCulture), which is what the C# runner uses
+// for every number-to-string conversion (ExpressionConstants.NumberFormat,
+// EvaluationResult.ConvertToString, hence format(), join(), toJSON() and the
+// comparison with strings). The JavaScript reference computes
+// (+x.toFixed(15)).toString() instead; they agree on ordinary values and
+// differ on large, small and very precise ones. See PORTING.md.
+//
+// G15 rounds to 15 significant digits (ties to even on the exact binary
+// value), then prints positionally when the decimal exponent X of the rounded
+// value satisfies -5 < X < 15, and as d.dddE+XX otherwise, with the trailing
+// zeros of the mantissa removed and at least two exponent digits. NaN is
+// "NaN" and the infinities are "Infinity" and "-Infinity". Negative zero is
+// "0": .NET Core prints "-0", which Sdk/Expressions/EvaluationResult.cs
+// (ConvertToString, "keep our behavior consistent") and the shared fixtures
+// (coerce_string.json, format('{0}', -0)) undo; the older
+// DTExpressions2 copy of the runner lacks that fix and prints "-0".
+func numberToCoercedString(x float64) string {
 	switch {
 	case math.IsNaN(x):
 		return "NaN"
-	case x == 0:
-		return "0"
 	case math.IsInf(x, 1):
 		return "Infinity"
 	case math.IsInf(x, -1):
 		return "-Infinity"
+	case x == 0:
+		return "0"
 	}
 	sign := ""
 	if x < 0 {
 		sign = "-"
 		x = -x
 	}
-	s := strconv.FormatFloat(x, 'e', -1, 64) // d.ddde±xx
+	s := strconv.FormatFloat(x, 'e', 14, 64) // d.dddddddddddddde±xx, correctly rounded
 	mant, expStr, _ := strings.Cut(s, "e")
 	exp, _ := strconv.Atoi(expStr)
-	digits := strings.Replace(mant, ".", "", 1)
-	k := len(digits)
-	n := exp + 1
+	digits := strings.TrimRight(strings.Replace(mant, ".", "", 1), "0")
+	if digits == "" {
+		digits = "0"
+	}
 	switch {
-	case k <= n && n <= 21:
-		return sign + digits + strings.Repeat("0", n-k)
-	case 0 < n && n <= 21:
-		return sign + digits[:n] + "." + digits[n:]
-	case -6 < n && n <= 0:
-		return sign + "0." + strings.Repeat("0", -n) + digits
+	case exp >= 15 || exp <= -5:
+		out := digits[:1]
+		if len(digits) > 1 {
+			out += "." + digits[1:]
+		}
+		esign := "+"
+		if exp < 0 {
+			esign = "-"
+			exp = -exp
+		}
+		e := strconv.Itoa(exp)
+		if len(e) < 2 {
+			e = "0" + e
+		}
+		return sign + out + "E" + esign + e
+	case exp < 0:
+		return sign + "0." + strings.Repeat("0", -exp-1) + digits
+	case len(digits) <= exp+1:
+		return sign + digits + strings.Repeat("0", exp+1-len(digits))
 	}
-	e := n - 1
-	esign := "+"
-	if e < 0 {
-		esign = "-"
-		e = -e
-	}
-	if k == 1 {
-		return sign + digits + "e" + esign + strconv.Itoa(e)
-	}
-	return sign + digits[:1] + "." + digits[1:] + "e" + esign + strconv.Itoa(e)
-}
-
-var pow10to15 = new(big.Int).Exp(big.NewInt(10), big.NewInt(15), nil)
-
-// numberToCoercedString is NumberData.coerceString of the reference
-// implementation: (+x.toFixed(15)).toString(). Rounding to 15 decimals
-// removes binary noise (0.1+0.2 is "0.3") and ties round half up like
-// toFixed.
-func numberToCoercedString(x float64) string {
-	if x == 0 {
-		return "0"
-	}
-	if math.IsNaN(x) || math.IsInf(x, 0) {
-		return jsNumberToString(x)
-	}
-	a := math.Abs(x)
-	// toFixed returns Number::toString from 1e21 up, and for integers the
-	// fixed form parses back to the same number.
-	if a >= 1e21 || a == math.Trunc(a) {
-		return jsNumberToString(x)
-	}
-	r := new(big.Rat).SetFloat64(a)
-	r.Mul(r, new(big.Rat).SetInt(pow10to15))
-	q, rem := new(big.Int).QuoRem(r.Num(), r.Denom(), new(big.Int))
-	if rem.Lsh(rem, 1).Cmp(r.Denom()) >= 0 {
-		q.Add(q, big.NewInt(1))
-	}
-	digits := q.String()
-	if len(digits) < 16 {
-		digits = strings.Repeat("0", 16-len(digits)) + digits
-	}
-	fixed := digits[:len(digits)-15] + "." + digits[len(digits)-15:]
-	v, _ := strconv.ParseFloat(fixed, 64)
-	if x < 0 {
-		v = -v
-	}
-	return jsNumberToString(v)
+	return sign + digits[:exp+1] + "." + digits[exp+1:]
 }
 
 // jsToNumber is Number(string): the StringToNumber algorithm of ECMAScript.

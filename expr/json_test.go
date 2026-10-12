@@ -132,12 +132,14 @@ func TestToJSONFormatting(t *testing.T) {
 	}{
 		{nil, "null"},
 		{Null{}, "null"},
-		{Number(math.NaN()), "null"},
-		{Number(math.Inf(1)), "null"},
-		{Number(math.Inf(-1)), "null"},
+		// The runner writes numbers with ConvertToString (G15), so NaN and
+		// the infinities are written as such.
+		{Number(math.NaN()), "NaN"},
+		{Number(math.Inf(1)), "Infinity"},
+		{Number(math.Inf(-1)), "-Infinity"},
 		{Number(math.Copysign(0, -1)), "0"},
-		{Number(1e21), "1e+21"},
-		{Number(1e-7), "1e-7"},
+		{Number(1e21), "1E+21"},
+		{Number(1e-7), "1E-07"},
 		{Number(123456789), "123456789"},
 		{String("\u0000\u001f\u007f\u0080\u2028"), `"\u0000\u001f` + "\u007f\u0080\u2028" + `"`},
 		{String("\"\\\b\f\n\r\t"), `"\"\\\b\f\n\r\t"`},

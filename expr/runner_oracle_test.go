@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 // testdata/runner.json.gz holds what the C# runner's expression engine
@@ -57,6 +58,25 @@ func loadRunner(tb testing.TB) *runnerFile {
 	return &rf
 }
 
+// lossy replaces every lone surrogate (WTF-8) by U+FFFD, which is what a JSON
+// decoder makes of the \ud800 escapes in the recorded answers.
+func lossy(s string) string {
+	if !hasWTF8(s) {
+		return s
+	}
+	var b strings.Builder
+	for i := 0; i < len(s); {
+		r, w := decodeRune(s[i:])
+		if r >= 0xD800 && r < 0xE000 {
+			b.WriteRune(utf8.RuneError)
+		} else {
+			b.WriteString(s[i : i+w])
+		}
+		i += w
+	}
+	return b.String()
+}
+
 // goAnswer evaluates e like the runner harness does and returns its answer in
 // the runner's format.
 func goAnswer(e string, ctxNames []string, ec EvalContext) runnerCase {
@@ -82,8 +102,8 @@ func goAnswer(e string, ctxNames []string, ec EvalContext) runnerCase {
 		return rc
 	}
 	rc.K = v.Kind().String()
-	rc.S = CoerceString(v)
-	rc.J = ToJSON(v)
+	rc.S = lossy(CoerceString(v))
+	rc.J = lossy(ToJSON(v))
 	return rc
 }
 

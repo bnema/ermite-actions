@@ -453,12 +453,12 @@ func (w *jsonWriter) value(v Value, depth int) {
 			w.str("false")
 		}
 	case Number:
-		f := float64(x)
-		if math.IsNaN(f) || math.IsInf(f, 0) {
-			w.str("null")
-		} else {
-			w.str(jsNumberToString(f))
-		}
+		// The runner writes the number as it converts it to a string
+		// (ToJson.WriteValue: value.ConvertToString()), so NaN and the
+		// infinities are written as such, and a number has at most 15
+		// significant digits. JSON.stringify gives null and the shortest
+		// round-trip form.
+		w.str(numberToCoercedString(float64(x)))
 	case String:
 		w.jsonString(string(x))
 	case *Array:

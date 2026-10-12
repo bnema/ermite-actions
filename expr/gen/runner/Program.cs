@@ -60,6 +60,16 @@ internal static class P
 
     static int Main(string[] args)
     {
+        if (args[0] == "--g15")
+        {
+            // Debug aid: one hexadecimal IEEE 754 bit pattern per input line, the G15 form per output line.
+            foreach (var line in File.ReadLines(args[1]))
+            {
+                var d = BitConverter.Int64BitsToDouble(Convert.ToInt64(line.Trim(), 16));
+                Console.WriteLine(d.ToString("G15", System.Globalization.CultureInfo.InvariantCulture));
+            }
+            return 0;
+        }
         JObject root; using (var jr0 = new JsonTextReader(new StringReader(File.ReadAllText(args[0]))) { DateParseHandling = DateParseHandling.None }) root = JObject.Load(jr0);
         var defaultCtx = (JObject)root["contexts"];
         var funcs = new IFunctionInfo[]
@@ -118,7 +128,13 @@ internal static class P
                     }
                 }
             }
-            output.WriteLine(res.ToString(Formatting.None));
+            // ASCII-escaped, so that a lone surrogate (which UTF-8 cannot carry) survives.
+            var sw = new StringWriter();
+            using (var jw = new JsonTextWriter(sw) { StringEscapeHandling = StringEscapeHandling.EscapeNonAscii, Formatting = Formatting.None })
+            {
+                res.WriteTo(jw);
+            }
+            output.WriteLine(sw.ToString());
         }
         output.Flush();
         return 0;

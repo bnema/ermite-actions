@@ -24,7 +24,14 @@ func TestToJSONGolden(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			want, err := os.ReadFile(strings.TrimSuffix(in, ".json") + ".golden")
+			// NAME.golden is the answer of the JavaScript reference. Where
+			// the C# runner answers differently, NAME.runner holds its
+			// answer and is what this package follows (see PORTING.md).
+			want, err := os.ReadFile(strings.TrimSuffix(in, ".json") + ".runner")
+			fromRunner := err == nil
+			if os.IsNotExist(err) {
+				want, err = os.ReadFile(strings.TrimSuffix(in, ".json") + ".golden")
+			}
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -34,6 +41,11 @@ func TestToJSONGolden(t *testing.T) {
 			}
 			if got := ToJSON(v); got != string(want) {
 				t.Errorf("toJSON mismatch\n got: %q\nwant: %q", got, want)
+			}
+			if fromRunner {
+				// The runner's output is not JSON in general: numbers have 15
+				// significant digits and NaN and Infinity are bare words.
+				return
 			}
 			// The golden output is itself JSON that must round-trip.
 			v2, err := FromJSON(want)
