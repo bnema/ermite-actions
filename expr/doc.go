@@ -6,12 +6,15 @@
 // Package expr implements GitHub Actions expressions: the language found
 // between the braces of ${{ }} in workflow files.
 //
-// The behaviour is a faithful port of GitHub's own implementation published
-// as the npm package @actions/expressions (MIT, actions/languageservices):
-// same tokens, precedence, error messages, coercions and built-in functions.
-// Where that implementation is believed to differ from the hosted service
-// (the C# runner in actions/runner), the Go code follows the JavaScript and
-// says so in a comment; PORTING.md lists what remains to be checked.
+// The behaviour is that of the C# runner (actions/runner, MIT), the
+// implementation that evaluates expressions on github.com: its tokenizer and
+// parser, error messages, coercions, case-insensitive comparison, number
+// formatting, JSON reader and writer, and built-in functions. It was first
+// ported from GitHub's editor library, the npm package @actions/expressions
+// (MIT, actions/languageservices), then checked against the runner on 34 765
+// expressions and against the shared cross-language fixtures; where the two
+// differ, the runner wins. PORTING.md lists every difference with the C#
+// source that decides it.
 //
 // The entry points are [Parse], which turns the text of one expression into a
 // [Node], and [Evaluate], which computes its [Value] against the named

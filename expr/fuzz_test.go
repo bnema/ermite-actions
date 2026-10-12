@@ -4,6 +4,7 @@ package expr
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -81,7 +82,7 @@ func FuzzParse(f *testing.F) {
 			}
 			return
 		}
-		if node == nil && strings.TrimFunc(s, func(r rune) bool { return r == ' ' || r == '\t' || r == '\r' || r == '\n' }) != "" {
+		if node == nil && strings.TrimFunc(s, isNetSpace) != "" {
 			t.Fatalf("empty tree for non-blank input %q", s)
 		}
 		if d := nodeDepth(node); d > 2*MaxParserDepth+2 {
@@ -157,7 +158,7 @@ func FuzzEvaluate(f *testing.F) {
 		if !utf8.ValidString(j) {
 			t.Fatalf("toJSON produced invalid UTF-8: %q", j)
 		}
-		if _, err := FromJSON([]byte(j)); err != nil {
+		if _, err := FromJSON([]byte(j)); err != nil && !hasNonFinite(j) {
 			t.Fatalf("toJSON output does not parse: %v\n%s", err, j)
 		}
 		for k, c := range ctx.Contexts {
@@ -174,6 +175,11 @@ func FuzzFromJSON(f *testing.F) {
 	for _, s := range []string{`null`, `{"a":[1,2,{"b":null}]}`, `"\ud83d\ude00"`, `{"1":1,"a":2,"01":3}`, `[1e999]`, `-0`, `"\ud800"`, `{"a":1,"A":2}`, `[`, `{"a"`, "\"\x01\""} {
 		f.Add(s)
 	}
+	// The corpus recorded from the runner: every input it was asked about
+	// (leading zeros, slashes, commas, literals, mutations of those).
+	for _, c := range loadFromJSONCases(f) {
+		f.Add(c.In)
+	}
 	f.Fuzz(func(t *testing.T, s string) {
 		v, err := FromJSON([]byte(s))
 		if err != nil {
@@ -181,11 +187,24 @@ func FuzzFromJSON(f *testing.F) {
 		}
 		j := ToJSON(v)
 		v2, err := FromJSON([]byte(j))
+		if err != nil && hasNonFinite(j) {
+			return
+		}
 		if err != nil {
 			t.Fatalf("round trip failed: %v\n%s", err, j)
 		}
-		if j2 := ToJSON(v2); j2 != j {
+		// A negative zero is written "-0" and read back as the integer 0.
+		if j2 := ToJSON(v2); j2 != j && negZeroLine.ReplaceAllString(j, "${1}0${2}") != j2 {
 			t.Fatalf("round trip changed output:\n%s\n%s", j, j2)
 		}
 	})
 }
+
+// hasNonFinite reports whether toJSON output holds NaN or an infinity, which
+// the runner writes as bare words (not JSON).
+func hasNonFinite(j string) bool {
+	return strings.Contains(j, "NaN") || strings.Contains(j, "Infinity")
+}
+
+// negZeroLine matches a written negative zero: "-0" alone on its value.
+var negZeroLine = regexp.MustCompile(`(^|[\s\[:,])-0($|[\s,\]}])`)

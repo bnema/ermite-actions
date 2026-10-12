@@ -160,6 +160,19 @@ func (d *Dictionary) Add(key string, v Value) bool {
 	return true
 }
 
+// set stores v under key: a key that differs only by case from an existing one
+// replaces its value and keeps its spelling and position.
+func (d *Dictionary) set(key string, v Value) {
+	if d.index == nil {
+		d.index = map[string]int{}
+	}
+	if i, ok := d.index[foldKey(key)]; ok {
+		d.vals[i] = v
+		return
+	}
+	d.Add(key, v)
+}
+
 // Get returns the value stored under key, compared case-insensitively.
 func (d *Dictionary) Get(key string) (Value, bool) {
 	if d == nil {
@@ -212,10 +225,6 @@ func (d *Dictionary) Pairs() []Pair {
 	return out
 }
 
-// foldKey is the case-insensitive form of a dictionary key. GitHub lower-cases
-// keys with JavaScript's toLowerCase.
-func foldKey(key string) string { return jsToLower(key) }
-
 // normalize maps nil values to Null so that callers can switch on Kind.
 func normalize(v Value) Value {
 	switch x := v.(type) {
@@ -257,7 +266,7 @@ func toNumber(v Value) float64 {
 	case Number:
 		return float64(x)
 	case String:
-		return jsToNumber(string(x))
+		return parseNumber(string(x))
 	}
 	return nan
 }

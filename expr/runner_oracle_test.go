@@ -1,0 +1,205 @@
+// SPDX-License-Identifier: MIT
+
+package expr
+
+import (
+	"compress/gzip"
+	"context"
+	"encoding/json"
+	"errors"
+	"os"
+	"strings"
+	"testing"
+	"unicode/utf8"
+)
+
+// testdata/runner.json.gz holds what the C# runner's expression engine
+// (actions/runner, src/Sdk/DTExpressions2) answers on the corpus of
+// testdata/oracle.json.gz. It is produced by gen/runner. Where the runner and
+// the JavaScript reference disagree, the runner is what users see at run time
+// and this package follows it (see PORTING.md). TestOracle excuses a mismatch
+// with the JavaScript only if this package gives the runner's answer there.
+
+// runnerCommit is the commit of actions/runner that every file recorded from the
+// runner is about. gen/runner/runner-commit.txt holds the same value and the
+// generator scripts refuse a clone at another commit; TestRunnerCommit checks
+// that the two agree and that runner.json.gz was made from it.
+const runnerCommit = "5f0b3ddcc6ee9fe9441e00d55e85b94ea4aad798"
+
+type runnerFile struct {
+	Reference struct {
+		Source  string `json:"source"`
+		Commit  string `json:"commit"`
+		Runtime string `json:"runtime"`
+	} `json:"reference"`
+	Cases []runnerCase `json:"cases"`
+}
+
+type runnerCase struct {
+	E     string     `json:"e"`
+	Empty bool       `json:"empty"`
+	K     string     `json:"k"`
+	S     string     `json:"s"`
+	J     string     `json:"j"`
+	Err   *runnerErr `json:"err"`
+}
+
+// runnerErr is an error of the runner: the phase, the message, and the name of
+// the .NET exception class ("JsonReaderException" for a fromJSON failure).
+type runnerErr struct {
+	T string `json:"t"`
+	M string `json:"m"`
+	X string `json:"x"`
+}
+
+func loadRunner(tb testing.TB) *runnerFile {
+	tb.Helper()
+	f, err := os.Open("testdata/runner.json.gz")
+	if err != nil {
+		tb.Fatal(err)
+	}
+	defer func() { _ = f.Close() }()
+	zr, err := gzip.NewReader(f)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	var rf runnerFile
+	if err := json.NewDecoder(zr).Decode(&rf); err != nil {
+		tb.Fatal(err)
+	}
+	return &rf
+}
+
+// lossy replaces every lone surrogate (WTF-8) by U+FFFD, which is what a JSON
+// decoder makes of the \ud800 escapes in the recorded answers.
+func lossy(s string) string {
+	if !hasWTF8(s) {
+		return s
+	}
+	var b strings.Builder
+	for i := 0; i < len(s); {
+		r, w := decodeRune(s[i:])
+		if r >= 0xD800 && r < 0xE000 {
+			b.WriteRune(utf8.RuneError)
+		} else {
+			b.WriteString(s[i : i+w])
+		}
+		i += w
+	}
+	return b.String()
+}
+
+// goAnswer evaluates e like the runner harness does and returns its answer in
+// the runner's format.
+func goAnswer(e string, ctxNames []string, ec EvalContext) runnerCase {
+	rc := runnerCase{E: e}
+	node, err := Parse(e, ctxNames, oracleFuncInfos)
+	if err != nil {
+		rc.Err = &runnerErr{T: "parse", M: err.Error()}
+		return rc
+	}
+	if node == nil {
+		rc.Empty = true
+		return rc
+	}
+	v, err := Evaluate(context.Background(), node, ec)
+	if err != nil {
+		rc.Err = &runnerErr{T: "eval", M: err.Error(), X: goErrorClass(err)}
+		return rc
+	}
+	rc.K = v.Kind().String()
+	rc.S = lossy(CoerceString(v))
+	rc.J = lossy(ToJSON(v))
+	return rc
+}
+
+// goErrorClass names the kind of an evaluation error of this package in the
+// terms of runnerErr.X: "JsonReaderException" for the failures of fromJSON.
+func goErrorClass(err error) string {
+	var ee *EvalError
+	if errors.As(err, &ee) && (ee.Message == "empty input" || ee.Message == "Error parsing JSON when evaluating fromJson") {
+		return "JsonReaderException"
+	}
+	return ""
+}
+
+// sameAnswer reports whether a Go answer matches the runner's. Errors match
+// when they are of the same phase and have the same message, parse errors
+// included (token, position and expression), except a fromJSON failure, whose runner message is Json.NET's: it
+// matches only a fromJSON failure of this package (both are JSON reader
+// failures, never just "the expression mentions fromJSON").
+func sameAnswer(g, r runnerCase) bool {
+	if (g.Err == nil) != (r.Err == nil) {
+		return false
+	}
+	if g.Err == nil {
+		return g.Empty == r.Empty && g.K == r.K && g.S == r.S && g.J == r.J
+	}
+	if g.Err.T != r.Err.T {
+		return false
+	}
+	if r.Err.X == "JsonReaderException" || g.Err.X == "JsonReaderException" {
+		return r.Err.X == g.Err.X
+	}
+	return g.Err.M == r.Err.M
+}
+
+func clip(s string) string {
+	if len(s) > 160 {
+		return s[:160] + "..."
+	}
+	return s
+}
+
+// TestSameAnswerFromJSON: an error is excused as "a fromJSON failure" only
+// when both sides are one; an expression that merely mentions fromJSON does not
+// get a free pass.
+func TestSameAnswerFromJSON(t *testing.T) {
+	ev := func(m, x string) runnerCase {
+		return runnerCase{E: "fromJSON('x')", Err: &runnerErr{T: "eval", M: m, X: x}}
+	}
+	reader := ev("Error parsing JSON when evaluating fromJson", "JsonReaderException")
+	runnerReader := ev("Unexpected character encountered while parsing value: x. Path '', line 0, position 0.", "JsonReaderException")
+	format := ev("The following format string is invalid: {", "FormatException")
+	value := runnerCase{E: "fromJSON('1')", K: "Number", S: "1", J: "1"}
+	for _, tc := range []struct {
+		name string
+		g, r runnerCase
+		want bool
+	}{
+		{"both reader failures", reader, runnerReader, true},
+		{"go fails, runner succeeds", reader, value, false},
+		{"runner fails, go succeeds", value, runnerReader, false},
+		{"go reader failure, runner format error", reader, format, false},
+		{"runner reader failure, go format error", format, runnerReader, false},
+		{"same non-reader error", format, format, true},
+	} {
+		if got := sameAnswer(tc.g, tc.r); got != tc.want {
+			t.Errorf("%s: sameAnswer = %v, want %v", tc.name, got, tc.want)
+		}
+	}
+}
+
+func TestRunnerCommit(t *testing.T) {
+	txt, err := os.ReadFile("gen/runner/runner-commit.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(string(txt)); got != runnerCommit {
+		t.Errorf("gen/runner/runner-commit.txt = %q, runnerCommit = %q", got, runnerCommit)
+	}
+	rf := loadRunner(t)
+	if rf.Reference.Commit != runnerCommit {
+		t.Errorf("testdata/runner.json.gz was recorded at %s, want %s", rf.Reference.Commit, runnerCommit)
+	}
+	if !strings.HasPrefix(rf.Reference.Runtime, "Microsoft.NETCore.App 9.0.") {
+		t.Errorf("runtime %q, want Microsoft.NETCore.App 9.0.x", rf.Reference.Runtime)
+	}
+	doc, err := os.ReadFile("PORTING.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(doc), runnerCommit) {
+		t.Errorf("PORTING.md does not mention the runner commit %s", runnerCommit)
+	}
+}

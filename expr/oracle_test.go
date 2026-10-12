@@ -128,17 +128,37 @@ type oracleRun struct {
 	ctxNames []string
 	failures int
 	c        oracleCase
+	// pending holds the mismatches of the current case until the case is
+	// settled: a mismatch with the JavaScript reference is excused when the
+	// C# runner, which is what runs on github.com, gives this package's answer.
+	pending []string
 }
 
 func (r *oracleRun) fail(format string, args ...any) {
-	r.failures++
-	if r.failures <= 40 {
-		e := r.c.E
-		if len(e) > 200 {
-			e = e[:200] + "..."
-		}
-		r.t.Errorf("%q: %s", e, fmt.Sprintf(format, args...))
+	r.pending = append(r.pending, fmt.Sprintf(format, args...))
+}
+
+// settle reports the pending mismatches of the current case, unless the
+// runner agrees with this package. It returns true when the case was excused.
+func (r *oracleRun) settle(rc runnerCase, ctxNames []string) (excused bool) {
+	if len(r.pending) == 0 {
+		return false
 	}
+	defer func() { r.pending = r.pending[:0] }()
+	if rc.E == r.c.E && sameAnswer(goAnswer(r.c.E, ctxNames, r.ec), rc) {
+		return true
+	}
+	for _, m := range r.pending {
+		r.failures++
+		if r.failures <= 40 {
+			e := r.c.E
+			if len(e) > 200 {
+				e = e[:200] + "..."
+			}
+			r.t.Errorf("%q: %s", e, m)
+		}
+	}
+	return false
 }
 
 // checkLex compares the tokens and reports whether the case lexes.
@@ -264,8 +284,13 @@ func TestOracle(t *testing.T) {
 	t.Logf("reference: %s, integrity %s, generated with node %s (V8 %s, Unicode %s)", ref.Package, ref.Integrity, ref.Node, ref.V8, ref.Unicode)
 
 	run := &oracleRun{t: t, ctxNames: ctxNames, ec: EvalContext{Contexts: ctxValues, Funcs: oracleFuncs, MaxResultBytes: -1}}
+	rf := loadRunner(t)
+	if len(rf.Cases) != len(of.Cases) {
+		t.Fatalf("runner answers %d cases, oracle has %d", len(rf.Cases), len(of.Cases))
+	}
 	var counts struct{ lexErr, parseErr, evalErr, ok, empty int }
-	for _, c := range of.Cases {
+	excused := 0
+	for i, c := range of.Cases {
 		run.c = c
 		switch {
 		case c.LexErr != nil:
@@ -279,17 +304,17 @@ func TestOracle(t *testing.T) {
 		default:
 			counts.ok++
 		}
-		if !run.checkLex() {
-			continue
+		if run.checkLex() {
+			if node := run.checkParse(); node != nil {
+				run.checkEval(node)
+			}
 		}
-		node := run.checkParse()
-		if node == nil {
-			continue
+		if run.settle(rf.Cases[i], ctxNames) {
+			excused++
 		}
-		run.checkEval(node)
 	}
-	t.Logf("%d cases: %d lex errors, %d parse errors, %d empty, %d eval errors, %d values; %d failures",
-		len(of.Cases), counts.lexErr, counts.parseErr, counts.empty, counts.evalErr, counts.ok, run.failures)
+	t.Logf("%d cases: %d lex errors, %d parse errors, %d empty, %d eval errors, %d values; %d differ from the JavaScript where the C# runner agrees with this package; %d failures",
+		len(of.Cases), counts.lexErr, counts.parseErr, counts.empty, counts.evalErr, counts.ok, excused, run.failures)
 	if run.failures > 0 {
 		t.Fatalf("%d oracle mismatches", run.failures)
 	}

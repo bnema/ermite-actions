@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Same driver as ../runner, built on the newer engine of actions/runner,
+       src/Sdk/Expressions (namespace GitHub.Actions.Expressions), the one that
+       WorkflowTemplateEvaluator runs next to the legacy engine to compare.
+       Used by engines.mjs to find out where the two engines differ. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <LangVersion>11.0</LangVersion>
+    <NoWarn>NU1701;CS8632;CS0108;CS0114;CS1591;CS0618;SYSLIB0050</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <Target Name="RequireRunnerSrc" BeforeTargets="BeforeBuild;CoreCompile">
+    <Error Condition="'$(RunnerSrc)' == '' Or !Exists('$(RunnerSrc)/Expressions')" Text="Set RunnerSrc to the src/Sdk directory of a clone of actions/runner: dotnet build -c Release expr/gen/runner-new -p:RunnerSrc=&lt;clone&gt;/src/Sdk" />
+  </Target>
+  <ItemGroup>
+    <Compile Include="$(RunnerSrc)/Expressions/**/*.cs" />
+    <Compile Include="Program.cs" />
+    <EmbeddedResource Include="$(RunnerSrc)/Expressions/Resources/ExpressionResources.resx" LogicalName="GitHub.Actions.Expressions.ExpressionResources.resources" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

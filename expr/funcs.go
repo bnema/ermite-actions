@@ -4,58 +4,88 @@ package expr
 
 import (
 	"errors"
-	"math"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // builtinFunc implements a built-in function. It runs inside the evaluator so
-// that it can charge the output budget and watch the context.
-type builtinFunc func(e *evaluator, args []Value) (Value, error)
+// that it can charge the output budget and watch the context, and it receives
+// the call, not the evaluated arguments: like the runner's functions
+// (Sdk/Functions/*.cs) it evaluates only the arguments it needs, in its own
+// order, so an argument that is never reached cannot fail.
+type builtinFunc func(e *evaluator, c *FunctionCall) (Value, error)
 
 // builtinImpls are the implementations of the built-in functions, keyed by
-// lower-cased name. Arity is validated by the parser, so each may assume its
-// documented argument count.
-var builtinImpls = map[string]builtinFunc{
-	"case":       funcCase,
-	"contains":   funcContains,
-	"endswith":   funcEndsWith,
-	"format":     funcFormat,
-	"fromjson":   funcFromJSON,
-	"join":       funcJoin,
-	"startswith": funcStartsWith,
-	"tojson":     funcToJSON,
+// upper-cased name (see foldKey). Arity is validated by the parser, so each
+// may assume its documented argument count.
+var builtinImpls map[string]builtinFunc
+
+// The map is filled in init: the implementations call back into the evaluator,
+// which would make a package-level initializer cyclic.
+func init() {
+	builtinImpls = map[string]builtinFunc{
+		"CASE":       funcCase,
+		"CONTAINS":   funcContains,
+		"ENDSWITH":   funcEndsWith,
+		"FORMAT":     funcFormat,
+		"FROMJSON":   funcFromJSON,
+		"JOIN":       funcJoin,
+		"STARTSWITH": funcStartsWith,
+		"TOJSON":     funcToJSON,
+	}
 }
 
-// funcCase is case(pred1, val1, pred2, val2, ..., default).
-//
-// The JavaScript reference ships it behind an experimental feature flag
-// (allowCaseFunction) that only affects editor completion; the parser always
-// accepts it, and so does this package.
-func funcCase(e *evaluator, args []Value) (Value, error) {
-	for i := 0; i < len(args)-1; i += 2 {
-		pred, ok := normalize(args[i]).(Boolean)
+// funcCase is case(pred1, val1, pred2, val2, ..., default): the predicates are
+// evaluated in order up to the first true one, then only its value (Case.cs).
+// A predicate that is not a boolean is an error. The JavaScript reference
+// ships case behind an experimental feature flag that only affects editor
+// completion; the parser always accepts it, and so does the runner.
+func funcCase(e *evaluator, c *FunctionCall) (Value, error) {
+	n := len(c.Args)
+	if n%2 == 0 {
+		return nil, evalErrorf("case requires an odd number of arguments")
+	}
+	for i := 0; i < n-1; i += 2 {
+		p, err := e.eval(c.Args[i])
+		if err != nil {
+			return nil, err
+		}
+		pred, ok := normalize(p).(Boolean)
 		if !ok {
 			return nil, evalErrorf("case predicate must evaluate to a boolean value")
 		}
 		if pred {
-			return args[i+1], nil
+			return e.eval(c.Args[i+1])
 		}
 	}
-	return args[len(args)-1], nil
+	return e.eval(c.Args[n-1])
 }
 
-// funcContains is contains(search, item): substring test, case-insensitive
-// via toLowerCase, when both are primitive; membership by == in an array;
-// false otherwise.
-func funcContains(e *evaluator, args []Value) (Value, error) {
-	left, right := normalize(args[0]), normalize(args[1])
+// funcContains is contains(search, item) (Contains.cs): when search is a
+// primitive and so is item, a case-insensitive (OrdinalIgnoreCase) substring
+// test on their string forms; when search is a non-empty array, == against each
+// element; false otherwise. item is only evaluated when it can matter.
+func funcContains(e *evaluator, c *FunctionCall) (Value, error) {
+	l, err := e.eval(c.Args[0])
+	if err != nil {
+		return nil, err
+	}
+	left := normalize(l)
 	switch {
 	case isPrimitive(left):
-		if isPrimitive(right) {
-			return Boolean(jsIncludes(jsToLower(CoerceString(left)), jsToLower(CoerceString(right)))), nil
+		r, err := e.eval(c.Args[1])
+		if err != nil {
+			return nil, err
 		}
-	case left.Kind() == KindArray:
+		if right := normalize(r); isPrimitive(right) {
+			return Boolean(jsIncludes(ordinalFold(CoerceString(left)), ordinalFold(CoerceString(right)))), nil
+		}
+	case left.Kind() == KindArray && len(left.(*Array).items) > 0:
+		right, err := e.eval(c.Args[1])
+		if err != nil {
+			return nil, err
+		}
 		for _, v := range left.(*Array).items {
 			if err := e.tick(); err != nil {
 				return nil, err
@@ -68,40 +98,57 @@ func funcContains(e *evaluator, args []Value) (Value, error) {
 	return Boolean(false), nil
 }
 
-func funcStartsWith(e *evaluator, args []Value) (Value, error) {
-	ls, rs, ok := primitivePair(args)
-	return Boolean(ok && jsHasPrefix(toUpperSpecial(ls), toUpperSpecial(rs))), nil
+func funcStartsWith(e *evaluator, c *FunctionCall) (Value, error) {
+	ls, rs, ok, err := e.primitivePair(c)
+	return Boolean(ok && jsHasPrefix(ordinalFold(ls), ordinalFold(rs))), err
 }
 
-func funcEndsWith(e *evaluator, args []Value) (Value, error) {
-	ls, rs, ok := primitivePair(args)
-	return Boolean(ok && jsHasSuffix(toUpperSpecial(ls), toUpperSpecial(rs))), nil
+func funcEndsWith(e *evaluator, c *FunctionCall) (Value, error) {
+	ls, rs, ok, err := e.primitivePair(c)
+	return Boolean(ok && jsHasSuffix(ordinalFold(ls), ordinalFold(rs))), err
 }
 
-// primitivePair returns the string forms of the two arguments, and false
-// when either is an array or a dictionary.
-func primitivePair(args []Value) (string, string, bool) {
-	if !isPrimitive(args[0]) || !isPrimitive(args[1]) {
-		return "", "", false
+// primitivePair evaluates the two arguments, the second only if the first is
+// primitive, and returns their string forms; ok is false when either is an
+// array or a dictionary.
+func (e *evaluator) primitivePair(c *FunctionCall) (ls, rs string, ok bool, err error) {
+	l, err := e.eval(c.Args[0])
+	if err != nil || !isPrimitive(l) {
+		return "", "", false, err
 	}
-	return CoerceString(args[0]), CoerceString(args[1]), true
+	r, err := e.eval(c.Args[1])
+	if err != nil || !isPrimitive(r) {
+		return "", "", false, err
+	}
+	return CoerceString(l), CoerceString(r), true, nil
 }
 
-// funcJoin is join(array, separator). A primitive first argument is just
-// converted to a string, ignoring the separator; a dictionary gives "". A
-// separator that is not primitive means ",".
-func funcJoin(e *evaluator, args []Value) (Value, error) {
-	first := normalize(args[0])
+// funcJoin is join(array, separator) (Join.cs). A primitive first argument is
+// just converted to a string, ignoring the separator; a dictionary or an empty
+// array gives "". The separator is evaluated only when there are at least two
+// items to separate, and a separator that is not primitive means ",".
+func funcJoin(e *evaluator, c *FunctionCall) (Value, error) {
+	f, err := e.eval(c.Args[0])
+	if err != nil {
+		return nil, err
+	}
+	first := normalize(f)
 	if isPrimitive(first) {
 		return String(CoerceString(first)), nil
 	}
 	arr, ok := first.(*Array)
-	if !ok {
+	if !ok || len(arr.items) == 0 {
 		return String(""), nil
 	}
 	sep := ","
-	if len(args) > 1 && isPrimitive(args[1]) {
-		sep = CoerceString(args[1])
+	if len(arr.items) > 1 && len(c.Args) > 1 {
+		sv, err := e.eval(c.Args[1])
+		if err != nil {
+			return nil, err
+		}
+		if isPrimitive(sv) {
+			sep = CoerceString(sv)
+		}
 	}
 	var out strings.Builder
 	for i, it := range arr.items {
@@ -121,17 +168,21 @@ func funcJoin(e *evaluator, args []Value) (Value, error) {
 		}
 		out.WriteString(part)
 	}
-	return String(normalizeWTF8(out.String())), nil
+	return String(out.String()), nil
 }
 
 // funcToJSON is toJSON(value). The output counts against the budget and is
 // cut off as soon as it exceeds what is left.
-func funcToJSON(e *evaluator, args []Value) (Value, error) {
+func funcToJSON(e *evaluator, c *FunctionCall) (Value, error) {
+	v, err := e.eval(c.Args[0])
+	if err != nil {
+		return nil, err
+	}
 	max := -1
 	if e.limit >= 0 {
 		max = e.limit - e.used
 	}
-	out, err := EncodeJSON(args[0], max)
+	out, err := EncodeJSON(v, max)
 	switch {
 	case errors.Is(err, errJSONTooBig):
 		return nil, e.budgetError()
@@ -145,11 +196,15 @@ func funcToJSON(e *evaluator, args []Value) (Value, error) {
 }
 
 // funcFromJSON is fromJSON(value). Blank input is "empty input"; anything
-// that is not valid JSON is "Error parsing JSON when evaluating fromJson"
-// wrapping the syntax error.
-func funcFromJSON(e *evaluator, args []Value) (Value, error) {
-	in := CoerceString(args[0])
-	if jsTrim(in) == "" {
+// that is not readable by Json.NET is "Error parsing JSON when evaluating
+// fromJson" wrapping the reader's error.
+func funcFromJSON(e *evaluator, c *FunctionCall) (Value, error) {
+	a, err := e.eval(c.Args[0])
+	if err != nil {
+		return nil, err
+	}
+	in := CoerceString(a)
+	if strings.TrimFunc(in, isNetSpace) == "" {
 		return nil, evalErrorf("empty input")
 	}
 	v, err := FromJSON([]byte(in))
@@ -159,13 +214,39 @@ func funcFromJSON(e *evaluator, args []Value) (Value, error) {
 	return v, nil
 }
 
-// funcFormat is format(fmt, args...): "{N}" inserts argument N, "{{" and "}}"
-// are literal braces. Anything between the digits of "{N" and the closing
-// brace is ignored ("{0:x}" is "{0}"). Every other use of a brace is an
-// error, as is a reference to a missing argument.
-func funcFormat(e *evaluator, args []Value) (Value, error) {
-	fs := CoerceString(args[0])
-	var out strings.Builder
+// formatPiece is a segment of the result of format(): literal text, or the
+// index of an argument (evaluated when the result is assembled) with the
+// format specifiers written after the colon.
+type formatPiece struct {
+	text  string
+	arg   int
+	specs string
+	isArg bool
+}
+
+// funcFormat is format(fmt, args...) (Format.cs): "{N}" inserts argument N,
+// "{{" and "}}" are literal braces. The format string is scanned completely
+// first (so a syntax error or a reference to a missing argument is reported
+// before any argument is evaluated), then the arguments are evaluated, once
+// each, in the order they appear. N is at most 255 (a byte). Format specifiers
+// ("{0:x}") are not supported for any value: they are an error.
+func funcFormat(e *evaluator, c *FunctionCall) (Value, error) {
+	f, err := e.eval(c.Args[0])
+	if err != nil {
+		return nil, err
+	}
+	fs := CoerceString(f)
+	var pieces []formatPiece
+	text := func(t string) error {
+		if t == "" {
+			return nil
+		}
+		if err := e.charge(utf16Len(t)); err != nil {
+			return err
+		}
+		pieces = append(pieces, formatPiece{text: t})
+		return nil
+	}
 	index := 0
 	for index < len(fs) {
 		lbrace := indexByteFrom(fs, '{', index)
@@ -174,27 +255,26 @@ func funcFormat(e *evaluator, args []Value) (Value, error) {
 		case lbrace >= 0 && (rbrace < 0 || rbrace > lbrace):
 			// Escaped left brace.
 			if charAt(fs, lbrace+1) == '{' {
-				if err := e.charge(lbrace + 1 - index); err != nil {
+				if err := text(fs[index : lbrace+1]); err != nil {
 					return nil, err
 				}
-				out.WriteString(fs[index : lbrace+1])
 				index = lbrace + 2
 				continue
 			}
 			// Left brace, number, optional format specifiers, right brace.
 			if rbrace > lbrace+1 {
-				if argIndex, ok := readArgIndex(fs, lbrace+1); ok {
-					if 1+argIndex > float64(len(args)-1) {
-						return nil, evalErrorf("The following format string references more arguments than were supplied: %s", fs)
+				if argIndex, end, ok := readArgIndex(fs, lbrace+1); ok {
+					if specs, closing, ok := readFormatSpecifiers(fs, end+1); ok {
+						if argIndex > len(c.Args)-2 {
+							return nil, evalErrorf("The following format string references more arguments than were supplied: %s", fs)
+						}
+						if err := text(fs[index:lbrace]); err != nil {
+							return nil, err
+						}
+						pieces = append(pieces, formatPiece{arg: argIndex, specs: specs, isArg: true})
+						index = closing + 1
+						continue
 					}
-					arg := CoerceString(args[1+int(argIndex)])
-					if err := e.charge(lbrace - index + len(arg)); err != nil {
-						return nil, err
-					}
-					out.WriteString(fs[index:lbrace])
-					out.WriteString(arg)
-					index = rbrace + 1
-					continue
 				}
 			}
 			return nil, evalErrorf("The following format string is invalid: %s", fs)
@@ -203,20 +283,50 @@ func funcFormat(e *evaluator, args []Value) (Value, error) {
 			if charAt(fs, rbrace+1) != '}' {
 				return nil, evalErrorf("The following format string is invalid: %s", fs)
 			}
-			if err := e.charge(rbrace + 1 - index); err != nil {
+			if err := text(fs[index : rbrace+1]); err != nil {
 				return nil, err
 			}
-			out.WriteString(fs[index : rbrace+1])
 			index = rbrace + 2
 		default:
-			if err := e.charge(len(fs) - index); err != nil {
+			if err := text(fs[index:]); err != nil {
 				return nil, err
 			}
-			out.WriteString(fs[index:])
 			index = len(fs)
 		}
 	}
-	return String(normalizeWTF8(out.String())), nil
+	// Assemble: arguments are evaluated lazily, once each, in the order of
+	// their first appearance.
+	type argValue struct {
+		str  string
+		kind Kind
+		done bool
+	}
+	cache := make([]argValue, len(c.Args)-1)
+	var out strings.Builder
+	for _, p := range pieces {
+		if !p.isArg {
+			out.WriteString(p.text)
+			continue
+		}
+		av := &cache[p.arg]
+		if !av.done {
+			v, err := e.eval(c.Args[1+p.arg])
+			if err != nil {
+				return nil, err
+			}
+			*av = argValue{str: CoerceString(v), kind: normalize(v).Kind(), done: true}
+		}
+		if p.specs != "" {
+			return nil, evalErrorf("The format specifiers '%s' are not valid for objects of type '%s'", p.specs, av.kind)
+		}
+		if av.str != "" {
+			if err := e.charge(utf16Len(av.str)); err != nil {
+				return nil, err
+			}
+		}
+		out.WriteString(av.str)
+	}
+	return String(out.String()), nil
 }
 
 func indexByteFrom(s string, c byte, from int) int {
@@ -238,20 +348,65 @@ func charAt(s string, i int) byte {
 	return 0
 }
 
-// readArgIndex reads the decimal digits at s[start:]. The index is a float
-// because parseInt in the reference yields Infinity for absurdly long digit
-// runs, which then fails the argument-count check.
-func readArgIndex(s string, start int) (float64, bool) {
+// readArgIndex reads the digits at s[start:] as the index of a format
+// argument: a byte, so at most 255 (Byte.TryParse). It returns the index of the
+// last digit. Digits are Unicode decimal digits for the scan but only ASCII
+// ones parse, so any other digit makes the format string invalid.
+func readArgIndex(s string, start int) (value, end int, ok bool) {
 	n := 0
-	for charAt(s, start+n) >= '0' && charAt(s, start+n) <= '9' {
-		n++
+	for i := start; i < len(s); {
+		r, w := decodeRune(s[i:])
+		if !unicode.IsDigit(r) {
+			break
+		}
+		i += w
+		n = i - start
 	}
 	if n == 0 {
-		return 0, false
+		return 0, 0, false
 	}
-	f, _ := strconv.ParseFloat(s[start:start+n], 64)
-	if math.IsNaN(f) {
-		return 0, false
+	v, err := strconv.ParseUint(s[start:start+n], 10, 8)
+	if err != nil || !isASCII(s[start:start+n]) {
+		return 0, 0, false
 	}
-	return f, true
+	return int(v), start + n - 1, true
+}
+
+// readFormatSpecifiers reads what follows the digits of "{N": either the
+// closing brace, or ":" and specifiers up to a closing brace, where "}}" is a
+// literal brace inside the specifiers. It returns the specifiers and the index
+// of the closing brace.
+func readFormatSpecifiers(s string, start int) (specs string, closing int, ok bool) {
+	switch charAt(s, start) {
+	case '}':
+		return "", start, true
+	case ':':
+	default:
+		return "", 0, false
+	}
+	var b strings.Builder
+	for i := start + 1; i < len(s); {
+		if s[i] != '}' {
+			b.WriteByte(s[i])
+			i++
+		} else if charAt(s, i+1) == '}' {
+			b.WriteByte('}')
+			i += 2
+		} else {
+			return b.String(), i, true
+		}
+	}
+	return "", 0, false
+}
+
+// utf16Len is the length of s in UTF-16 code units, the length of a .NET string.
+func utf16Len(s string) int {
+	n := 0
+	for _, r := range s {
+		n++
+		if r >= 0x10000 {
+			n++
+		}
+	}
+	return n
 }

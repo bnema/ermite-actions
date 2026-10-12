@@ -6,6 +6,8 @@ Test fixtures and schemas under `testdata/`, `workflow/testdata/` and `template/
 
 https://github.com/actions/languageservices
 
+Used: `expr/testdata/languageservices/*.json` (the cross-language expression fixtures, commit 4043eda158e16579cc5fb1b0b07a4bce2a76f0b5) and the `@actions/expressions` package that the other `expr` oracle files were generated from.
+
 ```
 MIT License
 

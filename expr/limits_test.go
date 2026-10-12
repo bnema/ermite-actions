@@ -410,7 +410,7 @@ func TestWTF8Helpers(t *testing.T) {
 	if got := normalizeWTF8(lo + hi); got != lo+hi {
 		t.Errorf("reversed pair joined: %q", got)
 	}
-	if foldKey(hi) != hi || foldKey("A"+hi) != "a"+hi {
+	if foldKey(hi) != hi || foldKey("a"+hi) != "A"+hi {
 		t.Error("foldKey")
 	}
 	if compareUTF16(hi, "\ue000") >= 0 || compareUTF16(lo, "\ue000") >= 0 || compareUTF16(hi, "\U00010000") >= 0 {
@@ -422,17 +422,15 @@ func TestWTF8Helpers(t *testing.T) {
 }
 
 func TestLoneSurrogateExpressions(t *testing.T) {
-	// The cases the review asked for; the oracle covers many more.
+	// Json.NET turns an unpaired surrogate escape into U+FFFD, so the
+	// runner has no lone surrogates (JavaScript strings do: see PORTING.md).
 	runEvalCases(t, []evalCase{
-		{`fromJSON('"\ud800"') == fromJSON('"\udc00"')`, "Boolean:false"},
-		{`fromJSON('"\ud800"') == fromJSON('"\ud800"')`, "Boolean:true"},
-		{"fromJSON('\"\\ud800\"') == '\ufffd'", "Boolean:false"},
-		{`fromJSON('"\ud800"') < fromJSON('"\udc00"')`, "Boolean:true"},
-		{"fromJSON('\"\\ud800\"') < '\ue000'", "Boolean:true"},
-		{"fromJSON('\"\\ud800\"') < '\U00010000'", "Boolean:true"},
-		{`contains(fromJSON('"a\ud800"'), fromJSON('"\ud800"'))`, "Boolean:true"},
-		{`contains(fromJSON('"\ud83d\ude00"'), fromJSON('"\ud83d"'))`, "Boolean:true"},
-		{`format('{0}{1}', fromJSON('"\ud83d"'), fromJSON('"\ude00"')) == '😀'`, "Boolean:true"},
-		{`toJSON(fromJSON('"\ud800"'))`, `String:"\ud800"`},
+		{`fromJSON('"\ud800"') == fromJSON('"\udc00"')`, "Boolean:true"},
+		{"fromJSON('\"\\ud800\"') == '\ufffd'", "Boolean:true"},
+		{`fromJSON('"\ud800"') < fromJSON('"\udc00"')`, "Boolean:false"},
+		{`contains(fromJSON('"\ud83d\ude00"'), fromJSON('"\ud83d"'))`, "Boolean:false"},
+		{`fromJSON('"\ud83d\ude00"') == '😀'`, "Boolean:true"},
+		{`format('{0}{1}', fromJSON('"\ud83d"'), fromJSON('"\ude00"')) == '😀'`, "Boolean:false"},
+		{`toJSON(fromJSON('"\ud800"'))`, "String:\"\ufffd\""},
 	})
 }

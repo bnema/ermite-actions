@@ -27,11 +27,6 @@ func isJSSpace(r rune) bool {
 	return r >= 0x2000 && r <= 0x200A
 }
 
-// jsTrim is String.prototype.trim.
-func jsTrim(s string) string {
-	return strings.TrimFunc(s, isJSSpace)
-}
-
 func isASCII(s string) bool {
 	for i := 0; i < len(s); i++ {
 		if s[i] >= utf8.RuneSelf {

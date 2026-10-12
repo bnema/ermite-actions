@@ -70,19 +70,11 @@ type Token struct {
 	Value Value
 }
 
-// tokenString is the text an error message shows for a token.
-func tokenString(t Token) string {
-	switch t.Type {
-	case TokenEOF:
-		return "EOF"
-	case TokenString:
-		return string(t.Value.(String))
-	}
-	return t.Lexeme
-}
-
-// Lex splits an expression into tokens. The result always ends with a
-// TokenEOF token.
+// Lex splits an expression into tokens the way the JavaScript reference's
+// lexer does, ending with a TokenEOF token. [Parse] does not use it: it
+// follows the C# runner, whose tokenizer is context sensitive and lazy (see
+// parse_runner.go). Lex is kept because the oracle tests replay the reference's
+// tokens with it.
 func Lex(input string) ([]Token, error) {
 	if exceedsUTF16Len(input, MaxExpressionLength) {
 		// The reference throws a bare Error("ErrorExceededMaxLength") here,
@@ -271,7 +263,7 @@ func (l *lexer) consumeNumber() error {
 		l.next()
 	}
 	lexeme := l.substring(l.start, l.offset)
-	v := jsToNumber(lexeme)
+	v := parseNumber(lexeme)
 	if math.IsNaN(v) {
 		return l.unexpected(lexeme)
 	}
@@ -295,11 +287,13 @@ func (l *lexer) consumeString() error {
 	}
 	l.next() // closing quote
 	value := l.substring(l.start+1, l.offset-1)
-	// The reference calls value.replace("''", "'") with a string pattern,
-	// which replaces only the FIRST doubled quote: 'a''b''c' is a'b''c.
-	// GitHub's C# lexer unescapes every pair. Followed as written; see
-	// PORTING.md.
-	value = strings.Replace(value, "''", "'", 1)
+	// Every doubled quote is one quote. The JavaScript reference calls
+	// value.replace("''", "'") with a string pattern, which replaces only the
+	// first pair ('a''b''c' is a'b''c there); the C# runner, which is what
+	// runs on github.com, appends one quote per pair
+	// (Tokens/LexicalAnalyzer.cs ReadStringToken, "Escaped single quote"), and
+	// this package follows it. See PORTING.md.
+	value = strings.ReplaceAll(value, "''", "'")
 	l.addToken(TokenString, String(value))
 	return nil
 }
