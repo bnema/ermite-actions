@@ -54,6 +54,16 @@ func errorTexts(errs []Error) []string {
 // the JavaScript library's and cannot be reproduced word for word.
 func isYAMLError(s string) bool { return strings.Contains(s, " at line ") }
 
+// ermiteOnly lists corpus files on which this package reports errors the
+// reference does not; the errors expected are given here instead.
+var ermiteOnly = map[string][]string{
+	"on_filters_both.yml": {
+		"on_filters_both.yml (Line: 2, Col: 3): Event 'push' cannot use both 'branches' and 'branches-ignore'. Use only one of them.",
+		"on_filters_both.yml (Line: 2, Col: 3): Event 'push' cannot use both 'tags' and 'tags-ignore'. Use only one of them.",
+		"on_filters_both.yml (Line: 2, Col: 3): Event 'push' cannot use both 'paths' and 'paths-ignore'. Use only one of them.",
+	},
+}
+
 func TestConvertAgainstReference(t *testing.T) {
 	ref := loadRef(t)
 	files, err := filepath.Glob("testdata/convert/*.yml")
@@ -74,6 +84,12 @@ func TestConvertAgainstReference(t *testing.T) {
 			}
 			w, errs := Parse(name, content)
 			got := errorTexts(errs)
+			if extra, ok := ermiteOnly[name]; ok {
+				if !reflect.DeepEqual(got, extra) || w != nil {
+					t.Errorf("errors:\n got %q\nwant %q", got, extra)
+				}
+				return
+			}
 			if len(want.Errors) == 1 && isYAMLError(want.Errors[0]) {
 				// Syntax errors: the Go parser words them differently. Only
 				// the fact that there is exactly one, on the file, is checked.

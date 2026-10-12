@@ -269,3 +269,30 @@ func (c *converter) convertInput(name string, m *template.Mapping, call bool) In
 	}
 	return in
 }
+
+// filterPairs are the filters GitHub does not allow together on one event.
+var filterPairs = [][2]string{{"branches", "branches-ignore"}, {"tags", "tags-ignore"}, {"paths", "paths-ignore"}}
+
+// validateFilters reports an event that uses a filter and its "-ignore"
+// counterpart. @actions/workflow-parser accepts this; GitHub rejects the
+// file ("you can't use both"), so this port does too. The message is ours.
+//
+// TODO(verify with recording): the text and position of GitHub's error, and
+// whether it applies to every event that has these filters.
+func (c *converter) validateFilters() {
+	if c.w.On == nil {
+		return
+	}
+	for _, ev := range c.w.On.Events {
+		have := map[string][]string{
+			"branches": ev.Branches, "branches-ignore": ev.BranchesIgnore,
+			"tags": ev.Tags, "tags-ignore": ev.TagsIgnore,
+			"paths": ev.Paths, "paths-ignore": ev.PathsIgnore,
+		}
+		for _, pr := range filterPairs {
+			if have[pr[0]] != nil && have[pr[1]] != nil {
+				c.ctx.Errorf(ev.Token, "Event '%s' cannot use both '%s' and '%s'. Use only one of them.", ev.Name, pr[0], pr[1])
+			}
+		}
+	}
+}

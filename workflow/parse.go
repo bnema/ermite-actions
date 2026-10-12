@@ -17,7 +17,9 @@ const rootType = "workflow-root-strict"
 // contexts and functions in expressions, and the checks of the converter (job
 // and step ids, needs, filters, inputs). When there is any error the workflow
 // is nil. As in the reference, the converter only runs when the file passes
-// the schema.
+// the schema. One check is not the reference's: an event that uses both a
+// filter and its "-ignore" counterpart (branches and branches-ignore, tags and
+// tags-ignore, paths and paths-ignore) is an error, as on GitHub.
 func Parse(path string, content []byte) (*Workflow, []Error) {
 	schema, err := template.WorkflowSchema()
 	if err != nil {
@@ -29,6 +31,7 @@ func Parse(path string, content []byte) (*Workflow, []Error) {
 	if root != nil && !ctx.HasErrors() {
 		c := &converter{ctx: ctx, schema: schema, w: w, jobIDs: newIDBuilder()}
 		c.convertRoot(root)
+		c.validateFilters()
 	}
 	errs := collect(ctx)
 	if len(errs) > 0 {
