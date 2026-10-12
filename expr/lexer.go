@@ -295,11 +295,13 @@ func (l *lexer) consumeString() error {
 	}
 	l.next() // closing quote
 	value := l.substring(l.start+1, l.offset-1)
-	// The reference calls value.replace("''", "'") with a string pattern,
-	// which replaces only the FIRST doubled quote: 'a''b''c' is a'b''c.
-	// GitHub's C# lexer unescapes every pair. Followed as written; see
-	// PORTING.md.
-	value = strings.Replace(value, "''", "'", 1)
+	// Every doubled quote is one quote. The JavaScript reference calls
+	// value.replace("''", "'") with a string pattern, which replaces only the
+	// first pair ('a''b''c' is a'b''c there); the C# runner, which is what
+	// runs on github.com, appends one quote per pair
+	// (Tokens/LexicalAnalyzer.cs ReadStringToken, "Escaped single quote"), and
+	// this package follows it. See PORTING.md.
+	value = strings.ReplaceAll(value, "''", "'")
 	l.addToken(TokenString, String(value))
 	return nil
 }

@@ -64,11 +64,14 @@ Each item is implemented as the JavaScript does. Check the runner's tests
 (`src/Test/L0/Expressions*`, `Sdk/Expressions2/...`) and decide for each one
 whether to keep the JS behaviour or follow the runner.
 
-- [ ] **String escapes: only the first `''` is unescaped.** The lexer does
-      `value.replace("''", "'")` with a string pattern, which replaces one
-      occurrence: `'a''b''c'` is `a'b''c`. The C# lexer should unescape every
-      pair (`StringBuilder`/`Replace`). Probable JS bug. (`lexer.go`,
-      `consumeString`; tests: `TestEvalLiteralsAndOperators`.)
+- [x] **String escapes: every `''` is unescaped.** Resolved: follows the C#.
+      `LexicalAnalyzer.ReadStringToken` (`Tokens/LexicalAnalyzer.cs`, the
+      "Escaped single quote" branch) skips the second quote of each pair and
+      appends the first, so `'a''b''c'` is `a'b'c`. The JavaScript lexer does
+      `value.replace("''", "'")` (first pair only) and gives `a'b''c`; that is
+      a bug of the editor library. Tests: `TestEvalLiteralsAndOperators`; the
+      oracle excuses the JS mismatch because `testdata/runner.json.gz` agrees
+      with this package.
 - [ ] **`case()` availability.** The JS gates it behind the experimental flag
       `allowCaseFunction`, but only in completion; the parser and the
       evaluator always accept it. Here it is always on. Confirm whether the

@@ -88,11 +88,11 @@ func TestEvalLiteralsAndOperators(t *testing.T) {
 		{"'a'", "String:a"},
 		{"''", "String:"},
 		{"'it''s'", "String:it's"},
-		// Only the first doubled quote is unescaped: the reference's
-		// value.replace("''", "'") is not global.
-		{"'a''b''c'", "String:a'b''c"},
+		// Every doubled quote is unescaped, as the C# runner does (the
+		// JavaScript reference stops after the first).
+		{"'a''b''c'", "String:a'b'c"},
 		{"''''", "String:'"},
-		{"'a''''b'", "String:a'''b"},
+		{"'a''''b'", "String:a''b"},
 
 		{"1 == 1", "Boolean:true"},
 		{"1 == 2", "Boolean:false"},
