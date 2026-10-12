@@ -124,10 +124,8 @@ func goErrorClass(err error) string {
 }
 
 // sameAnswer reports whether a Go answer matches the runner's. Errors match
-// when they are of the same phase and, for parse errors, name the same kind of
-// problem (the text before the colon: the runner appends the position, and its
-// arity errors name the parenthesis). Evaluation errors must have the same
-// message, except a fromJSON failure, whose runner message is Json.NET's: it
+// when they are of the same phase and have the same message, parse errors
+// included (token, position and expression), except a fromJSON failure, whose runner message is Json.NET's: it
 // matches only a fromJSON failure of this package (both are JSON reader
 // failures, never just "the expression mentions fromJSON").
 func sameAnswer(g, r runnerCase) bool {
@@ -139,10 +137,6 @@ func sameAnswer(g, r runnerCase) bool {
 	}
 	if g.Err.T != r.Err.T {
 		return false
-	}
-	if g.Err.T == "parse" {
-		desc := func(m string) string { d, _, _ := strings.Cut(m, ":"); return d }
-		return desc(g.Err.M) == desc(r.Err.M)
 	}
 	if r.Err.X == "JsonReaderException" || g.Err.X == "JsonReaderException" {
 		return r.Err.X == g.Err.X

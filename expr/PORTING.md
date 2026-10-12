@@ -18,8 +18,11 @@ Three kinds of evidence back the tests:
 - `testdata/runner.json.gz`: what the runner's own code answers on the same
   expressions. `gen/runner` compiles `src/Sdk/DTExpressions2` (plus stubs for
   the few assemblies it needs, see `gen/runner/README.md`) and runs it;
-  `TestRunnerOracle` holds the package to it: 34 765 cases, the only
-  differences are negative zero (below) and error texts of Json.NET.
+  `TestRunnerOracle` holds the package to it: 34 765 cases with the same
+  result, string form, `toJSON` text and, for errors, the same message (parse
+  errors included, to the position); the only exceptions are negative zero
+  (below) and the message texts of Json.NET failures, which must be `fromJSON`
+  failures on both sides.
   The same driver recorded `testdata/tojson/*.runner`, `ordinal_cases.txt`
   and `number_cases.txt`, and checked the number formatting on 200 000 random
   doubles.
@@ -30,21 +33,53 @@ Three kinds of evidence back the tests:
   memory accounting). `testdata/languageservices/SOURCE` has the commit.
 
 The runner's own expression tests (`ExpressionParserL0`, `ConditionFunctionsL0`)
-are ported in `runner_l0_test.go`. The casing tables of the JavaScript
-(`casing.go`, `gen/casing*`) remain for `Lex`/oracle support only.
+are ported in `runner_l0_test.go`; they are the only tests of the expression
+engine in the runner's `src/Test/L0` (the other files that mention it test
+templates and actions). The case-mapping tables of the JavaScript (`casing.go`,
+`casing_tables.go`, `gen/casing*`) are kept for `Lex` and the oracle tests; the
+code `Parse` and `Evaluate` use for strings is `ordinal.go`, `number.go` and
+`json.go`. The WTF-8 helpers in `casing.go` are only reached through `Lex` and
+tests.
 
-Regenerating: `dotnet build -c Release expr/gen/runner` then the `*.mjs` scripts
-in `expr/gen/runner` (they need a clone of actions/runner and the .NET SDK, not
-`go test`). Runner commit used: `5f0b3ddcc6ee9fe9441e00d55e85b94ea4aad798`,
-.NET 9.0.20.
+Regenerating: see `gen/runner/README.md`. The scripts need a clone of
+actions/runner at the commit `5f0b3ddcc6ee9fe9441e00d55e85b94ea4aad798`
+(`gen/runner/runner-commit.txt`, asserted by the scripts and by
+`TestRunnerCommit`), the .NET SDK and a 9.0.x runtime (recorded: 9.0.20); none of
+it is needed by `go test`.
 
-Caveat for all of the above: the runner has two copies of the engine,
-`src/Sdk/DTExpressions2` (used by the legacy template evaluator) and
-`src/Sdk/Expressions` (used by the newer `WorkflowTemplateEvaluator`, which the
-runner currently runs next to the legacy one and compares). They are almost the
-same code; the differences found are noted where they matter (negative zero,
-`StrictJsonParsing`, `AlwaysTraceRealized`). The differential run uses
-`DTExpressions2`.
+### The two engines of the runner, and which one runs
+
+The runner contains two copies of the expression engine:
+`src/Sdk/DTExpressions2/Expressions2` (namespace `GitHub.DistributedTask.
+Expressions2`, "legacy") and `src/Sdk/Expressions` (namespace `GitHub.Actions.
+Expressions`, "newer", with its own `ExpressionData` types, `JsonParser` and
+options such as `StrictJsonParsing`). They are separate implementations, almost
+line for line the same.
+
+- **Which one runs.** The legacy one. `Runner.Worker/PipelineTemplateEvaluatorWrapper.cs`
+  (used by `ExecutionContext.ToPipelineTemplateEvaluator`) and
+  `ActionManifestManagerWrapper.cs` call `EvaluateAndCompare(legacy, new, ...)`:
+  both evaluators run, the **legacy result (or its exception) is returned**, and a
+  difference is only reported as job telemetry (`TemplateEvaluatorMismatch`,
+  `RecordMismatch`). So the newer engine is a shadow being validated, and what
+  users see is the legacy behaviour. This is why `gen/runner` builds the
+  legacy engine.
+- **How they differ.** `gen/runner-new` builds the newer one with the same driver
+  and `gen/runner-new/engines.mjs` runs 46 148 expressions through both (the
+  34 765 of the oracle, the 1 791 `fromJSON` inputs, the number, comparison,
+  `contains`, `startsWith` and `endsWith` corpora): the results are identical
+  except for **negative zero** (the newer engine's `EvaluationResult.
+  ConvertToString` maps `-0` to `0`, the legacy one prints `-0`; 3 expressions)
+  and the **message of a `fromJSON` failure** (the newer one wraps it in "Error
+  parsing fromJson"; both are `JsonReaderException`). In the sources the
+  newer engine also has options the legacy one lacks: `StrictJsonParsing` (a
+  `System.Text.Json` path in `fromJSON`, off by default, "temporary for
+  telemetry"), `AlwaysTraceExpanded` and `MaxCacheMemory` (tracing), and its
+  own `JsonParser`; none changes a result with the default options.
+- **Consequence for this package.** It follows the legacy engine, as run today.
+  Negative zero is the one place where the newer engine, the shared
+  cross-language fixtures and this package agree against the legacy one; if
+  the runner switches engines nothing else changes. See "Still open".
 
 ## Limits added by this port (not in the JavaScript or the runner)
 
@@ -315,7 +350,7 @@ package follows the runner.
       boundary-delimited run (`ReadKeywordToken`): `github..event` reports `.`
       where the JS reported `.event`. Lexing and parsing are interleaved, so the
       first problem in reading order wins (the JS lexed everything first).
-      `TestParseErrorPositions`, and `TestRunnerOracle` on 1 700 error cases.
+      `TestParseErrorPositions`, and `TestRunnerOracle` on the 1 715 parse errors of the corpus (identical message, position included).
       One fixture still differs, see `xlangKnownDifferences`: `case/27` expects
       the name for an even `case()`, the runner passes the `(`.
 - [x] **Function names and context names are case-insensitive**: same in the
@@ -345,11 +380,12 @@ a bug.
   handle a missing root context. Here it is null.
 - Recursion limits: JS recursion depth for `fromJSON` input is engine
   dependent. `FromJSON` follows Json.NET's `MaxDepth` of 64.
-- Lone surrogates: JS strings are UTF-16 and can hold them. The runner cannot
-  (Json.NET reads an unpaired `\ud800` as U+FFFD), and neither can Go strings;
-  the WTF-8 machinery of the first version (`wtf8Surrogate`, `normalizeWTF8`)
-  is only used by the case-folding and comparison helpers for robustness and
-  by the oracle tests.
+- Lone surrogates: JS strings are UTF-16 and can hold them. .NET strings can
+  too, but no value of an expression has one: Json.NET reads an unpaired
+  `\ud800` escape as U+FFFD (checked: `fromJSON('"\ud800"') == '\ufffd'` is
+  true), and Go strings cannot hold them either. The WTF-8 helpers of the first
+  version (`wtf8Surrogate`, `normalizeWTF8` in `casing.go`) are only reached
+  through `Lex`-era code and the tests.
 
 ## Still open
 
@@ -363,14 +399,19 @@ a bug.
       worth doing only if the error text matters ("The maximum allowed memory
       size was exceeded while evaluating the following expression: ...", which
       needs `ConvertToExpression` of the root, also not ported).
-- [ ] **Negative zero.** `-0` is `0` here. `DTExpressions2/EvaluationResult.cs`
-      (the legacy engine) prints `-0` for `format('{0}', -0)` and `toJSON(-0)`,
-      because .NET Core prints `-0`; `Expressions/EvaluationResult.cs` (the engine of
-      `WorkflowTemplateEvaluator`) maps it to `0`, and the cross-language fixture
-      `coerce_string.json` expects `0`. If the legacy engine is what a user sees,
-      `-0` would be right in `format()`; the choice was made for the fixture.
-      `toJSON` goes through `ConvertToString` in both and so follows the same
-      choice.
+- [ ] **Negative zero.** `-0` is `0` here (`format('{0}', -0)`, `toJSON(-0)`,
+      `-0` as a result). The legacy engine, the one that runs (see "The two
+      engines"), prints `-0`: `DTExpressions2/EvaluationResult.ConvertToString`
+      formats with `G15` and .NET Core writes `-0`. The newer engine
+      (`Expressions/EvaluationResult.cs`, "keep our behavior consistent") maps
+      it to `0`, and the cross-language fixture `coerce_string.json` expects
+      `0`; the choice follows the fixture and the newer engine. Verified by
+      `engines.mjs`: this is the only result that differs between the engines,
+      and `TestRunnerOracle` lists the two corpus expressions as a known
+      difference. If the runner keeps the legacy engine for good and a user
+      needs `-0`, change `numberToCoercedString`: `x == 0` would return `-0`
+      for a negative zero (one line, plus the three tests and the two
+      `.runner` goldens that say `0`).
 - [ ] **Comments and constructors in `fromJSON`.** Json.NET accepts `/* */` and
       `//` comments and `new Date(1)` constructors; the first is read in a
       surprising way (`/*x*/1` is the string `x`). They fail here.
