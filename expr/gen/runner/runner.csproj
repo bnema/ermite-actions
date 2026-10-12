@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Builds the runner's own Expressions2 sources (actions/runner, MIT) with
+       small stubs for the assemblies they depend on, and a driver that
+       evaluates expressions with them. See README.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <LangVersion>11.0</LangVersion>
+    <NoWarn>NU1701;CS8632;CS0108;CS0114;CS1591;CS0618;SYSLIB0050</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RunnerSrc Condition="'$(RunnerSrc)' == ''">$(HOME)/dev/clones/runner/src/Sdk</RunnerSrc>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(RunnerSrc)/DTExpressions2/**/*.cs" />
+    <Compile Include="$(RunnerSrc)/DTLogging/**/*.cs" />
+    <Compile Include="$(RunnerSrc)/DTPipelines/Pipelines/ContextData/*.cs" Exclude="$(RunnerSrc)/DTPipelines/Pipelines/ContextData/PipelineContextDataExtensions.cs;$(RunnerSrc)/DTPipelines/Pipelines/ContextData/TemplateMemoryExtensions.cs;$(RunnerSrc)/DTPipelines/Pipelines/ContextData/TemplateTokenExtensions.cs" />
+    <Compile Include="Stubs.cs" />
+    <Compile Include="Program.cs" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>
