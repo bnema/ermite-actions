@@ -83,16 +83,28 @@ whether to keep the JS behaviour or follow the runner.
       specifier; C# may throw. The error texts are the JS ones. Check the C#
       `Format` node for the exact messages and for `{N}` with `N` > 255 or
       leading zeros.
-- [ ] **`contains()` lower-cases (`toLowerCase`), `startsWith`/`endsWith`
-      upper-case (`toUpperSpecial`).** The C# uses `OrdinalIgnoreCase`
-      comparisons, which differ for `ß`, `İ`, `ı`, the Kelvin sign and final
-      sigma. `contains('ß', 'ss')` is false in JS; `startsWith('ß', 'ss')` is
-      true. Check what the runner does.
-- [ ] **`==` on strings uses `toUpperSpecial`** (upper-case with the dotless
-      `ı` left alone, full Unicode mapping so `ß == 'SS'`), and `<`/`>` compare
-      the upper-cased UTF-16 code units. C# `OrdinalIgnoreCase` upper-cases
-      per UTF-16 code unit with simple mappings only: `ß == 'SS'` should be
-      false there.
+- [x] **`contains()`, `startsWith`/`endsWith`, `==`, `<`, `>` and key lookup use
+      `OrdinalIgnoreCase`.** Resolved: follows the C#. Every string comparison
+      in the runner is `StringComparison.OrdinalIgnoreCase`
+      (`EvaluationResult.cs` `AbstractEqual`/`AbstractGreaterThan`/
+      `AbstractLessThan`; `Sdk/Functions/Contains.cs`, `StartsWith.cs`,
+      `EndsWith.cs`; `StringComparer.OrdinalIgnoreCase` for context names,
+      function names (`ExpressionParser.cs` `ParseContext`,
+      `ExpressionConstants.WellKnownFunctions`) and dictionary keys
+      (`DictionaryContextData.IndexLookup`)). That folds one code point at a
+      time with a simple mapping: `ß` is not `SS`, `ı` and `İ` and `ſ` and the
+      Kelvin sign are not `i`/`I`/`s`/`k`, `ς` and `σ` are equal, `ǅ` is `ǆ`.
+      `contains()` no longer lower-cases (JS) and `startsWith`/`endsWith` no
+      longer upper-case with full mappings (JS). Ordering (`<`, `>`) is by
+      code point after folding, so a supplementary character sorts after
+      U+E000..U+FFFF (JS orders UTF-16 units). `ordinal.go` implements it;
+      `fold_tables.go` is generated from the runner's behaviour
+      (`go generate`, `gen/runner --fold`), and
+      `TestOrdinalFoldMatchesRunner` replays 1 564 pairs recorded from .NET.
+      The table is the one of the .NET runtime that produced it (9.0); the
+      runner ships its own runtime, so a different Unicode version could differ
+      on newly assigned letters.
+- [x] **`==` on strings, `<`, `>`**: see the previous item (same folding).
 - [x] **Number to string (`CoerceString`)**: resolved, follows the C#. The
       runner converts every number with `Double.ToString("G15",
       InvariantCulture)` (`ExpressionConstants.NumberFormat`,
@@ -214,9 +226,8 @@ a bug.
       layer, not to package expr.
 - [ ] `format()` argument limit is 255 in the JS (`MAX_ARGUMENTS`); the C#
       limit is `ExpressionConstants.MaxArguments` (check).
-- [ ] Case-insensitive comparison and `contains`: if C# `OrdinalIgnoreCase`
-      is the truth, replace `toUpperSpecial`/`jsToLower` by per-UTF-16-unit
-      simple upper-casing and regenerate the oracle tests accordingly.
+- [x] Case-insensitive comparison and `contains`: `OrdinalIgnoreCase` is the
+      truth, see above.
 - [ ] Secret masking and the `${{ }}` splitting of a larger string are not
       part of this package (they belong to the template layer): `Parse`
       takes the text between the braces only.

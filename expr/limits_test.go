@@ -410,7 +410,7 @@ func TestWTF8Helpers(t *testing.T) {
 	if got := normalizeWTF8(lo + hi); got != lo+hi {
 		t.Errorf("reversed pair joined: %q", got)
 	}
-	if foldKey(hi) != hi || foldKey("A"+hi) != "a"+hi {
+	if foldKey(hi) != hi || foldKey("a"+hi) != "A"+hi {
 		t.Error("foldKey")
 	}
 	if compareUTF16(hi, "\ue000") >= 0 || compareUTF16(lo, "\ue000") >= 0 || compareUTF16(hi, "\U00010000") >= 0 {

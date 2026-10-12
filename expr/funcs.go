@@ -17,14 +17,14 @@ type builtinFunc func(e *evaluator, args []Value) (Value, error)
 // lower-cased name. Arity is validated by the parser, so each may assume its
 // documented argument count.
 var builtinImpls = map[string]builtinFunc{
-	"case":       funcCase,
-	"contains":   funcContains,
-	"endswith":   funcEndsWith,
-	"format":     funcFormat,
-	"fromjson":   funcFromJSON,
-	"join":       funcJoin,
-	"startswith": funcStartsWith,
-	"tojson":     funcToJSON,
+	"CASE":       funcCase,
+	"CONTAINS":   funcContains,
+	"ENDSWITH":   funcEndsWith,
+	"FORMAT":     funcFormat,
+	"FROMJSON":   funcFromJSON,
+	"JOIN":       funcJoin,
+	"STARTSWITH": funcStartsWith,
+	"TOJSON":     funcToJSON,
 }
 
 // funcCase is case(pred1, val1, pred2, val2, ..., default).
@@ -46,14 +46,14 @@ func funcCase(e *evaluator, args []Value) (Value, error) {
 }
 
 // funcContains is contains(search, item): substring test, case-insensitive
-// via toLowerCase, when both are primitive; membership by == in an array;
+// (OrdinalIgnoreCase), when both are primitive; membership by == in an array;
 // false otherwise.
 func funcContains(e *evaluator, args []Value) (Value, error) {
 	left, right := normalize(args[0]), normalize(args[1])
 	switch {
 	case isPrimitive(left):
 		if isPrimitive(right) {
-			return Boolean(jsIncludes(jsToLower(CoerceString(left)), jsToLower(CoerceString(right)))), nil
+			return Boolean(jsIncludes(ordinalFold(CoerceString(left)), ordinalFold(CoerceString(right)))), nil
 		}
 	case left.Kind() == KindArray:
 		for _, v := range left.(*Array).items {
@@ -70,12 +70,12 @@ func funcContains(e *evaluator, args []Value) (Value, error) {
 
 func funcStartsWith(e *evaluator, args []Value) (Value, error) {
 	ls, rs, ok := primitivePair(args)
-	return Boolean(ok && jsHasPrefix(toUpperSpecial(ls), toUpperSpecial(rs))), nil
+	return Boolean(ok && jsHasPrefix(ordinalFold(ls), ordinalFold(rs))), nil
 }
 
 func funcEndsWith(e *evaluator, args []Value) (Value, error) {
 	ls, rs, ok := primitivePair(args)
-	return Boolean(ok && jsHasSuffix(toUpperSpecial(ls), toUpperSpecial(rs))), nil
+	return Boolean(ok && jsHasSuffix(ordinalFold(ls), ordinalFold(rs))), nil
 }
 
 // primitivePair returns the string forms of the two arguments, and false

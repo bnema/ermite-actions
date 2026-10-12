@@ -22,14 +22,14 @@ type FuncInfo struct {
 // by lower-cased name. They take precedence over caller-supplied FuncInfo for
 // validation.
 var builtinFuncs = map[string]FuncInfo{
-	"case":       {"case", 3, math.MaxInt},
-	"contains":   {"contains", 2, 2},
-	"endswith":   {"endsWith", 2, 2},
-	"format":     {"format", 1, 255},
-	"fromjson":   {"fromJson", 1, 1},
-	"join":       {"join", 1, 2},
-	"startswith": {"startsWith", 2, 2},
-	"tojson":     {"toJson", 1, 1},
+	"CASE":       {"case", 3, math.MaxInt},
+	"CONTAINS":   {"contains", 2, 2},
+	"ENDSWITH":   {"endsWith", 2, 2},
+	"FORMAT":     {"format", 1, 255},
+	"FROMJSON":   {"fromJson", 1, 1},
+	"JOIN":       {"join", 1, 2},
+	"STARTSWITH": {"startsWith", 2, 2},
+	"TOJSON":     {"toJson", 1, 1},
 }
 
 // Parse parses the text of one expression (the inside of ${{ }}).
@@ -282,7 +282,7 @@ func arityError(name string, f FuncInfo, argCount int) (ErrorType, bool) {
 		return ErrorTooFewParameters, true
 	case f.MaxArgs >= 0 && argCount > f.MaxArgs:
 		return ErrorTooManyParameters, true
-	case name == "case" && argCount%2 == 0:
+	case name == "CASE" && argCount%2 == 0:
 		return ErrorEvenParameters, true
 	}
 	return 0, false

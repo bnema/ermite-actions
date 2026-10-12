@@ -212,10 +212,6 @@ func (d *Dictionary) Pairs() []Pair {
 	return out
 }
 
-// foldKey is the case-insensitive form of a dictionary key. GitHub lower-cases
-// keys with JavaScript's toLowerCase.
-func foldKey(key string) string { return jsToLower(key) }
-
 // normalize maps nil values to Null so that callers can switch on Kind.
 func normalize(v Value) Value {
 	switch x := v.(type) {

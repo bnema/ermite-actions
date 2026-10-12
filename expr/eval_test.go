@@ -149,8 +149,16 @@ func TestEvalLiteralsAndOperators(t *testing.T) {
 		{"'a' <= 'A'", "Boolean:true"},
 		{"'Z' < 'a'", "Boolean:false"},
 		{"'_' < 'a'", "Boolean:false"}, // '_' (0x5F) sorts after upper-case letters
-		{"'ß' == 'SS'", "Boolean:true"},
-		{"'ß' == 'ss'", "Boolean:true"},
+		// OrdinalIgnoreCase folds one code point at a time: no ß to SS.
+		{"'ß' == 'SS'", "Boolean:false"},
+		{"'ß' == 'ss'", "Boolean:false"},
+		{"'ß' == 'ß'", "Boolean:true"},
+		{"'é' == 'É'", "Boolean:true"},
+		{"'ǆ' == 'ǅ'", "Boolean:true"},
+		{"'ı' == 'I'", "Boolean:false"},
+		{"'\u212a' == 'k'", "Boolean:false"}, // Kelvin sign
+		{"'ſ' == 's'", "Boolean:false"},
+		{"'ς' == 'σ'", "Boolean:true"},  // both fold to Σ
 		{"'ı' == 'I'", "Boolean:false"}, // dotless i is not upper-cased
 		{"'ı' == 'i'", "Boolean:false"},
 		{"'ı' == 'ı'", "Boolean:true"},
@@ -343,8 +351,10 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"contains(fromJSON('[1,\"2\",null]'), null)", "Boolean:true"},
 		{"contains(fromJSON('[1,\"2\",null]'), '')", "Boolean:true"},
 		{"contains(fromJSON('[[1]]'), fromJSON('[1]'))", "Boolean:false"},
-		{"contains('İ', 'i')", "Boolean:true"},   // İ lower-cases to i + U+0307, which contains i
-		{"contains('ß', 'ss')", "Boolean:false"}, // contains lower-cases: no ß folding
+		{"contains('İ', 'i')", "Boolean:false"},      // OrdinalIgnoreCase: İ is not i
+		{"contains('ß', 'ss')", "Boolean:false"},     // no ß folding
+		{"contains('\u212a', 'k')", "Boolean:false"}, // Kelvin sign
+		{"contains('ǅ', 'ǆ')", "Boolean:true"},
 		{"contains('A\u03a3', 'a\u03c2')", "Boolean:true"},
 		{"contains('K', 'k')", "Boolean:true"}, // KELVIN SIGN lower-cases to k
 		{"contains()", "PARSE Too few parameters supplied: 'contains'"},
@@ -358,7 +368,7 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"startsWith(123, 12)", "Boolean:true"},
 		{"startsWith(github, 'a')", "Boolean:false"},
 		{"startsWith('a', github)", "Boolean:false"},
-		{"startsWith('ß', 'ss')", "Boolean:true"}, // upper-cases to SS
+		{"startsWith('ß', 'ss')", "Boolean:false"}, // no ß folding
 		{"startsWith('ı', 'I')", "Boolean:false"},
 		{"endsWith('abc', 'BC')", "Boolean:true"},
 		{"endsWith('abc', 'abcd')", "Boolean:false"},
@@ -927,9 +937,12 @@ func TestCompareUTF16(t *testing.T) {
 }
 
 var evalCasesUTF16 = []evalCase{
-	{"'\U00010000' < '\ue000'", "Boolean:true"},
-	{"'\ue000' > '\U00010000'", "Boolean:true"},
-	{"'\U00010000' >= '\ue000'", "Boolean:false"},
+	// The JavaScript reference compares UTF-16 units, where U+10000 (D800 DC00)
+	// sorts before U+E000. The runner compares code points: it sorts after.
+	{"'\U00010000' < '\ue000'", "Boolean:false"},
+	{"'\ue000' > '\U00010000'", "Boolean:false"},
+	{"'\U00010000' >= '\ue000'", "Boolean:true"},
+	{"'\ue000' < '\U00010000'", "Boolean:true"},
 }
 
 func TestTokenString(t *testing.T) {

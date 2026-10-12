@@ -60,6 +60,67 @@ internal static class P
 
     static int Main(string[] args)
     {
+        if (args[0] == "--fold")
+        {
+            // Debug aid: the case folding of StringComparison.OrdinalIgnoreCase. Prints "XXXX YYYY" (hexadecimal
+            // code points) for every code point c whose class representative m(c) differs from c, after checking
+            // that string.Equals(a, b, OrdinalIgnoreCase) holds exactly when m(a) == m(b) over all the affected
+            // code points. m(c) is ToUpperInvariant(c) when OrdinalIgnoreCase agrees that they are equal.
+            var map = new SortedDictionary<int, int>();
+            for (var c = 0; c <= 0x10FFFF; c++)
+            {
+                if (c >= 0xD800 && c <= 0xDFFF) continue;
+                var str = char.ConvertFromUtf32(c);
+                var up = str.ToUpperInvariant();
+                if (up != str && char.ConvertToUtf32(up, 0) is var u && up.Length == char.ConvertFromUtf32(u).Length
+                    && string.Equals(str, up, StringComparison.OrdinalIgnoreCase))
+                {
+                    map[c] = u;
+                }
+            }
+            var members = new SortedSet<int>(map.Keys);
+            foreach (var v in map.Values) members.Add(v);
+            var list = new List<int>(members);
+            Func<int, int> m = c => map.TryGetValue(c, out var x) ? x : c;
+            var bad = 0;
+            foreach (var a in list)
+            {
+                foreach (var b in list)
+                {
+                    var eq = string.Equals(char.ConvertFromUtf32(a), char.ConvertFromUtf32(b), StringComparison.OrdinalIgnoreCase);
+                    if (eq != (m(a) == m(b))) { bad++; if (bad < 10) Console.Error.WriteLine($"inconsistent: {a:X} {b:X}"); }
+                }
+            }
+            // Nothing outside the table may be equal to anything but itself.
+            for (var c = 0; c <= 0x10FFFF; c++)
+            {
+                if (c >= 0xD800 && c <= 0xDFFF) continue;
+                if (members.Contains(c)) continue;
+                var str = char.ConvertFromUtf32(c);
+                foreach (var d in new[] { c ^ 1, c + 1, c - 1 })
+                {
+                    if (d < 0 || d > 0x10FFFF || (d >= 0xD800 && d <= 0xDFFF)) continue;
+                    if (string.Equals(str, char.ConvertFromUtf32(d), StringComparison.OrdinalIgnoreCase)) { bad++; if (bad < 10) Console.Error.WriteLine($"outside: {c:X} {d:X}"); }
+                }
+            }
+            Console.Error.WriteLine($"{map.Count} mappings, {bad} inconsistencies");
+            foreach (var kv in map) Console.WriteLine($"{kv.Key:X} {kv.Value:X}");
+            return bad == 0 ? 0 : 1;
+        }
+        if (args[0] == "--cmp")
+        {
+            // Debug aid: each input line is two space-separated strings written as dot-separated hexadecimal UTF-16 code
+            // units; prints Equals, Compare sign, Contains, StartsWith and EndsWith, all OrdinalIgnoreCase.
+            Func<string, string> parse = h => { var sb = new StringBuilder(); if (h != "-") foreach (var u in h.Split('.')) sb.Append((char)Convert.ToInt32(u, 16)); return sb.ToString(); };
+            foreach (var line in File.ReadLines(args[1]))
+            {
+                var parts = line.Split(' ');
+                var a = parse(parts[0]);
+                var b = parse(parts[1]);
+                Console.WriteLine($"{(string.Equals(a, b, StringComparison.OrdinalIgnoreCase) ? 1 : 0)} {Math.Sign(string.Compare(a, b, StringComparison.OrdinalIgnoreCase))} {(a.IndexOf(b, StringComparison.OrdinalIgnoreCase) >= 0 ? 1 : 0)} {(a.StartsWith(b, StringComparison.OrdinalIgnoreCase) ? 1 : 0)} {(a.EndsWith(b, StringComparison.OrdinalIgnoreCase) ? 1 : 0)}");
+            }
+            return 0;
+        }
         if (args[0] == "--g15")
         {
             // Debug aid: one hexadecimal IEEE 754 bit pattern per input line, the G15 form per output line.

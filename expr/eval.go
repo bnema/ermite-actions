@@ -437,7 +437,7 @@ func coerceTypes(l, r Value) (Value, Value) {
 }
 
 // equals is the == operator: loose equality, case-insensitive for strings
-// (see toUpperSpecial), false for NaN, and by identity for arrays and
+// (see ordinal.go), false for NaN, and by identity for arrays and
 // dictionaries.
 func equals(lhs, rhs Value) bool {
 	l, r := coerceTypes(lhs, rhs)
@@ -450,7 +450,7 @@ func equals(lhs, rhs Value) bool {
 	case Number:
 		return float64(lv) == float64(r.(Number)) // false when either is NaN
 	case String:
-		return toUpperSpecial(string(lv)) == toUpperSpecial(string(r.(String)))
+		return ordinalEqual(string(lv), string(r.(String)))
 	case Boolean:
 		return lv == r.(Boolean)
 	case *Array:
@@ -482,7 +482,7 @@ func compare(lhs, rhs Value) (c int, ok bool) {
 		}
 		return 0, true
 	case String:
-		return compareUTF16(toUpperSpecial(string(lv)), toUpperSpecial(string(r.(String)))), true
+		return ordinalCompare(string(lv), string(r.(String))), true
 	case Boolean:
 		// false < true
 		switch rb := r.(Boolean); {
