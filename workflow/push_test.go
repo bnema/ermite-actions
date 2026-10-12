@@ -93,30 +93,59 @@ func TestMatchPush(t *testing.T) {
 	}
 }
 
-func TestMatchPushFirst300Files(t *testing.T) {
-	w := pushWorkflow(t, "on:\n  push:\n    paths: ['src/**']")
-	files := make([]string, 0, 301)
-	for i := 0; i < MaxFilesEvaluated; i++ {
-		files = append(files, fmt.Sprintf("docs/%d.md", i))
+// numberedFiles returns n paths "dir/f-00000.txt" ... in the order of the diff,
+// which for GitHub is sorted by path.
+func numberedFiles(dir string, n int) []string {
+	files := make([]string, 0, n+1)
+	for i := 0; i < n; i++ {
+		files = append(files, fmt.Sprintf("%s/f-%05d.txt", dir, i))
 	}
-	files = append(files, "src/late.go") // the 301st
-	if w.MatchPush(PushInfo{Ref: "refs/heads/main", ChangedFiles: files}) {
-		t.Error("a match beyond the 300th file must not run the workflow")
+	return files
+}
+
+// TestMatchPushFileLimit follows the recordings filter-paths-300-files,
+// filter-paths-1200-files, filter-paths-3000-boundary and
+// filter-paths-3100-files: a paths or paths-ignore filter looks at the first
+// 3000 changed files, whose only match (or only file not ignored) sorts last.
+func TestMatchPushFileLimit(t *testing.T) {
+	if MaxFilesEvaluated != 3000 {
+		t.Fatalf("MaxFilesEvaluated = %d, want 3000", MaxFilesEvaluated)
 	}
-	files[299] = "src/early.go"
-	if !w.MatchPush(PushInfo{Ref: "refs/heads/main", ChangedFiles: files}) {
-		t.Error("a match among the first 300 files must run the workflow")
-	}
-	wi := pushWorkflow(t, "on:\n  push:\n    paths-ignore: ['docs/**']")
-	files = files[:0]
-	for i := 0; i < MaxFilesEvaluated; i++ {
-		files = append(files, fmt.Sprintf("docs/%d.md", i))
-	}
-	files = append(files, "src/late.go")
-	// TODO(verify with recording): with paths-ignore, files beyond the 300th
-	// are not considered either, so everything seen is ignored.
-	if wi.MatchPush(PushInfo{Ref: "refs/heads/main", ChangedFiles: files}) {
-		t.Error("paths-ignore: only the first 300 files are evaluated")
+	paths := pushWorkflow(t, "on:\n  push:\n    paths: ['zzz/**']")
+	early := pushWorkflow(t, "on:\n  push:\n    paths: ['gen/**']")
+	ignore := pushWorkflow(t, "on:\n  push:\n    paths-ignore: ['gen/**']")
+	for _, tc := range []struct {
+		scenario string
+		total    int // changed files, the last one is zzz/late.txt
+		late     bool
+		early    bool
+		ignore   bool
+	}{
+		// filter-paths-300-files, push 2 (301 files): late-match, early-match
+		// and ignore-late all ran.
+		{"filter-paths-300-files", 301, true, true, true},
+		// filter-paths-1200-files, push 2 (1201 files): same.
+		{"filter-paths-1200-files", 1201, true, true, true},
+		// filter-paths-3000-boundary, push 2 (3000 files, match last): ran.
+		{"filter-paths-3000-boundary 3000", 3000, true, true, true},
+		// filter-paths-3000-boundary, push 3 (3001 files): the match is the
+		// 3001st file, the workflow did not run.
+		{"filter-paths-3000-boundary 3001", 3001, false, true, false},
+		// filter-paths-3100-files, push 2 (3101 files): late-match and
+		// ignore-late did not run, early-match did.
+		{"filter-paths-3100-files", 3101, false, true, false},
+	} {
+		files := append(numberedFiles("gen", tc.total-1), "zzz/late.txt")
+		p := PushInfo{Ref: "refs/heads/scn/x", ChangedFiles: files}
+		if got := paths.MatchPush(p); got != tc.late {
+			t.Errorf("%s: paths with the match last = %v, want %v", tc.scenario, got, tc.late)
+		}
+		if got := early.MatchPush(p); got != tc.early {
+			t.Errorf("%s: paths with an early match = %v, want %v", tc.scenario, got, tc.early)
+		}
+		if got := ignore.MatchPush(p); got != tc.ignore {
+			t.Errorf("%s: paths-ignore with the last file not ignored = %v, want %v", tc.scenario, got, tc.ignore)
+		}
 	}
 }
 
