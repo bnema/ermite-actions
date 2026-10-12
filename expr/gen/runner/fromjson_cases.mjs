@@ -9,13 +9,11 @@
 //
 // Needs the built driver, see README.md.
 
-import { execFileSync } from "node:child_process";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { runDriver, here, checkEnvironment } from "./env.mjs";
 
-const here = dirname(fileURLToPath(import.meta.url));
 const seeds = [
   "null", "true", "false", "NaN", "Infinity", "-Infinity", "undefined", "0", "-0", "010", "08", "0x1F", "1.5e3", ".5", "5.", "12345678901234567890",
   '"a"', "'a'", '"\\u00e9\\ud83d\\ude00"', '"\\ud800"', "[]", "{}", "[1,2,3]", "[1,]", "[,1]", "[1,,2]", '{"a":1}', '{"a":1,"A":2}', "{a:1}", "{'a':'b'}",
@@ -44,7 +42,7 @@ const lit = s => "'" + s.replaceAll("'", "''") + "'";
 const cases = inputs.map(s => ({ e: `toJSON(fromJSON(${lit(s)}))` }));
 const tmp = mkdtempSync(join(tmpdir(), "fj-"));
 writeFileSync(join(tmp, "in.json"), JSON.stringify({ contexts: {}, cases }));
-const out = execFileSync("dotnet", [join(here, "bin/Release/net9.0/runner.dll"), join(tmp, "in.json")], { maxBuffer: 1 << 28 }).toString("utf8").split("\n").filter(Boolean);
+const out = runDriver([join(tmp, "in.json")]).split("\n").filter(Boolean);
 rmSync(tmp, { recursive: true });
 if (out.length !== inputs.length) throw new Error("answer count");
 const res = inputs.map((s, i) => {

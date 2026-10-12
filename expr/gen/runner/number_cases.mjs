@@ -8,13 +8,11 @@
 //   dotnet build -c Release expr/gen/runner -p:RunnerSrc=<runner>/src/Sdk
 //   node expr/gen/runner/number_cases.mjs > expr/testdata/number_cases.txt
 
-import { execFileSync } from "node:child_process";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { runDriver, here, checkEnvironment } from "./env.mjs";
 
-const here = dirname(fileURLToPath(import.meta.url));
 const set = new Set();
 const add = s => set.add(s);
 const base = ["", " ", "0", "00", "-0", "+0", "1", "-1", "+1", "12", "007", "1.5", "-1.5", "1.", ".5", "-.5", "+.5", ".", "-.", "+.", "..", "1..2", "1.2.3",
@@ -36,7 +34,7 @@ const hex = s => s.length ? [...s].flatMap(c => { const n = c.codePointAt(0); re
 const all = [...set];
 const tmp = mkdtempSync(join(tmpdir(), "num-"));
 writeFileSync(join(tmp, "in.txt"), all.map(hex).join("\n") + "\n");
-const out = execFileSync("dotnet", [join(here, "bin/Release/net9.0/runner.dll"), "--num", join(tmp, "in.txt")], { maxBuffer: 1 << 28 }).toString().split("\n").filter(Boolean);
+const out = runDriver(["--num", join(tmp, "in.txt")]).split("\n").filter(Boolean);
 rmSync(tmp, { recursive: true });
 if (out.length !== all.length) throw new Error("answer count");
 process.stdout.write(all.map((s, i) => `${hex(s)} ${out[i]}`).join("\n") + "\n");

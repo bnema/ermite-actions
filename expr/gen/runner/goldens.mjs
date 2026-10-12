@@ -7,19 +7,17 @@
 //   dotnet build -c Release expr/gen/runner -p:RunnerSrc=<runner>/src/Sdk
 //   node expr/gen/runner/goldens.mjs
 
-import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { runDriver, here, checkEnvironment } from "./env.mjs";
 
-const here = dirname(fileURLToPath(import.meta.url));
 const dir = join(here, "../../testdata/tojson");
 const names = readdirSync(dir).filter(f => f.endsWith(".json")).map(f => f.slice(0, -5)).sort();
 const cases = names.map(n => ({ e: `toJSON(fromJSON('${readFileSync(join(dir, n + ".json"), "utf8").replaceAll("'", "''")}'))` }));
 const tmp = mkdtempSync(join(tmpdir(), "goldens-"));
 writeFileSync(join(tmp, "in.json"), JSON.stringify({ contexts: {}, cases }));
-const out = execFileSync("dotnet", [join(here, "bin/Release/net9.0/runner.dll"), join(tmp, "in.json")], { maxBuffer: 1 << 28 }).toString("utf8").split("\n").filter(Boolean);
+const out = runDriver([join(tmp, "in.json")]).split("\n").filter(Boolean);
 rmSync(tmp, { recursive: true });
 names.forEach((n, i) => {
   const r = JSON.parse(out[i]);

@@ -10,8 +10,11 @@
     <NoWarn>NU1701;CS8632;CS0108;CS0114;CS1591;CS0618;SYSLIB0050</NoWarn>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RunnerSrc Condition="'$(RunnerSrc)' == ''">$(HOME)/dev/clones/runner/src/Sdk</RunnerSrc>
   </PropertyGroup>
+  <Target Name="RequireRunnerSrc" BeforeTargets="BeforeBuild;CoreCompile">
+    <Error Condition="'$(RunnerSrc)' == '' Or !Exists('$(RunnerSrc)/DTExpressions2')" Text="Set RunnerSrc to the src/Sdk directory of a clone of actions/runner at the commit in runner-commit.txt: dotnet build -c Release expr/gen/runner -p:RunnerSrc=&lt;clone&gt;/src/Sdk" />
+  </Target>
+
   <ItemGroup>
     <Compile Include="$(RunnerSrc)/DTExpressions2/**/*.cs" />
     <Compile Include="$(RunnerSrc)/DTLogging/**/*.cs" />

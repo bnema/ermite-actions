@@ -20,6 +20,12 @@ import (
 // and this package follows it (see PORTING.md). TestOracle excuses a mismatch
 // with the JavaScript only if this package gives the runner's answer there.
 
+// runnerCommit is the commit of actions/runner that every file recorded from the
+// runner is about. gen/runner/runner-commit.txt holds the same value and the
+// generator scripts refuse a clone at another commit; TestRunnerCommit checks
+// that the two agree and that runner.json.gz was made from it.
+const runnerCommit = "5f0b3ddcc6ee9fe9441e00d55e85b94ea4aad798"
+
 type runnerFile struct {
 	Reference struct {
 		Source  string `json:"source"`
@@ -177,5 +183,29 @@ func TestSameAnswerFromJSON(t *testing.T) {
 		if got := sameAnswer(tc.g, tc.r); got != tc.want {
 			t.Errorf("%s: sameAnswer = %v, want %v", tc.name, got, tc.want)
 		}
+	}
+}
+
+func TestRunnerCommit(t *testing.T) {
+	txt, err := os.ReadFile("gen/runner/runner-commit.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(string(txt)); got != runnerCommit {
+		t.Errorf("gen/runner/runner-commit.txt = %q, runnerCommit = %q", got, runnerCommit)
+	}
+	rf := loadRunner(t)
+	if rf.Reference.Commit != runnerCommit {
+		t.Errorf("testdata/runner.json.gz was recorded at %s, want %s", rf.Reference.Commit, runnerCommit)
+	}
+	if !strings.HasPrefix(rf.Reference.Runtime, "Microsoft.NETCore.App 9.0.") {
+		t.Errorf("runtime %q, want Microsoft.NETCore.App 9.0.x", rf.Reference.Runtime)
+	}
+	doc, err := os.ReadFile("PORTING.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(doc), runnerCommit) {
+		t.Errorf("PORTING.md does not mention the runner commit %s", runnerCommit)
 	}
 }

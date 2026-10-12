@@ -8,13 +8,11 @@
 //   dotnet build -c Release expr/gen/runner -p:RunnerSrc=<runner>/src/Sdk
 //   node expr/gen/runner/ordinal_cases.mjs > expr/testdata/ordinal_cases.txt
 
-import { execFileSync } from "node:child_process";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { runDriver, here, checkEnvironment } from "./env.mjs";
 
-const here = dirname(fileURLToPath(import.meta.url));
 const words = [
   "", "a", "A", "ab", "AB", "abc", "ABC", "Hello", "hELLO", "hello world", "true", "TRUE", "null",
   "ß", "SS", "ss", "ẞ", "ŉ", "ʼN", "ﬃ", "FFI", "ffi", "ı", "I", "i", "İ", "ſ", "s", "S",
@@ -29,7 +27,7 @@ const lines = [];
 for (const a of words) for (const b of words) lines.push(`${hex(a)} ${hex(b)}`);
 const tmp = mkdtempSync(join(tmpdir(), "ordinal-"));
 writeFileSync(join(tmp, "in.txt"), lines.join("\n") + "\n");
-const out = execFileSync("dotnet", [join(here, "bin/Release/net9.0/runner.dll"), "--cmp", join(tmp, "in.txt")], { maxBuffer: 1 << 28 }).toString().split("\n").filter(Boolean);
+const out = runDriver(["--cmp", join(tmp, "in.txt")]).split("\n").filter(Boolean);
 rmSync(tmp, { recursive: true });
 if (out.length !== lines.length) throw new Error("answer count");
 // Keep every pair that is interesting (some predicate true) and a sample of the rest, to bound the file.
