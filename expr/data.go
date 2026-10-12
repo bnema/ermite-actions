@@ -160,6 +160,19 @@ func (d *Dictionary) Add(key string, v Value) bool {
 	return true
 }
 
+// set stores v under key: a key that differs only by case from an existing one
+// replaces its value and keeps its spelling and position.
+func (d *Dictionary) set(key string, v Value) {
+	if d.index == nil {
+		d.index = map[string]int{}
+	}
+	if i, ok := d.index[foldKey(key)]; ok {
+		d.vals[i] = v
+		return
+	}
+	d.Add(key, v)
+}
+
 // Get returns the value stored under key, compared case-insensitively.
 func (d *Dictionary) Get(key string) (Value, bool) {
 	if d == nil {

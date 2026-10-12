@@ -328,7 +328,9 @@ func TestEvalFilters(t *testing.T) {
 		{"toJSON(matrix.node.*)", "String:[\n  14,\n  16,\n  18\n]"},
 		{"toJSON(matrix.nothing.*)", "String:[]"},
 		{"toJSON(inputs.empty.*)", "String:[]"},
-		{"toJSON(steps.*.outputs.r)", "String:[\n  \"two\",\n  \"ten\"\n]"},
+		// Object members keep the order of the document (the JavaScript
+		// reference puts array-index keys first).
+		{"toJSON(steps.*.outputs.r)", "String:[\n  \"ten\",\n  \"two\"\n]"},
 		{"toJSON(fromJSON('{\"a\":{\"x\":1},\"b\":{\"x\":2}}').*.x)", "String:[\n  1,\n  2\n]"},
 		{"toJSON(fromJSON('[1,2]').*.x)", "String:[]"},
 		{"toJSON(fromJSON('[{\"a\":[1,2]},{\"a\":[3]}]').*.a.*)", "String:[\n  1,\n  2,\n  3\n]"},
@@ -425,11 +427,13 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"fromJSON('\n')", "ERR empty input"},
 		{"fromJSON(null)", "ERR empty input"},
 		{"fromJSON('{')", "ERR Error parsing JSON when evaluating fromJson"},
-		{"fromJSON('[1,]')", "ERR Error parsing JSON when evaluating fromJson"},
-		{"fromJSON('{a:1}')", "ERR Error parsing JSON when evaluating fromJson"},
-		{"fromJSON('01')", "ERR Error parsing JSON when evaluating fromJson"},
-		{"fromJSON('NaN')", "ERR Error parsing JSON when evaluating fromJson"},
-		{"fromJSON('1 2')", "ERR Error parsing JSON when evaluating fromJson"},
+		// Json.NET is lenient: trailing commas, unquoted names, leading zeros,
+		// NaN and Infinity and anything after the first value are accepted.
+		{"fromJSON('[1,]')", "Array:Array"},
+		{"fromJSON('{a:1}').a", "Number:1"},
+		{"fromJSON('01')", "Number:1"},
+		{"fromJSON('NaN')", "Number:NaN"},
+		{"fromJSON('1 2')", "Number:1"}, // only the first value is read
 		{"fromJSON(' 1 ')", "Number:1"},
 		{"fromJSON('-1.5e2')", "Number:-150"},
 		{"fromJSON('1e999')", "Number:Infinity"},

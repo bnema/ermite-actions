@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -21,29 +21,36 @@ const MaxJSONDepth = 1000
 
 // FromJSON parses JSON text into a [Value], like the fromJSON function.
 //
-// The grammar is strict RFC 8259 JSON as JSON.parse accepts it. Numbers are
-// float64 (1e999 is +Inf). Objects become [*Dictionary] values: keys that
-// are array indices ("0", "42") come first in ascending order, then the rest
-// in document order, as JavaScript enumerates object keys; a repeated key
-// keeps its first position and its last value; keys that differ only by case
-// collapse to the first.
+// The reader is Json.NET's, as in the runner (Sdk/Functions/FromJson.cs:
+// JToken.ReadFrom on a JsonTextReader, then ToPipelineContextData), so it
+// accepts more than RFC 8259:
+//
+//   - only the first value is read, anything after it is ignored;
+//   - strings may use single quotes and may contain raw control characters,
+//     object names may be unquoted (letters, digits, _ and $);
+//   - a trailing comma is accepted, an empty array element is an empty string;
+//   - NaN, Infinity and -Infinity are numbers, numbers may be written .5, 5.,
+//     1.e2, 01 or 0x1F (hexadecimal, no sign), and undefined is an empty
+//     string;
+//   - nesting is limited to 64 levels (JsonReader.MaxDepth).
+//
+// Not ported (they fail here): comments and constructors (new Date(1)).
+// Numbers are float64 (1e999 is +Inf). Objects become [*Dictionary] values in
+// document order; a repeated key, compared case-insensitively, keeps the
+// spelling and position of its first occurrence and the value of its last.
+// An unpaired surrogate escape reads as U+FFFD.
 func FromJSON(data []byte) (Value, error) {
 	s := string(data)
 	if !utf8.ValidString(s) {
-		s = string([]rune(s)) // invalid bytes become U+FFFD, as in a JS string
+		s = string([]rune(s)) // invalid bytes become U+FFFD
 	}
 	p := &jsonParser{s: s}
 	p.skipSpace()
-	v, err := p.value(0)
-	if err != nil {
-		return nil, err
-	}
-	p.skipSpace()
-	if p.i < len(p.s) {
-		return nil, p.unexpected()
-	}
-	return v, nil
+	return p.value(0)
 }
+
+// jsonReaderMaxDepth is Json.NET's JsonReader.MaxDepth default.
+const jsonReaderMaxDepth = 64
 
 type jsonParser struct {
 	s string
@@ -55,102 +62,108 @@ func (p *jsonParser) unexpected() error {
 		return errors.New("unexpected end of JSON input")
 	}
 	r, _ := utf8.DecodeRuneInString(p.s[p.i:])
-	return fmt.Errorf("unexpected token %q in JSON at position %d", r, p.i)
+	return fmt.Errorf("unexpected character %q in JSON at position %d", r, p.i)
 }
 
 func (p *jsonParser) skipSpace() {
 	for p.i < len(p.s) {
-		switch p.s[p.i] {
-		case ' ', '\t', '\n', '\r':
-			p.i++
-		default:
+		r, w := utf8.DecodeRuneInString(p.s[p.i:])
+		if !isNetSpace(r) {
 			return
 		}
+		p.i += w
 	}
 }
 
-func (p *jsonParser) literal(word string, v Value) (Value, error) {
-	if !strings.HasPrefix(p.s[p.i:], word) {
-		// Advance to the first mismatching byte for the error position.
-		for j := 0; j < len(word) && p.i < len(p.s) && p.s[p.i] == word[j]; j++ {
-			p.i++
-		}
-		return nil, p.unexpected()
+// isJSONSeparator reports whether c ends a literal or a number.
+func isJSONSeparator(r rune) bool {
+	switch r {
+	case ',', '}', ']', ')', '/':
+		return true
 	}
-	p.i += len(word)
-	return v, nil
+	return isNetSpace(r)
+}
+
+// token returns the run of characters up to the next separator.
+func (p *jsonParser) token() string {
+	start := p.i
+	for p.i < len(p.s) {
+		r, w := utf8.DecodeRuneInString(p.s[p.i:])
+		if isJSONSeparator(r) {
+			break
+		}
+		p.i += w
+	}
+	return p.s[start:p.i]
 }
 
 func (p *jsonParser) value(depth int) (Value, error) {
-	if depth > MaxJSONDepth {
-		return nil, errors.New("maximum JSON nesting depth exceeded")
-	}
 	if p.i >= len(p.s) {
 		return nil, p.unexpected()
 	}
 	switch c := p.s[p.i]; {
 	case c == '{':
-		return p.object(depth)
+		return p.object(depth + 1)
 	case c == '[':
-		return p.array(depth)
-	case c == '"':
+		return p.array(depth + 1)
+	case c == '"' || c == '\'':
 		s, err := p.str()
 		if err != nil {
 			return nil, err
 		}
 		return String(s), nil
-	case c == 't':
-		return p.literal("true", Boolean(true))
-	case c == 'f':
-		return p.literal("false", Boolean(false))
-	case c == 'n':
-		return p.literal("null", Null{})
-	case c == '-' || c >= '0' && c <= '9':
+	case c == '-' || c == '.' || c >= '0' && c <= '9':
 		return p.number()
 	}
+	start := p.i
+	switch word := p.token(); word {
+	case "true":
+		return Boolean(true), nil
+	case "false":
+		return Boolean(false), nil
+	case "null":
+		return Null{}, nil
+	case "undefined":
+		return String(""), nil
+	case "NaN":
+		return Number(nan), nil
+	case "Infinity":
+		return Number(posInf), nil
+	}
+	p.i = start
 	return nil, p.unexpected()
 }
 
+// number reads a number token: decimal with optional sign, fraction and
+// exponent (a digit is required in the mantissa), -Infinity, or an unsigned
+// 0x hexadecimal integer.
 func (p *jsonParser) number() (Value, error) {
 	start := p.i
-	if p.s[p.i] == '-' {
-		p.i++
+	tok := p.token()
+	if tok == "-Infinity" {
+		return Number(math.Inf(-1)), nil
 	}
-	digits := func() int {
-		n := 0
-		for p.i < len(p.s) && p.s[p.i] >= '0' && p.s[p.i] <= '9' {
-			p.i++
-			n++
+	if len(tok) > 2 && tok[0] == '0' && (tok[1] == 'x' || tok[1] == 'X') {
+		if len(tok) <= 18 {
+			if n, err := strconv.ParseUint(tok[2:], 16, 64); err == nil && !strings.ContainsAny(tok[2:], "+-_") {
+				return Number(float64(int64(n))), nil
+			}
 		}
-		return n
+		p.i = start
+		return nil, fmt.Errorf("input string %q is not a valid number", tok)
 	}
-	switch {
-	case p.i < len(p.s) && p.s[p.i] == '0':
-		p.i++
-	case digits() == 0:
-		return nil, p.unexpected()
+	body := strings.TrimPrefix(tok, "-")
+	if !isDecimalLiteral(body) {
+		p.i = start
+		return nil, fmt.Errorf("input string %q is not a valid number", tok)
 	}
-	if p.i < len(p.s) && p.s[p.i] == '.' {
-		p.i++
-		if digits() == 0 {
-			return nil, p.unexpected()
-		}
-	}
-	if p.i < len(p.s) && (p.s[p.i] == 'e' || p.s[p.i] == 'E') {
-		p.i++
-		if p.i < len(p.s) && (p.s[p.i] == '+' || p.s[p.i] == '-') {
-			p.i++
-		}
-		if digits() == 0 {
-			return nil, p.unexpected()
-		}
-	}
-	f, _ := strconv.ParseFloat(p.s[start:p.i], 64) // range errors give ±Inf
+	f, _ := strconv.ParseFloat(tok, 64) // range errors give ±Inf
 	return Number(f), nil
 }
 
 // str reads a string literal; p.i is on the opening quote.
 func (p *jsonParser) str() (string, error) {
+	quote := p.s[p.i]
 	p.i++
 	var b strings.Builder
 	for {
@@ -158,13 +171,11 @@ func (p *jsonParser) str() (string, error) {
 			return "", errors.New("unterminated string in JSON")
 		}
 		c := p.s[p.i]
-		switch {
-		case c == '"':
+		if c == quote {
 			p.i++
 			return b.String(), nil
-		case c < 0x20:
-			return "", p.unexpected()
-		case c != '\\':
+		}
+		if c != '\\' {
 			b.WriteByte(c)
 			p.i++
 			continue
@@ -176,7 +187,7 @@ func (p *jsonParser) str() (string, error) {
 		e := p.s[p.i]
 		p.i++
 		switch e {
-		case '"', '\\', '/':
+		case '"', '\'', '\\', '/':
 			b.WriteByte(e)
 		case 'b':
 			b.WriteByte('\b')
@@ -206,13 +217,13 @@ func (p *jsonParser) str() (string, error) {
 					p.i = save // not a pair; the second escape is read on its own
 				}
 			}
-			// A lone surrogate cannot be a Go rune: writeRune keeps it in
-			// its three-byte WTF-8 form so that toJSON writes it back as
-			// the same \uXXXX escape, like JSON.stringify.
-			writeRune(&b, r)
+			if r >= 0xD800 && r < 0xE000 {
+				r = utf8.RuneError // an unpaired surrogate
+			}
+			b.WriteRune(r)
 		default:
-			p.i--
-			return "", p.unexpected()
+			p.i -= 2
+			return "", fmt.Errorf("bad JSON escape sequence \\%c at position %d", e, p.i)
 		}
 	}
 }
@@ -243,16 +254,27 @@ func (p *jsonParser) hex4() (rune, error) {
 }
 
 func (p *jsonParser) array(depth int) (Value, error) {
+	if depth > jsonReaderMaxDepth {
+		return nil, fmt.Errorf("the reader's MaxDepth of %d has been exceeded", jsonReaderMaxDepth)
+	}
 	p.i++
 	arr := &Array{}
-	p.skipSpace()
-	if p.i < len(p.s) && p.s[p.i] == ']' {
-		p.i++
-		return arr, nil
-	}
 	for {
 		p.skipSpace()
-		v, err := p.value(depth + 1)
+		if p.i >= len(p.s) {
+			return nil, p.unexpected()
+		}
+		switch p.s[p.i] {
+		case ']':
+			p.i++
+			return arr, nil
+		case ',':
+			// An empty element is "undefined", which reads as an empty string.
+			p.i++
+			arr.items = append(arr.items, String(""))
+			continue
+		}
+		v, err := p.value(depth)
 		if err != nil {
 			return nil, err
 		}
@@ -265,29 +287,50 @@ func (p *jsonParser) array(depth int) (Value, error) {
 		case ',':
 			p.i++
 		case ']':
-			p.i++
-			return arr, nil
 		default:
 			return nil, p.unexpected()
 		}
 	}
 }
 
-func (p *jsonParser) object(depth int) (Value, error) {
-	p.i++
-	var keys []string
-	vals := map[string]Value{}
-	p.skipSpace()
-	if p.i < len(p.s) && p.s[p.i] == '}' {
-		p.i++
-		return NewDictionary(), nil
+// propertyName reads a quoted or unquoted object name.
+func (p *jsonParser) propertyName() (string, error) {
+	if p.s[p.i] == '"' || p.s[p.i] == '\'' {
+		return p.str()
 	}
+	start := p.i
+	for p.i < len(p.s) {
+		r, w := utf8.DecodeRuneInString(p.s[p.i:])
+		if r == ':' || isNetSpace(r) {
+			break
+		}
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '$' {
+			return "", p.unexpected()
+		}
+		p.i += w
+	}
+	if p.i == start {
+		return "", p.unexpected()
+	}
+	return p.s[start:p.i], nil
+}
+
+func (p *jsonParser) object(depth int) (Value, error) {
+	if depth > jsonReaderMaxDepth {
+		return nil, fmt.Errorf("the reader's MaxDepth of %d has been exceeded", jsonReaderMaxDepth)
+	}
+	p.i++
+	d := NewDictionary()
 	for {
 		p.skipSpace()
-		if p.i >= len(p.s) || p.s[p.i] != '"' {
+		if p.i >= len(p.s) {
 			return nil, p.unexpected()
 		}
-		k, err := p.str()
+		if p.s[p.i] == '}' {
+			p.i++
+			return d, nil
+		}
+		k, err := p.propertyName()
 		if err != nil {
 			return nil, err
 		}
@@ -297,14 +340,11 @@ func (p *jsonParser) object(depth int) (Value, error) {
 		}
 		p.i++
 		p.skipSpace()
-		v, err := p.value(depth + 1)
+		v, err := p.value(depth)
 		if err != nil {
 			return nil, err
 		}
-		if _, dup := vals[k]; !dup {
-			keys = append(keys, k)
-		}
-		vals[k] = v // last value wins, at the first position
+		d.set(k, v)
 		p.skipSpace()
 		if p.i >= len(p.s) {
 			return nil, p.unexpected()
@@ -312,66 +352,21 @@ func (p *jsonParser) object(depth int) (Value, error) {
 		switch p.s[p.i] {
 		case ',':
 			p.i++
-			continue
 		case '}':
-			p.i++
 		default:
 			return nil, p.unexpected()
 		}
-		break
 	}
-	d := NewDictionary()
-	for _, k := range jsKeyOrder(keys) {
-		d.Add(k, vals[k])
-	}
-	return d, nil
 }
 
-// isArrayIndex reports whether k is the canonical decimal form of an integer
-// in [0, 2^32-2], the keys JavaScript enumerates before all others.
-func isArrayIndex(k string) bool {
-	if k == "" || len(k) > 10 || (len(k) > 1 && k[0] == '0') {
-		return false
-	}
-	for i := 0; i < len(k); i++ {
-		if k[i] < '0' || k[i] > '9' {
-			return false
-		}
-	}
-	n, _ := strconv.ParseUint(k, 10, 64)
-	return n < math.MaxUint32
-}
-
-// jsKeyOrder reorders keys the way Object.keys enumerates a JavaScript
-// object: array indices ascending, then the others in their given order.
-func jsKeyOrder(keys []string) []string {
-	var idx, rest []string
-	for _, k := range keys {
-		if isArrayIndex(k) {
-			idx = append(idx, k)
-		} else {
-			rest = append(rest, k)
-		}
-	}
-	if len(idx) == 0 {
-		return keys
-	}
-	sort.Slice(idx, func(i, j int) bool {
-		a, _ := strconv.ParseUint(idx[i], 10, 64)
-		b, _ := strconv.ParseUint(idx[j], 10, 64)
-		return a < b
-	})
-	return append(idx, rest...)
-}
-
-// ToJSON renders v as the toJSON function does: JSON.stringify(v, replacer,
-// "  "), that is two-space indentation, "key": value pairs, "[]" and "{}"
-// for empty containers, and numbers as JavaScript prints them (NaN and the
-// infinities as null, -0 as 0, 1e21 as 1e+21). Dictionary keys that are array
-// indices come first in ascending order, as when GitHub's replacer builds a
-// JavaScript object. Control characters, quotes and backslashes in strings
-// are escaped; everything else, including non-ASCII text, is written as is.
-// Lone surrogates, which FromJSON keeps in WTF-8 form, are written as \uXXXX.
+// ToJSON renders v as the toJSON function does (Sdk/Functions/ToJson.cs): two
+// space indentation, "key": value pairs in the dictionary's order, "[]" and
+// "{}" for empty containers. A number is written as its string form
+// (numberToCoercedString: at most 15 significant digits, so NaN and the
+// infinities are written as such). Strings are escaped as Json.NET does by
+// default: quotes, backslashes, \b \f \n \r \t, the other control characters
+// as \u00xx, and U+0085, U+2028 and U+2029 as \uxxxx; everything else,
+// including non-ASCII text, is written as is.
 //
 // ToJSON suits the finite values that FromJSON and Evaluate produce. A value
 // nested deeper than [MaxJSONDepth], which only a cyclic value built by hand
@@ -485,7 +480,7 @@ func (w *jsonWriter) value(v Value, depth int) {
 			w.str("{}")
 			return
 		}
-		keys := jsKeyOrder(x.keys)
+		keys := x.keys
 		w.str("{\n")
 		for i, k := range keys {
 			val, _ := x.Get(k)
@@ -534,8 +529,7 @@ func (w *jsonWriter) jsonString(s string) {
 			esc = `\t`
 		case r < 0x20:
 			esc = `\u00` + string([]byte{hexDigits[r>>4], hexDigits[r&0xF]})
-		case r >= 0xD800 && r < 0xE000:
-			// A lone surrogate (WTF-8, see FromJSON).
+		case r == 0x85 || r == 0x2028 || r == 0x2029 || r >= 0xD800 && r < 0xE000:
 			esc = `\u` + string([]byte{hexDigits[r>>12], hexDigits[r>>8&0xF], hexDigits[r>>4&0xF], hexDigits[r&0xF]})
 		}
 		if esc != "" {

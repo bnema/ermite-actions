@@ -140,22 +140,43 @@ whether to keep the JS behaviour or follow the runner.
       is therefore a parse error. Same in the C# lexer (`LexicalAnalyzer.
       TryGetNextToken`: `c == '-' || c == '+' || digit` starts `ReadNumberToken`),
       checked by the differential run.
-- [ ] **Object key order from `fromJSON`**: array-index keys first, ascending
-      (JavaScript `Object.keys`), then insertion order. `Json.NET` keeps
-      document order. The same ordering is applied by `toJSON` (the JS
-      replacer builds a plain object). Check against the runner for
-      `toJSON(fromJSON('{"b":1,"1":2}'))`.
-- [ ] **Duplicate JSON keys**: last value wins at the first position (JS);
-      keys that differ only by case collapse to the first.
-- [ ] **`fromJSON` errors**: the JS message is
-      `Error parsing JSON when evaluating fromJson` with the V8 `SyntaxError`
-      as cause; here the cause is a Go error with similar but not identical
-      wording (only the outer message is stable). `empty input` for blank
-      input. C# messages differ; check.
-- [ ] **`toJSON`**: `JSON.stringify(v, replacer, "  ")`: two-space indent,
-      `[]` and `{}` for empties, `NaN`/`Infinity` as `null`, `-0` as `0`,
-      no escaping of `<`, `>`, `&`, U+2028/U+2029; lone surrogates as
-      `\udXXX`. Json.NET differs on some of these (`Infinity`, `-0`, escapes).
+- [x] **Object key order from `fromJSON`**: resolved, follows the C#. Keys keep
+      the document order (`JTokenExtensions.ToPipelineContextData` iterates
+      `JObject.Properties()` into `DictionaryContextData`, a list); the JS
+      `Object.keys` order (array-index keys first) is gone, from `FromJSON` and
+      from `toJSON`. `toJSON(fromJSON('{"b":1,"1":2}'))` is `b` then `1`.
+- [x] **Duplicate JSON keys**: resolved, follows the C#. `subContext[property.Name] =
+      ...` on a `DictionaryContextData` whose index is `OrdinalIgnoreCase`
+      (`DictionaryContextData.this[]` setter): the last value wins, at the
+      position and with the spelling of the first. `{"a":1,"A":2}` is
+      `{"a": 2}` (the JS keeps `1`). Json.NET itself also merges exact
+      duplicates (last wins).
+- [x] **`fromJSON` errors and grammar**: resolved, follows the C#. The reader is
+      Json.NET's (`Sdk/Functions/FromJson.cs`: `JToken.ReadFrom` on a
+      `JsonTextReader` with `DateParseHandling.None`,
+      `FloatParseHandling.Double`), which is lenient: single-quoted strings,
+      unquoted names, trailing commas, `[,1]` (an empty element is `""`),
+      `NaN`/`Infinity`/`-Infinity`/`undefined`, `.5`, `5.`, `01`, `0x1F`, raw
+      control characters in strings, anything after the first value, and
+      `MaxDepth` 64. An unpaired surrogate escape becomes U+FFFD. Blank input
+      is a `JsonReaderException` (here: "empty input", kept as the outer
+      message; the Json.NET message texts are not reproduced, only that the
+      call fails). Not ported: `/* */` and `//` comments (they are read as a
+      value by the runner, i.e. `/*x*/1` is the string `x`) and
+      `new Date(1)` constructors; both are errors here.
+- [x] **`toJSON`**: resolved, follows the C#. `Sdk/Functions/ToJson.cs` builds
+      the text itself: two-space indentation, `[]`/`{}` for empties, numbers
+      through `ConvertToString` (so `NaN`, `Infinity` and `-Infinity` appear
+      bare, `1E+21`, 15 significant digits, `-0` is `0`) and strings through
+      `JsonUtility.ToString` (Json.NET defaults: `\b \f \n \r \t`, `\u00XX`
+      for other controls, `\u0085 \u2028 \u2029`, no escaping of `< > & '`, and
+      non-ASCII as is). Checked against the runner's code
+      (`testdata/tojson/*.runner`). The JS `null` for non-finite numbers, the
+      shortest round-trip form and the raw U+2028 are not followed.
+      Caveat: `JsonUtility` is stubbed in `gen/runner/Stubs.cs` with
+      `JsonConvert.SerializeObject`; the real one passes the runner's
+      `VssJsonMediaTypeFormatter` settings, which do not change string
+      escaping.
 - [ ] **Index access**: `a[b]` where `b` is a number uses `floor(b)` and
       rejects NaN, negatives and infinities; where `b` is a string it is a key
       or a decimal index (`'1'`, `' 1 '`, `'1.9'` all index 1 of an array).

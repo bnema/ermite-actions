@@ -8,6 +8,9 @@ import (
 	"testing"
 )
 
+// The accepted and rejected inputs below were established by running
+// fromJSON through the runner's own code (gen/runner): Json.NET's reader, not
+// JSON.parse.
 func TestFromJSONValid(t *testing.T) {
 	tests := []struct {
 		in   string
@@ -17,29 +20,41 @@ func TestFromJSONValid(t *testing.T) {
 		{" true ", "true"},
 		{"\t\r\n false \n", "false"},
 		{"0", "0"},
-		{"-0", "0"},
 		{"-12.5e1", "-125"},
 		{"1E2", "100"},
 		{"0.1e1", "1"},
 		{`"a\u00e9\n"`, `"aé\n"`},
 		{`"\ud83d\ude00"`, `"😀"`},
-		{`"\ud800"`, `"\ud800"`},
-		{`"\udc00x"`, `"\udc00x"`},
-		{`"\ud800\u0041"`, `"\ud800A"`},
 		{`"\/"`, `"/"`},
 		{`[]`, `[]`},
 		{`{}`, `{}`},
 		{`[ 1 , [ ] , { } ]`, "[\n  1,\n  [],\n  {}\n]"},
-		{`{"a":1,"A":2}`, "{\n  \"a\": 2\n}"}, // see below: the last value of an exact duplicate wins, case variants collapse to the first
+		// An unpaired surrogate escape becomes U+FFFD.
+		{`"\ud800"`, "\"\ufffd\""},
+		{`"\udc00x"`, "\"\ufffdx\""},
+		{`"\ud800\u0041"`, "\"\ufffdA\""},
+		// Repeated keys: the last value, at the first position and spelling;
+		// keys compare case-insensitively.
+		{`{"a":1,"A":2}`, "{\n  \"a\": 2\n}"},
 		{`{"a":1,"a":2}`, "{\n  \"a\": 2\n}"},
-		{`{"b":1,"1":2,"a":3,"0":4}`, "{\n  \"0\": 4,\n  \"1\": 2,\n  \"b\": 1,\n  \"a\": 3\n}"},
+		// Document order, array-index keys included.
+		{`{"b":1,"1":2,"a":3,"0":4}`, "{\n  \"b\": 1,\n  \"1\": 2,\n  \"a\": 3,\n  \"0\": 4\n}"},
+		// Leniency of Json.NET.
+		{`{"a":1,}`, "{\n  \"a\": 1\n}"},
+		{`{a:1,$b:2,c_d:3}`, "{\n  \"a\": 1,\n  \"$b\": 2,\n  \"c_d\": 3\n}"},
+		{`{'a':'x\'y'}`, "{\n  \"a\": \"x'y\"\n}"},
+		{`[1,]`, "[\n  1\n]"},
+		{`[,1]`, "[\n  \"\",\n  1\n]"},
+		{`[1,,2]`, "[\n  1,\n  \"\",\n  2\n]"},
+		{"01", "1"}, {"1.", "1"}, {".5", "0.5"}, {"-.5", "-0.5"}, {"1.e2", "100"},
+		{"0x10", "16"}, {"0X1f", "31"},
+		{"NaN", "NaN"}, {"Infinity", "Infinity"}, {"-Infinity", "-Infinity"},
+		{"undefined", `""`},
+		{"1 2", "1"}, {"[] []", "[]"}, {"{} x", "{}"}, {`"a""b"`, `"a"`}, {"true false", "true"},
+		{"\u00a01", "1"}, {"1\u00a0", "1"}, {"\u00851", "1"},
+		{"\"a\nb\"", `"a\nb"`}, {"\"\x01\"", `"\u0001"`},
 	}
 	for _, tc := range tests {
-		if tc.in == `{"a":1,"A":2}` {
-			// "a" and "A" are distinct JSON keys but the same dictionary key:
-			// the first one wins.
-			tc.want = "{\n  \"a\": 1\n}"
-		}
 		v, err := FromJSON([]byte(tc.in))
 		if err != nil {
 			t.Errorf("FromJSON(%q): %v", tc.in, err)
@@ -53,9 +68,9 @@ func TestFromJSONValid(t *testing.T) {
 
 func TestFromJSONInvalid(t *testing.T) {
 	for _, in := range []string{
-		"", " ", "{", "}", "[", "]", `{"a"`, `{"a":`, `{"a":1`, `{"a":1,}`, `{,}`, `{a:1}`, `{'a':1}`, `{"a" 1}`, `[1,]`, `[,1]`, `[1 2]`,
-		"01", "1.", ".5", "+1", "-", "1e", "1e+", "--1", "0x10", "NaN", "Infinity", "-Infinity", "undefined", "nul", "truee", "tru", "True",
-		`"abc`, `"a` + "\n" + `b"`, "\"\x01\"", `"\x"`, `"\u12"`, `"\u12g4"`, `"\`, "1 2", "[] []", "{} x", `"a""b"`, "\x00", "\u00a01", "1\u00a0", "\ufeff1",
+		"", " ", "{", "}", "[", "]", `{"a"`, `{"a":`, `{"a":1`, `{,}`, `{"a" 1}`, `[1 2]`,
+		"+1", "-", "1e", "1e+", "--1", "-0x10", "nul", "truee", "tru", "True", "TRUE", "NULL", "nan", "+Infinity", "1_2",
+		`"abc`, `"\x"`, `"\u12"`, `"\u12g4"`, `"\`, "\x00", "\ufeff1", "@", "new Foo",
 	} {
 		if v, err := FromJSON([]byte(in)); err == nil {
 			t.Errorf("FromJSON(%q) = %v, want error", in, ToJSON(v))
@@ -80,6 +95,9 @@ func TestFromJSONNumbers(t *testing.T) {
 	if !math.Signbit(float64(v.(Number))) {
 		t.Error("-0 lost its sign")
 	}
+	if got := ToJSON(v); got != "0" {
+		t.Errorf("ToJSON(-0) = %q", got)
+	}
 }
 
 func TestFromJSONInvalidUTF8(t *testing.T) {
@@ -93,13 +111,17 @@ func TestFromJSONInvalidUTF8(t *testing.T) {
 }
 
 func TestFromJSONDeepNesting(t *testing.T) {
-	deep := strings.Repeat("[", 900) + strings.Repeat("]", 900)
-	if _, err := FromJSON([]byte(deep)); err != nil {
-		t.Errorf("depth 900: %v", err)
+	// Json.NET's reader allows 64 levels (JsonReader.MaxDepth).
+	for _, n := range []int{1, 63, 64} {
+		if _, err := FromJSON([]byte(strings.Repeat("[", n) + "1" + strings.Repeat("]", n))); err != nil {
+			t.Errorf("depth %d: %v", n, err)
+		}
 	}
-	tooDeep := strings.Repeat("[", MaxJSONDepth+10) + strings.Repeat("]", MaxJSONDepth+10)
-	if _, err := FromJSON([]byte(tooDeep)); err == nil {
-		t.Error("absurd depth accepted")
+	for _, open := range []string{"[", `{"a":`} {
+		close := map[string]string{"[": "]", `{"a":`: "}"}[open]
+		if _, err := FromJSON([]byte(strings.Repeat(open, 65) + "1" + strings.Repeat(close, 65))); err == nil {
+			t.Errorf("depth 65 of %q accepted", open)
+		}
 	}
 }
 
@@ -141,7 +163,7 @@ func TestToJSONFormatting(t *testing.T) {
 		{Number(1e21), "1E+21"},
 		{Number(1e-7), "1E-07"},
 		{Number(123456789), "123456789"},
-		{String("\u0000\u001f\u007f\u0080\u2028"), `"\u0000\u001f` + "\u007f\u0080\u2028" + `"`},
+		{String("\u0000\u001f\u007f\u0080\u2028"), `"\u0000\u001f` + "\u007f\u0080" + `\u2028"`},
 		{String("\"\\\b\f\n\r\t"), `"\"\\\b\f\n\r\t"`},
 		{String("</script>&'"), `"</script>&'"`},
 		{String("\xff"), "\"\ufffd\""},
