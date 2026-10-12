@@ -249,6 +249,10 @@ func (e *evaluator) call(c *FunctionCall) (Value, error) {
 		}
 		impl = builtinImpls[name]
 	}
+	if !isExt {
+		// Built-ins evaluate their own arguments, lazily.
+		return impl(e, c)
+	}
 	args := make([]Value, len(c.Args))
 	for i, a := range c.Args {
 		v, err := e.eval(a)
@@ -257,7 +261,7 @@ func (e *evaluator) call(c *FunctionCall) (Value, error) {
 		}
 		args[i] = v
 	}
-	if isExt {
+	{
 		v, err := ext(e.ctx, args)
 		if err != nil {
 			var ee *EvalError
@@ -268,7 +272,6 @@ func (e *evaluator) call(c *FunctionCall) (Value, error) {
 		}
 		return v, nil
 	}
-	return impl(e, args)
 }
 
 // indexer is idxHelper of the reference: how an index value is read, as a
@@ -309,34 +312,48 @@ func (ix indexer) pos(n int) (int, bool) {
 	return int(ix.intv), true
 }
 
+// indexAccess evaluates a[b] as Index.cs does: the object first, then, only if
+// it is an array or a dictionary, the index, whose errors are reported as they
+// are (the JavaScript reference evaluates the index first and wraps its errors
+// in "could not evaluate index for index access").
 func (e *evaluator) indexAccess(ia *IndexAccess) (Value, error) {
-	var ix indexer
-	if _, isStar := ia.Index.(*Star); isStar {
-		ix = newIndexer(true, nil)
-	} else {
-		v, err := e.eval(ia.Index)
-		if err != nil {
-			return nil, &EvalError{Message: "could not evaluate index for index access: " + err.Error(), Err: err}
-		}
-		ix = newIndexer(false, v)
-	}
+	_, isStar := ia.Index.(*Star)
 	obj, err := e.eval(ia.Expr)
 	if err != nil {
 		return nil, err
 	}
 	switch o := normalize(obj).(type) {
 	case *Array:
+		ix, err := e.indexer(ia, isStar)
+		if err != nil {
+			return nil, err
+		}
 		if o.filtered {
 			return e.filteredArrayAccess(o, ix)
 		}
 		return e.arrayAccess(o, ix)
 	case *Dictionary:
+		ix, err := e.indexer(ia, isStar)
+		if err != nil {
+			return nil, err
+		}
 		return e.objectAccess(o, ix)
 	}
-	if ix.star {
+	if isStar {
 		return &Array{filtered: true}, nil
 	}
 	return Null{}, nil
+}
+
+func (e *evaluator) indexer(ia *IndexAccess, isStar bool) (indexer, error) {
+	if isStar {
+		return newIndexer(true, nil), nil
+	}
+	v, err := e.eval(ia.Index)
+	if err != nil {
+		return indexer{}, err
+	}
+	return newIndexer(false, v), nil
 }
 
 // filteredArrayAccess applies an index to each element of a filtered array

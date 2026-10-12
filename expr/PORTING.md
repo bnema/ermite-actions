@@ -72,17 +72,30 @@ whether to keep the JS behaviour or follow the runner.
       a bug of the editor library. Tests: `TestEvalLiteralsAndOperators`; the
       oracle excuses the JS mismatch because `testdata/runner.json.gz` agrees
       with this package.
-- [ ] **`case()` availability.** The JS gates it behind the experimental flag
-      `allowCaseFunction`, but only in completion; the parser and the
-      evaluator always accept it. Here it is always on. Confirm whether the
-      hosted service accepts `case` and with which arity rules (the JS: at
-      least 3 arguments, an odd number, predicates must be booleans).
-- [ ] **`format()`**: the reference uses `parseInt` on the digits, so
-      `{99999999999999999999}` is an Infinity-like index and reports "more
-      arguments than were supplied". The `{0:x}` form silently ignores the
-      specifier; C# may throw. The error texts are the JS ones. Check the C#
-      `Format` node for the exact messages and for `{N}` with `N` > 255 or
-      leading zeros.
+- [x] **`case()` availability.** Resolved: the runner has `case` always
+      (`ExpressionConstants`: `AddFunction<Case>("case", 3, Byte.MaxValue)`),
+      with an odd number of arguments enforced at parse time
+      (`ExpressionParser.FlushTopEndParameters`: `EvenParameters`, reported on
+      the `(` token) and at evaluation (`Sdk/Functions/Case.cs`), predicates
+      must be booleans ("case predicate must evaluate to a boolean value"), and
+      only the matching branch is evaluated. `ExpressionParserL0` has a
+      regression test that `case(...)` must not turn on "allow unknown
+      keywords" (ported in `runner_l0_test.go`). Here it is always on, with
+      the maximum of 255 arguments (the JS has no maximum).
+- [x] **`format()`**: resolved, follows the C#. `Sdk/Functions/Format.cs`: the
+      format string is scanned first (syntax and "more arguments than were
+      supplied" are reported before any argument is evaluated), arguments are
+      then evaluated lazily, once each. The index is a **byte**
+      (`Byte.TryParse`): `{255}` is the last valid index, `{256}` and
+      `{12345678901234567890123}` are "format string is invalid", not "more
+      arguments". After the digits only `}` or `:specifiers}` are allowed
+      (`{0 }`, `{0,5}` are invalid); **specifiers are an error** for every
+      value: `The format specifiers 'x' are not valid for objects of type
+      'Number'` (kind names `Null Boolean Number String Array Object`).
+      Messages are the same as the JS ones otherwise (`ExpressionResources.resx`:
+      `InvalidFormatString`, `InvalidFormatArgIndex`, `InvalidFormatSpecifiers`).
+      The runner has the same 255-argument cap as the JS (`Byte.MaxValue`,
+      `ExpressionConstants`).
 - [x] **`contains()`, `startsWith`/`endsWith`, `==`, `<`, `>` and key lookup use
       `OrdinalIgnoreCase`.** Resolved: follows the C#. Every string comparison
       in the runner is `StringComparison.OrdinalIgnoreCase`
@@ -177,6 +190,20 @@ whether to keep the JS behaviour or follow the runner.
       `JsonConvert.SerializeObject`; the real one passes the runner's
       `VssJsonMediaTypeFormatter` settings, which do not change string
       escaping.
+- [x] **Lazy evaluation of built-in function arguments and of index
+      expressions**: found by the differential run, not in the original list.
+      In the runner a function evaluates only the arguments it uses
+      (`Parameters[i].Evaluate(context)` inside `EvaluateCore`): `case` stops
+      at the first true predicate, `contains`/`startsWith`/`endsWith` do not
+      evaluate the second argument when the first is not primitive (or, for
+      `contains`, not a non-empty array), `join` evaluates the separator only
+      with two or more items, `format` evaluates only referenced arguments. And
+      `a[b]` (`Index.cs`) evaluates `b` only if `a` is an array or a
+      dictionary, and does not wrap its errors (the JS evaluates `b` first and
+      wraps them in "could not evaluate index for index access"). So
+      `join(success(), format('{2}'))` is `true` in the runner and an error in
+      the JS. Built-ins now receive the call and evaluate what they need;
+      extension functions still get evaluated arguments.
 - [ ] **Index access**: `a[b]` where `b` is a number uses `floor(b)` and
       rejects NaN, negatives and infinities; where `b` is a string it is a key
       or a decimal index (`'1'`, `' 1 '`, `'1.9'` all index 1 of an array).

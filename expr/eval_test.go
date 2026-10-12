@@ -458,8 +458,18 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"format('{{0}}', 1)", "String:{0}"},
 		{"format('{{{0}}}', 1)", "String:{1}"},
 		{"format('{0}', 'a', 'b')", "String:a"}, // extra arguments are fine
-		{"format('{0:x}', 1)", "String:1"},      // a format specifier is skipped
-		{"format('{0 anything}', 1)", "String:1"},
+		// The runner rejects format specifiers (Format.cs) and anything but
+		// digits between the index and the closing brace; the JavaScript
+		// reference skips them.
+		{"format('{0:x}', 1)", "ERR The format specifiers 'x' are not valid for objects of type 'Number'"},
+		{"format('{0:}', 1)", "String:1"},
+		{"format('{0:x}}y}', true)", "ERR The format specifiers 'x}y' are not valid for objects of type 'Boolean'"},
+		{"format('{0 anything}', 1)", "ERR The following format string is invalid: {0 anything}"},
+		{"format('{0 }', 1)", "ERR The following format string is invalid: {0 }"},
+		{"format('{0,5}', 1)", "ERR The following format string is invalid: {0,5}"},
+		{"format('{255}', 1)", "ERR The following format string references more arguments than were supplied: {255}"},
+		{"format('{256}', 1)", "ERR The following format string is invalid: {256}"},
+		{"format('{00}', 7)", "String:7"},
 		{"format('{00}', 1)", "String:1"},
 		{"format('{01}', 1, 2)", "String:2"},
 		{"format('{0}', null)", "String:"},
@@ -481,7 +491,8 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"format('0}', 1)", "ERR The following format string is invalid: 0}"},
 		{"format('{{0}', 1)", "ERR The following format string is invalid: {{0}"},
 		{"format('{0}}', 1)", "ERR The following format string is invalid: {0}}"},
-		{"format('{12345678901234567890123}', 1)", "ERR The following format string references more arguments than were supplied: {12345678901234567890123}"},
+		// The index is a byte: a longer number makes the string invalid.
+		{"format('{12345678901234567890123}', 1)", "ERR The following format string is invalid: {12345678901234567890123}"},
 		{"format()", "PARSE Too few parameters supplied: 'format'"},
 
 		// case
