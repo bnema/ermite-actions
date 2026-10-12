@@ -4,6 +4,7 @@ package workflow
 
 import (
 	"bnema.dev/ermite-actions/template"
+	"strings"
 )
 
 // On is the "on" key: the events that trigger a workflow.
@@ -46,6 +47,8 @@ type Event struct {
 	Versions       []string
 	Names          []string
 	Workflows      []string
+
+	cf *compiledFilters
 
 	// Schedule holds the entries of the "schedule" event.
 	Schedule []Schedule
@@ -270,29 +273,101 @@ func (c *converter) convertInput(name string, m *template.Mapping, call bool) In
 	return in
 }
 
-// filterPairs are the filters GitHub does not allow together on one event.
-var filterPairs = [][2]string{{"branches", "branches-ignore"}, {"tags", "tags-ignore"}, {"paths", "paths-ignore"}}
+// filterNames are the pattern filters of an event, in the order they are
+// checked and reported.
+var filterNames = []string{"branches", "branches-ignore", "tags", "tags-ignore", "paths", "paths-ignore"}
 
-// validateFilters reports an event that uses a filter and its "-ignore"
-// counterpart. @actions/workflow-parser accepts this; GitHub rejects the
-// file ("you can't use both"), so this port does too. The message is ours.
+// filterLists returns the lists of the six pattern filters by name.
+func (e *Event) filterLists() map[string][]string {
+	return map[string][]string{
+		"branches": e.Branches, "branches-ignore": e.BranchesIgnore,
+		"tags": e.Tags, "tags-ignore": e.TagsIgnore,
+		"paths": e.Paths, "paths-ignore": e.PathsIgnore,
+	}
+}
+
+// compiledFilters holds the compiled pattern lists of an event.
+type compiledFilters struct {
+	branches, branchesIgnore, tags, tagsIgnore, paths, pathsIgnore []*Pattern
+}
+
+func (e *Event) compileFilters() (*compiledFilters, map[string]error) {
+	errs := map[string]error{}
+	var cf compiledFilters
+	dst := map[string]*[]*Pattern{
+		"branches": &cf.branches, "branches-ignore": &cf.branchesIgnore,
+		"tags": &cf.tags, "tags-ignore": &cf.tagsIgnore,
+		"paths": &cf.paths, "paths-ignore": &cf.pathsIgnore,
+	}
+	for name, list := range e.filterLists() {
+		l, err := compileList(list)
+		if err != nil {
+			errs[name] = err
+		}
+		*dst[name] = l
+	}
+	return &cf, errs
+}
+
+// filters returns the compiled filters: those made by Parse, or, for an
+// Event built by hand, a fresh compilation (a pattern that does not compile
+// never matches).
+func (e *Event) filters() *compiledFilters {
+	if e.cf != nil {
+		return e.cf
+	}
+	cf, _ := e.compileFilters()
+	return cf
+}
+
+// validateFilters checks the pattern filters of every event, as GitHub does
+// and @actions/workflow-parser does not:
 //
-// TODO(verify with recording): the text and position of GitHub's error, and
-// whether it applies to every event that has these filters.
+//   - a filter and its "-ignore" counterpart (branches and branches-ignore,
+//     tags and tags-ignore, paths and paths-ignore) cannot be used together;
+//   - a list made only of "!" patterns is an error: such a list can match
+//     nothing, and GitHub requires at least one pattern without "!";
+//   - every pattern must compile.
+//
+// The messages are ours. The compiled patterns are kept in the events.
+//
+// TODO(verify with recording): the text and position of GitHub's errors,
+// whether they apply to every event that has these filters, and whether a
+// "!" pattern is refused in the "-ignore" lists too.
 func (c *converter) validateFilters() {
 	if c.w.On == nil {
 		return
 	}
 	for _, ev := range c.w.On.Events {
-		have := map[string][]string{
-			"branches": ev.Branches, "branches-ignore": ev.BranchesIgnore,
-			"tags": ev.Tags, "tags-ignore": ev.TagsIgnore,
-			"paths": ev.Paths, "paths-ignore": ev.PathsIgnore,
-		}
-		for _, pr := range filterPairs {
-			if have[pr[0]] != nil && have[pr[1]] != nil {
+		lists := ev.filterLists()
+		for _, pr := range [][2]string{{"branches", "branches-ignore"}, {"tags", "tags-ignore"}, {"paths", "paths-ignore"}} {
+			if lists[pr[0]] != nil && lists[pr[1]] != nil {
 				c.ctx.Errorf(ev.Token, "Event '%s' cannot use both '%s' and '%s'. Use only one of them.", ev.Name, pr[0], pr[1])
 			}
 		}
+		cf, errs := ev.compileFilters()
+		for _, name := range filterNames {
+			list := lists[name]
+			if err := errs[name]; err != nil {
+				c.ctx.Errorf(ev.Token, "Event '%s' filter '%s': %v", ev.Name, name, err)
+			}
+			if onlyNegated(list) {
+				c.ctx.Errorf(ev.Token, "Event '%s' filter '%s' has only patterns that start with '!'. Add at least one pattern without '!'.", ev.Name, name)
+			}
+		}
+		ev.cf = cf
 	}
+}
+
+// onlyNegated reports whether a non-empty list has no positive pattern.
+func onlyNegated(patterns []string) bool {
+	if len(patterns) == 0 {
+		return false
+	}
+	for _, p := range patterns {
+		if !strings.HasPrefix(p, "!") {
+			return false
+		}
+	}
+	return true
 }

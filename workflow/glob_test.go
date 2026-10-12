@@ -117,23 +117,24 @@ func TestMatchListOrder(t *testing.T) {
 		{nil, "x", false},
 	}
 	for _, tc := range tests {
-		if got := matchList(tc.patterns, tc.name); got != tc.want {
+		if got := matchList(mustList(t, tc.patterns), tc.name); got != tc.want {
 			t.Errorf("matchList(%q, %q) = %v, want %v", tc.patterns, tc.name, got, tc.want)
 		}
 	}
 }
 
-func TestBrokenPatternNeverMatches(t *testing.T) {
-	for _, p := range []string{"[", "[]", "[a-", "a[!b]", "\\"} {
-		pat, err := CompilePattern(p)
-		if err != nil {
-			continue
-		}
-		_ = pat.Match("x")
+func mustList(t testing.TB, patterns []string) []*Pattern {
+	t.Helper()
+	l, err := compileList(patterns)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if matchList([]string{"[abc"}, "[abc") != true {
-		// An unclosed bracket is a literal.
-		t.Error("unclosed bracket should be literal")
+	return l
+}
+
+func TestUnclosedBracketIsLiteral(t *testing.T) {
+	if !matchList(mustList(t, []string{"[abc"}), "[abc") {
+		t.Error("an unclosed bracket should be literal")
 	}
 }
 

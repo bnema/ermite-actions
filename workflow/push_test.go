@@ -4,6 +4,7 @@ package workflow
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -138,5 +139,42 @@ func TestFilterPairsAreRejected(t *testing.T) {
 		if _, errs := Parse("w.yml", []byte(on+"\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n")); len(errs) != 1 {
 			t.Errorf("%q: errors = %v", on, errs)
 		}
+	}
+}
+
+func TestFilterValidation(t *testing.T) {
+	tail := "\njobs:\n  a:\n    runs-on: x\n    steps: [{run: a}]\n"
+	tests := []struct{ name, on, want string }{
+		{"only negated branches", "on:\n  push:\n    branches: ['!main']", "Event 'push' filter 'branches' has only patterns that start with '!'"},
+		{"only negated paths", "on:\n  push:\n    paths: ['!docs/**', '!x']", "filter 'paths' has only patterns"},
+		{"negated with positive", "on:\n  push:\n    branches: ['**', '!main']", ""},
+		{"empty list", "on:\n  push:\n    branches: []", ""},
+		{"pull_request too", "on:\n  pull_request:\n    branches: ['!x']", "Event 'pull_request' filter 'branches'"},
+	}
+	for _, tc := range tests {
+		_, errs := Parse("w.yml", []byte(tc.on+tail))
+		switch {
+		case tc.want == "" && len(errs) > 0:
+			t.Errorf("%s: unexpected errors %v", tc.name, errs)
+		case tc.want != "" && (len(errs) != 1 || !strings.Contains(errs[0].Error(), tc.want)):
+			t.Errorf("%s: errors = %v, want %q", tc.name, errs, tc.want)
+		}
+	}
+}
+
+func TestFiltersAreCompiledOnce(t *testing.T) {
+	w := pushWorkflow(t, "on:\n  push:\n    branches: ['release/**']")
+	ev := w.On.Event("push")
+	if ev.cf == nil {
+		t.Fatal("Parse did not compile the filters")
+	}
+	first := ev.filters()
+	if ev.filters() != first || len(first.branches) != 1 {
+		t.Error("filters are recompiled on each use")
+	}
+	// An Event built by hand still works.
+	hand := &Workflow{On: &On{Events: []*Event{{Name: "push", Branches: []string{"main"}}}}}
+	if !hand.MatchPush(PushInfo{Ref: "refs/heads/main"}) || hand.MatchPush(PushInfo{Ref: "refs/heads/dev"}) {
+		t.Error("hand-built workflow does not filter")
 	}
 }

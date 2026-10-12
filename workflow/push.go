@@ -82,21 +82,20 @@ func (w *Workflow) MatchPush(p PushInfo) bool {
 // refFilterAllows applies the branches or tags filters to the name of a
 // branch (branch is true) or a tag.
 func (e *Event) refFilterAllows(branch bool, name string) bool {
-	var inc, exc, otherInc, otherExc []string
-	if branch {
-		inc, exc, otherInc, otherExc = e.Branches, e.BranchesIgnore, e.Tags, e.TagsIgnore
-	} else {
-		inc, exc, otherInc, otherExc = e.Tags, e.TagsIgnore, e.Branches, e.BranchesIgnore
+	cf := e.filters()
+	inc, exc := cf.branches, cf.branchesIgnore
+	own, ownIgnore, other, otherIgnore := e.Branches, e.BranchesIgnore, e.Tags, e.TagsIgnore
+	if !branch {
+		inc, exc = cf.tags, cf.tagsIgnore
+		own, ownIgnore, other, otherIgnore = e.Tags, e.TagsIgnore, e.Branches, e.BranchesIgnore
 	}
-	hasOwn := inc != nil || exc != nil
-	hasOther := otherInc != nil || otherExc != nil
-	if !hasOwn && hasOther {
+	if own == nil && ownIgnore == nil && (other != nil || otherIgnore != nil) {
 		return false
 	}
-	if inc != nil && !matchList(inc, name) {
+	if own != nil && !matchList(inc, name) {
 		return false
 	}
-	if exc != nil && matchList(exc, name) {
+	if ownIgnore != nil && matchList(exc, name) {
 		return false
 	}
 	return true
@@ -110,6 +109,7 @@ func (e *Event) pathsAllow(p PushInfo) bool {
 	if p.FilesTruncated {
 		return true
 	}
+	cf := e.filters()
 	files := p.ChangedFiles
 	if len(files) > MaxFilesEvaluated {
 		files = files[:MaxFilesEvaluated]
@@ -117,7 +117,7 @@ func (e *Event) pathsAllow(p PushInfo) bool {
 	if e.Paths != nil {
 		any := false
 		for _, f := range files {
-			if matchList(e.Paths, f) {
+			if matchList(cf.paths, f) {
 				any = true
 				break
 			}
@@ -129,7 +129,7 @@ func (e *Event) pathsAllow(p PushInfo) bool {
 	if e.PathsIgnore != nil && len(files) > 0 {
 		any := false
 		for _, f := range files {
-			if !matchList(e.PathsIgnore, f) {
+			if !matchList(cf.pathsIgnore, f) {
 				any = true
 				break
 			}

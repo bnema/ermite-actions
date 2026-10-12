@@ -3,9 +3,9 @@
 package workflow
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 // Pattern is a compiled filter pattern in the syntax GitHub documents as the
@@ -55,25 +55,6 @@ func CompilePattern(p string) (*Pattern, error) {
 
 // Match reports whether name matches the pattern, ignoring any "!" prefix.
 func (p *Pattern) Match(name string) bool { return p.re != nil && p.re.MatchString(name) }
-
-var patternCache sync.Map // string -> *Pattern
-
-func cachedPattern(p string) *Pattern {
-	if v, ok := patternCache.Load(p); ok {
-		return v.(*Pattern)
-	}
-	pat, _ := CompilePattern(p)
-	if n := cacheSize(); n < 4096 {
-		patternCache.Store(p, pat)
-	}
-	return pat
-}
-
-func cacheSize() int {
-	n := 0
-	patternCache.Range(func(_, _ any) bool { n++; return n < 4096 })
-	return n
-}
 
 // translateGlob converts a pattern to an RE2 expression.
 func translateGlob(p string) string {
@@ -161,16 +142,30 @@ func parseClass(rs []rune) (string, int, bool) {
 	return "", 0, false
 }
 
-// matchList applies a list of patterns to name in order. A pattern that
+// matchList applies compiled patterns to name in order. A pattern that
 // matches includes the name, a "!" pattern that matches excludes it again, and
 // the last pattern that matches decides. A list with no positive pattern
 // therefore matches nothing.
-func matchList(patterns []string, name string) bool {
+func matchList(patterns []*Pattern, name string) bool {
 	matched := false
-	for _, s := range patterns {
-		if p := cachedPattern(s); p.Match(name) {
+	for _, p := range patterns {
+		if p.Match(name) {
 			matched = !p.Negated
 		}
 	}
 	return matched
+}
+
+// compileList compiles a filter list. It reports the first pattern that does
+// not compile.
+func compileList(patterns []string) ([]*Pattern, error) {
+	out := make([]*Pattern, 0, len(patterns))
+	for _, s := range patterns {
+		p, err := CompilePattern(s)
+		if err != nil {
+			return nil, fmt.Errorf("invalid pattern '%s': %w", s, err)
+		}
+		out = append(out, p)
+	}
+	return out, nil
 }
