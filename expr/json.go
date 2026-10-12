@@ -116,23 +116,49 @@ func (p *jsonParser) value(depth int) (Value, error) {
 	case c == '-' || c == '.' || c >= '0' && c <= '9':
 		return p.number()
 	}
+	if c := p.s[p.i]; c == ',' && depth == 0 {
+		// A comma where the document should start is an undefined value,
+		// which Json.NET reads as an empty string; whatever follows is ignored
+		// like any text after the first value.
+		return String(""), nil
+	}
 	start := p.i
+	var v Value
 	switch word := p.token(); word {
 	case "true":
-		return Boolean(true), nil
+		v = Boolean(true)
 	case "false":
-		return Boolean(false), nil
+		v = Boolean(false)
 	case "null":
-		return Null{}, nil
+		v = Null{}
 	case "undefined":
-		return String(""), nil
+		v = String("")
 	case "NaN":
-		return Number(nan), nil
+		v = Number(nan)
 	case "Infinity":
-		return Number(posInf), nil
+		v = Number(posInf)
+	default:
+		p.i = start
+		return nil, p.unexpected()
 	}
-	p.i = start
-	return nil, p.unexpected()
+	if err := p.afterLiteral(); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// afterLiteral checks the character that follows a word literal (true, null,
+// NaN...): Json.NET only accepts a "/" there when it starts a comment, and
+// comments are not ported, so any "/" is an error here. Anything else is left
+// for the caller (white space, a comma, a closing bracket, or trailing text).
+func (p *jsonParser) afterLiteral() error {
+	if p.i >= len(p.s) || p.s[p.i] != '/' {
+		return nil
+	}
+	if p.i+1 < len(p.s) && (p.s[p.i+1] == '/' || p.s[p.i+1] == '*') {
+		return fmt.Errorf("comments are not supported (position %d in JSON)", p.i)
+	}
+	return p.unexpected()
 }
 
 // number reads a number token: decimal with optional sign, fraction and
@@ -142,6 +168,9 @@ func (p *jsonParser) number() (Value, error) {
 	start := p.i
 	tok := p.token()
 	if tok == "-Infinity" {
+		if err := p.afterLiteral(); err != nil {
+			return nil, err
+		}
 		return Number(math.Inf(-1)), nil
 	}
 	if len(tok) > 2 && tok[0] == '0' && (tok[1] == 'x' || tok[1] == 'X') {
@@ -152,6 +181,18 @@ func (p *jsonParser) number() (Value, error) {
 		}
 		p.i = start
 		return nil, fmt.Errorf("input string %q is not a valid number", tok)
+	}
+	// A non-negative number with a leading zero is octal when it has only
+	// digits (010 is 8, 08 is an error) and an error unless the zero is
+	// followed by ".", "e" or "E" (01.5, 012e1 and 00.5 fail). A negative
+	// number is read as decimal whatever its zeros (-010 is -10).
+	if len(tok) > 1 && tok[0] == '0' && tok[1] != '.' && tok[1] != 'e' && tok[1] != 'E' {
+		v, ok := parseOctal64(tok[1:])
+		if !ok {
+			p.i = start
+			return nil, fmt.Errorf("input string %q is not a valid number", tok)
+		}
+		return Number(v), nil
 	}
 	body := strings.TrimPrefix(tok, "-")
 	if !isDecimalLiteral(body) {
@@ -170,6 +211,27 @@ func (p *jsonParser) number() (Value, error) {
 	}
 	f, _ := strconv.ParseFloat(tok, 64) // range errors give ±Inf
 	return Number(f), nil
+}
+
+// parseOctal64 reads octal digits as Convert.ToInt64(s, 8) does: leading
+// zeros are free, at most 64 significant bits, and a value of 2^63 or more
+// wraps to a negative number (1777777777777777777777 is -1).
+func parseOctal64(digits string) (float64, bool) {
+	if digits == "" {
+		return 0, false
+	}
+	var v uint64
+	for i := 0; i < len(digits); i++ {
+		c := digits[i]
+		if c < '0' || c > '7' {
+			return 0, false
+		}
+		if v>>61 != 0 {
+			return 0, false // the next shift would leave 64 bits
+		}
+		v = v<<3 | uint64(c-'0')
+	}
+	return float64(int64(v)), true
 }
 
 // isBigInteger reports whether s is only digits.

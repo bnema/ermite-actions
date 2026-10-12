@@ -196,14 +196,27 @@ package follows the runner.
       `JsonTextReader` with `DateParseHandling.None`,
       `FloatParseHandling.Double`), which is lenient: single-quoted strings,
       unquoted names, trailing commas, `[,1]` (an empty element is `""`),
-      `NaN`/`Infinity`/`-Infinity`/`undefined`, `.5`, `5.`, `01`, `0x1F`, raw
+      `NaN`/`Infinity`/`-Infinity`/`undefined`, `.5`, `5.`, `1.e2`, `0x1F`, raw
       control characters in strings, anything after the first value, and
-      `MaxDepth` 64. An unpaired surrogate escape becomes U+FFFD. Blank input
-      is a `JsonReaderException` (here: "empty input", kept as the outer
-      message; the Json.NET message texts are not reproduced, only that the
-      call fails). Not ported: `/* */` and `//` comments (they are read as a
-      value by the runner, i.e. `/*x*/1` is the string `x`) and
-      `new Date(1)` constructors; both are errors here.
+      `MaxDepth` 64. A comma where the document should start (`,1`) is an
+      undefined value, `""`. **Leading zeros are octal**: a non-negative
+      integer with a leading zero is `Convert.ToInt64(s, 8)` (`010` is 8, `050`
+      is 40, `0777` is 511, wraps like a signed 64-bit value), `08` and `09`
+      are errors, as are `01.5`, `012e1`, `00.5` (a leading zero before `.`,
+      `e` or `E` is only valid for a single `0`); a negative number is decimal
+      (`-010` is -10, `-01.5` is -1.5). An unpaired surrogate escape becomes
+      U+FFFD. Blank input is a `JsonReaderException` (here: "empty input", kept
+      as the outer message; the Json.NET message texts are not reproduced, only
+      that the call fails). Not ported: `/* */` and `//` comments (the runner
+      reads `/*x*/1` as the string `x`) and `new Date(1)` constructors; both are
+      errors here. A `/` after `null`, `true`, `false`, `NaN`, `Infinity`,
+      `-Infinity` or `undefined`, and a `/` between values inside an array or
+      object, is an error here as in the runner (where it starts a comment or is
+      an error); after a number or a string at the top level the rest is ignored
+      in both. Checked on 1 791 inputs recorded from the runner
+      (`testdata/fromjson_cases.json`, hand picked and seeded mutations; the
+      24 that contain a `/` or `new ` are skipped by the test), also used as
+      fuzz seeds.
 - [x] **`toJSON`**: resolved, follows the C#. `Sdk/Functions/ToJson.cs` builds
       the text itself: two-space indentation, `[]`/`{}` for empties, numbers
       through `ConvertToString` (so `NaN`, `Infinity` and `-Infinity` appear

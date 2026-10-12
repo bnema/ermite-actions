@@ -174,6 +174,11 @@ func FuzzFromJSON(f *testing.F) {
 	for _, s := range []string{`null`, `{"a":[1,2,{"b":null}]}`, `"\ud83d\ude00"`, `{"1":1,"a":2,"01":3}`, `[1e999]`, `-0`, `"\ud800"`, `{"a":1,"A":2}`, `[`, `{"a"`, "\"\x01\""} {
 		f.Add(s)
 	}
+	// The corpus recorded from the runner: every input it was asked about
+	// (leading zeros, slashes, commas, literals, mutations of those).
+	for _, c := range loadFromJSONCases(f) {
+		f.Add(c.In)
+	}
 	f.Fuzz(func(t *testing.T, s string) {
 		v, err := FromJSON([]byte(s))
 		if err != nil {

@@ -46,7 +46,7 @@ func TestFromJSONValid(t *testing.T) {
 		{`[1,]`, "[\n  1\n]"},
 		{`[,1]`, "[\n  \"\",\n  1\n]"},
 		{`[1,,2]`, "[\n  1,\n  \"\",\n  2\n]"},
-		{"01", "1"}, {"1.", "1"}, {".5", "0.5"}, {"-.5", "-0.5"}, {"1.e2", "100"},
+		{"1.", "1"}, {".5", "0.5"}, {"-.5", "-0.5"}, {"1.e2", "100"},
 		{"0x10", "16"}, {"0X1f", "31"},
 		{"NaN", "NaN"}, {"Infinity", "Infinity"}, {"-Infinity", "-Infinity"},
 		{"undefined", `""`},
@@ -62,6 +62,69 @@ func TestFromJSONValid(t *testing.T) {
 		}
 		if got := ToJSON(v); got != tc.want {
 			t.Errorf("FromJSON(%q) -> %q, want %q", tc.in, got, tc.want)
+		}
+	}
+}
+
+// TestFromJSONLeadingZeros: Json.NET reads a non-negative integer with a
+// leading zero as octal (Convert.ToInt64(s, 8)), a negative one as decimal, and
+// rejects a leading zero before a fraction or an exponent. Established with the
+// runner's code.
+func TestFromJSONLeadingZeros(t *testing.T) {
+	for _, tc := range []struct {
+		src  string
+		want string // ToJSON, or "" for an error
+	}{
+		{"010", "8"}, {"050", "40"}, {"00", "0"}, {"007", "7"}, {"0777", "511"}, {"00777", "511"},
+		{"08", ""}, {"09", ""}, {"01.5", ""}, {"012e1", ""}, {"00.5", ""}, {"010.0", ""}, {"00e1", ""}, {"010e", ""},
+		{"0.5", "0.5"}, {"0e1", "0"}, {"0E1", "0"}, {"0.", "0"}, {"0.e1", "0"}, {"0e", ""},
+		{"-010", "-10"}, {"-09", "-9"}, {"-00", "0"}, {"-0777", "-777"}, {"-01.5", "-1.5"}, {"-012e1", "-120"},
+		{"[010]", "[\n  8\n]"}, {"[08]", ""}, {`{"a":010}`, "{\n  \"a\": 8\n}"}, {`{"a":08}`, ""}, {`{"a":01.5}`, ""},
+		// 64-bit wrap of Convert.ToInt64.
+		{"0777777777777777777777", "9.22337203685478E+18"},
+		{"01777777777777777777777", "-1"},
+		{"07777777777777777777777", ""},
+		{"0000000000000000000012345", "5349"},
+		{"0000000000000000000012349", ""},
+	} {
+		v, err := FromJSON([]byte(tc.src))
+		switch {
+		case tc.want == "" && err == nil:
+			t.Errorf("FromJSON(%q) = %s, want an error", tc.src, ToJSON(v))
+		case tc.want != "" && err != nil:
+			t.Errorf("FromJSON(%q): %v", tc.src, err)
+		case err == nil && ToJSON(v) != tc.want:
+			t.Errorf("FromJSON(%q) = %s, want %s", tc.src, ToJSON(v), tc.want)
+		}
+	}
+}
+
+// TestFromJSONSlashAndComma: a "/" after a literal is an error when it could
+// start a comment (comments are not ported, so it fails consistently), as it is
+// for Json.NET after null, true, false, NaN and Infinity and between the values
+// of an array or object; after a number or string at the top level the text is
+// ignored. A comma where the document should start is an undefined value.
+func TestFromJSONSlashAndComma(t *testing.T) {
+	for _, tc := range []struct {
+		src  string
+		want string // ToJSON, or "" for an error
+	}{
+		{"null/x", ""}, {"null/", ""}, {"true/x", ""}, {"false/x", ""}, {"NaN/x", ""}, {"Infinity/x", ""}, {"-Infinity/x", ""},
+		{"undefined/x", ""}, {"null//c", ""}, {"null/*c*/", ""}, {"NaN/*c*/", ""}, {"[null/x]", ""}, {"[null/*c*/]", ""}, {`{"a":null/x}`, ""},
+		{"[1/2]", ""}, {"[1 /2]", ""}, {`{"a":1/2}`, ""}, {"[1/*c*/,2]", ""}, {"[1//c\n,2]", ""},
+		{"null /x", "null"}, {"1/x", "1"}, {"1/", "1"}, {"1 /", "1"}, {"1.5/x", "1.5"}, {`"a"/x`, `"a"`}, {"[null,1]/x", "[\n  null,\n  1\n]"},
+		{",", `""`}, {",1", `""`}, {",,1", `""`}, {",x", `""`}, {" ,1", `""`}, {`,"a"`, `""`}, {",]", `""`},
+		{"[,1]", "[\n  \"\",\n  1\n]"}, {"[1,,2]", "[\n  1,\n  \"\",\n  2\n]"}, {"[,]", "[\n  \"\"\n]"},
+		{"{,}", ""}, {`{"a":,1}`, ""}, {`{"a":1,,"b":2}`, ""},
+	} {
+		v, err := FromJSON([]byte(tc.src))
+		switch {
+		case tc.want == "" && err == nil:
+			t.Errorf("FromJSON(%q) = %s, want an error", tc.src, ToJSON(v))
+		case tc.want != "" && err != nil:
+			t.Errorf("FromJSON(%q): %v", tc.src, err)
+		case err == nil && ToJSON(v) != tc.want:
+			t.Errorf("FromJSON(%q) = %s, want %s", tc.src, ToJSON(v), tc.want)
 		}
 	}
 }
