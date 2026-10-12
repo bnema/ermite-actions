@@ -135,9 +135,9 @@ func (j *Job) EvaluateStrategy(ctx context.Context, env template.Env) (*Strategy
 		return nil, err
 	}
 	st, err := ParseStrategy(ctx, v)
-	var limit *ConfigurationLimitError
+	var limit *configurationLimitError
 	if errors.As(err, &limit) {
-		return nil, &ConfigurationLimitError{Job: j.ID, Count: limit.Count}
+		return nil, &configurationLimitError{Job: j.ID, Count: limit.Count}
 	}
 	return st, err
 }

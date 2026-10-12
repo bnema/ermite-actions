@@ -321,7 +321,7 @@ func TestMatrixProductCap(t *testing.T) {
 	}
 	// 2^16 is allowed by the cap (and fails on the job limit), 2^16+1 is refused outright.
 	_, err := ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": `+vec(MaxMatrixProduct/2)+`, "b": `+vec(2)+`, "c": `+vec(1)+`}}`))
-	var limit *ConfigurationLimitError
+	var limit *configurationLimitError
 	if !errors.As(err, &limit) || limit.Count != MaxMatrixProduct {
 		t.Errorf("err = %v", err)
 	}
@@ -425,7 +425,7 @@ jobs:
 	if err == nil || err.Error() != want {
 		t.Errorf("err = %v, want %q", err, want)
 	}
-	var limit *ConfigurationLimitError
+	var limit *configurationLimitError
 	if !errors.As(err, &limit) || limit.Job != "too-many" || limit.Count != 272 {
 		t.Errorf("err = %#v", err)
 	}

@@ -78,7 +78,7 @@ code.
       message of the commit the tag points at. Only the head commit counts.
 - [ ] **`ExpandMatrix`** (recorded: the unknown exclude key, once per
       offending entry, and the 256 limit message, see
-      `ConfigurationLimitError`; matrix-edge-values, matrix-over-256): order of the product (first key slowest), include
+      `configurationLimitError`; matrix-edge-values, matrix-over-256): order of the product (first key slowest), include
       semantics (added to every matching combination, never overwriting
       original values, later includes overwrite earlier added values, a
       non-matching include is a new combination, match by vector keys only),

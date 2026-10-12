@@ -62,7 +62,7 @@ func (c MatrixCombo) DisplayName(base string) string {
 //     mentions no vector key matches all), without overwriting the original
 //     values; an entry that matches no combination becomes a combination of
 //     its own;
-//   - more than 256 jobs is a [*ConfigurationLimitError]. A strategy without a
+//   - more than 256 jobs is a a limit error. A strategy without a
 //     matrix gives a single combination.
 //
 // The work is bounded: the product of the vectors may not exceed
@@ -158,19 +158,19 @@ func (m message) Error() string { return string(m) }
 // the exclusions; this limit keeps the work bounded, see [MaxMatrixProduct].
 var errProductTooBig = fmt.Errorf("matrix too large: the cross product of the vectors exceeds %d combinations", MaxMatrixProduct)
 
-// ConfigurationLimitError is returned when a matrix produces more than
+// configurationLimitError is returned when a matrix produces more than
 // [MaxMatrixJobs] configurations. Its text is GitHub's (recorded by
 // matrix-over-256): "Strategy for job 'too-many' produced 272 configurations
 // which exceeds the maximum of 256 configurations". Job is empty when the
 // matrix was expanded without a job, see [Job.EvaluateStrategy].
-type ConfigurationLimitError struct {
+type configurationLimitError struct {
 	// Job is the id of the job.
 	Job string
 	// Count is the number of configurations the matrix produces.
 	Count int
 }
 
-func (e *ConfigurationLimitError) Error() string {
+func (e *configurationLimitError) Error() string {
 	subject := "Strategy"
 	if e.Job != "" {
 		subject = fmt.Sprintf("Strategy for job '%s'", e.Job)
@@ -319,7 +319,7 @@ func expand(ctx context.Context, vecs []vector, includes, excludes []*expr.Dicti
 		combos = append(combos, b.combo())
 	}
 	if total > MaxMatrixJobs {
-		return nil, false, &ConfigurationLimitError{Count: total}
+		return nil, false, &configurationLimitError{Count: total}
 	}
 	if len(combos) == 0 {
 		if len(vecs) == 0 && len(includes) == 0 && len(excludes) == 0 {
