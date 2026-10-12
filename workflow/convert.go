@@ -36,10 +36,6 @@ func (c *converter) handle(root template.Token, fn func()) {
 	fn()
 }
 
-func throw(t template.Token, format string, a ...any) {
-	panic(&template.TokenError{Token: t, Message: sprintf(format, a...)})
-}
-
 func ck[T any](v T, err error) T {
 	if err != nil {
 		panic(err)

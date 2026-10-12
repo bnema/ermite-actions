@@ -115,10 +115,7 @@ func actionStepID(uses string) string {
 	if len(segments) != 2 {
 		return ""
 	}
-	var path []string
-	for _, p := range strings.FieldsFunc(segments[0], func(r rune) bool { return r == '/' || r == '\\' }) {
-		path = append(path, p)
-	}
+	path := strings.FieldsFunc(segments[0], func(r rune) bool { return r == '/' || r == '\\' })
 	if len(path) >= 2 && path[0] != "" && path[1] != "" && segments[1] != "" {
 		return path[0] + "/" + path[1]
 	}

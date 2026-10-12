@@ -3,19 +3,11 @@
 package workflow
 
 import (
-	"fmt"
 	"strings"
 
 	"bnema.dev/ermite-actions/expr"
 	"bnema.dev/ermite-actions/template"
 )
-
-func sprintf(format string, a ...any) string {
-	if len(a) == 0 {
-		return format
-	}
-	return fmt.Sprintf(format, a...)
-}
 
 // convertConcurrency validates a concurrency token. Expressions are skipped.
 func (c *converter) convertConcurrency(t template.Token) {

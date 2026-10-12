@@ -100,13 +100,13 @@ func ParseStrategy(v expr.Value) (*Strategy, error) {
 			case "fail-fast":
 				b, err := strategyBool(p.Value)
 				if err != nil {
-					return nil, fmt.Errorf("Unexpected value for 'fail-fast': %w", err)
+					return nil, fmt.Errorf("unexpected value for 'fail-fast': %w", err)
 				}
 				s.FailFast = b
 			case "max-parallel":
 				n, err := strategyInt(p.Value)
 				if err != nil {
-					return nil, fmt.Errorf("Unexpected value for 'max-parallel': %w", err)
+					return nil, fmt.Errorf("unexpected value for 'max-parallel': %w", err)
 				}
 				s.MaxParallel = n
 			case "matrix":
@@ -114,7 +114,7 @@ func ParseStrategy(v expr.Value) (*Strategy, error) {
 			}
 		}
 	default:
-		return nil, errors.New("The strategy must be a mapping")
+		return nil, errors.New("the strategy must be a mapping")
 	}
 	combos, has, err := buildMatrix(matrix)
 	if err != nil {
@@ -187,7 +187,7 @@ func buildMatrix(m expr.Value) ([]MatrixCombo, bool, error) {
 	}
 	md, ok := m.(*expr.Dictionary)
 	if !ok {
-		return nil, false, errors.New("The matrix must be a mapping")
+		return nil, false, errors.New("the matrix must be a mapping")
 	}
 	if md == nil {
 		return []MatrixCombo{{Values: expr.NewDictionary()}}, false, nil
@@ -212,10 +212,10 @@ func buildMatrix(m expr.Value) ([]MatrixCombo, bool, error) {
 		default:
 			arr, ok := p.Value.(*expr.Array)
 			if !ok || arr == nil {
-				return nil, false, fmt.Errorf("Matrix vector '%s' does not contain any values", p.Key)
+				return nil, false, fmt.Errorf("matrix vector '%s' does not contain any values", p.Key)
 			}
 			if arr.Len() == 0 {
-				return nil, false, fmt.Errorf("Matrix vector '%s' does not contain any values", p.Key)
+				return nil, false, fmt.Errorf("matrix vector '%s' does not contain any values", p.Key)
 			}
 			keys = append(keys, p.Key)
 			vectors[p.Key] = arr.Items()
@@ -227,13 +227,13 @@ func buildMatrix(m expr.Value) ([]MatrixCombo, bool, error) {
 func matrixEntries(name string, v expr.Value) ([]*expr.Dictionary, error) {
 	arr, ok := v.(*expr.Array)
 	if !ok || arr == nil {
-		return nil, fmt.Errorf("Matrix %s must be a sequence of mappings", name)
+		return nil, fmt.Errorf("matrix %s must be a sequence of mappings", name)
 	}
 	var out []*expr.Dictionary
 	for _, it := range arr.Items() {
 		d, ok := it.(*expr.Dictionary)
 		if !ok || d == nil {
-			return nil, fmt.Errorf("Matrix %s must be a sequence of mappings", name)
+			return nil, fmt.Errorf("matrix %s must be a sequence of mappings", name)
 		}
 		out = append(out, d)
 	}
@@ -272,7 +272,7 @@ func (b *comboBuilder) combo() MatrixCombo {
 func expand(keys []string, vectors map[string][]expr.Value, includes, excludes []*expr.Dictionary) ([]MatrixCombo, bool, error) {
 	var combos []MatrixCombo
 	matched := make([]bool, len(includes))
-	tooBig := fmt.Errorf("Matrix size limit of %d exceeded", MaxMatrixJobs)
+	tooBig := fmt.Errorf("matrix size limit of %d exceeded", MaxMatrixJobs)
 	if len(keys) > 0 {
 		product := 1
 		for _, k := range keys {
@@ -329,7 +329,7 @@ func expand(keys []string, vectors map[string][]expr.Value, includes, excludes [
 		}
 		// TODO(verify with recording): GitHub's behaviour when every
 		// combination is excluded.
-		return nil, false, errors.New("The matrix has no combinations: all of them are excluded")
+		return nil, false, errors.New("the matrix has no combinations: all of them are excluded")
 	}
 	return combos, true, nil
 }

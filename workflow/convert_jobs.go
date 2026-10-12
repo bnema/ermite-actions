@@ -93,7 +93,6 @@ func (c *converter) convertJob(key *template.String, m *template.Mapping) *Job {
 	}
 	j := &Job{ID: key.Value, IDToken: key}
 	var name template.Token
-	needsSeen := false
 	for _, p := range m.Pairs {
 		prop := asString(p.Key, "job property name")
 		v := p.Value
@@ -114,7 +113,6 @@ func (c *converter) convertJob(key *template.String, m *template.Mapping) *Job {
 		case "name":
 			name = asScalar(v, "job name")
 		case "needs":
-			needsSeen = true
 			j.NeedTokens = nil
 			if s, ok := v.(*template.String); ok {
 				j.NeedTokens = append(j.NeedTokens, asString(s, "job needs id"))
@@ -160,7 +158,6 @@ func (c *converter) convertJob(key *template.String, m *template.Mapping) *Job {
 			j.Permissions = convertPermissions(v)
 		}
 	}
-	_ = needsSeen
 	for _, n := range j.NeedTokens {
 		j.Needs = append(j.Needs, n.Value)
 	}

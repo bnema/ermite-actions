@@ -167,13 +167,13 @@ func TestExpandMatrix(t *testing.T) {
 
 func TestExpandMatrixErrors(t *testing.T) {
 	tests := []struct{ name, strategy, want string }{
-		{"strategy not a mapping", `[1]`, "The strategy must be a mapping"},
-		{"matrix not a mapping", `{"matrix": [1]}`, "The matrix must be a mapping"},
-		{"vector empty", `{"matrix": {"a": []}}`, "Matrix vector 'a' does not contain any values"},
-		{"vector scalar", `{"matrix": {"a": 1}}`, "Matrix vector 'a' does not contain any values"},
-		{"include not a list", `{"matrix": {"include": 1}}`, "Matrix include must be a sequence of mappings"},
-		{"include item", `{"matrix": {"include": [1]}}`, "Matrix include must be a sequence of mappings"},
-		{"exclude item", `{"matrix": {"a": [1], "exclude": ["x"]}}`, "Matrix exclude must be a sequence of mappings"},
+		{"strategy not a mapping", `[1]`, "the strategy must be a mapping"},
+		{"matrix not a mapping", `{"matrix": [1]}`, "the matrix must be a mapping"},
+		{"vector empty", `{"matrix": {"a": []}}`, "matrix vector 'a' does not contain any values"},
+		{"vector scalar", `{"matrix": {"a": 1}}`, "matrix vector 'a' does not contain any values"},
+		{"include not a list", `{"matrix": {"include": 1}}`, "matrix include must be a sequence of mappings"},
+		{"include item", `{"matrix": {"include": [1]}}`, "matrix include must be a sequence of mappings"},
+		{"exclude item", `{"matrix": {"a": [1], "exclude": ["x"]}}`, "matrix exclude must be a sequence of mappings"},
 		{"all excluded", `{"matrix": {"a": [1], "exclude": [{"a": 1}]}}`, "all of them are excluded"},
 		{"fail-fast", `{"fail-fast": "maybe"}`, "fail-fast"},
 		{"max-parallel", `{"max-parallel": 0}`, "max-parallel"},
@@ -201,7 +201,7 @@ func TestMatrixLimit(t *testing.T) {
 		t.Errorf("256 jobs: %d, %v", len(c), err)
 	}
 	_, err := ExpandMatrix(jsonValue(t, `{"matrix": {"a": `+vec(16)+`, "b": `+vec(16)+`, "include": [{"a": 99}]}}`))
-	if err == nil || !strings.Contains(err.Error(), "Matrix size limit of 256 exceeded") {
+	if err == nil || !strings.Contains(err.Error(), "matrix size limit of 256 exceeded") {
 		t.Errorf("257 jobs: %v", err)
 	}
 	_, err = ExpandMatrix(jsonValue(t, `{"matrix": {"a": `+vec(17)+`, "b": `+vec(16)+`}}`))
@@ -238,4 +238,12 @@ func TestStrategyOptions(t *testing.T) {
 	if got := expr.ToJSON(s.Context(0)); !strings.Contains(got, `"max-parallel": 1`) {
 		t.Errorf("default context = %s", got)
 	}
+}
+
+func jsonValue2(s string) expr.Value {
+	v, err := expr.FromJSON([]byte(s))
+	if err != nil {
+		return nil
+	}
+	return v
 }

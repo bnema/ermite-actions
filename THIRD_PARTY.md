@@ -1,6 +1,6 @@
 # Third-party material
 
-Test fixtures and schemas under `testdata/` and `template/schema/` are copied or ported from the projects below. Each copied file names its source in its first lines or in a `SOURCE` file next to it.
+Test fixtures and schemas under `testdata/`, `workflow/testdata/` and `template/schema/` are copied or ported from the projects below. Each copied file names its source in its first lines or in a `SOURCE` file next to it.
 
 ## actions/languageservices
 

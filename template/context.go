@@ -56,6 +56,12 @@ func errorPrefix(file string, p Pos) string {
 	return ""
 }
 
+// message is an error whose text is one of the reference's messages, which
+// start with a capital letter.
+type message string
+
+func (m message) Error() string { return string(m) }
+
 // Context collects the errors of a read and carries its schema.
 type Context struct {
 	schema *Schema

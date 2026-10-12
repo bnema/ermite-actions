@@ -121,7 +121,7 @@ func TestConvertAgainstReference(t *testing.T) {
 				if j.ID != wj.ID || j.Name.String() != wj.Name || j.If.Expression != wj.If {
 					t.Errorf("job %d: got id=%q name=%q if=%q, reference id=%q name=%q if=%q", i, j.ID, j.Name, j.If.Expression, wj.ID, wj.Name, wj.If)
 				}
-				if !reflect.DeepEqual(nonNil(j.Needs), nonNil(wj.Needs)) && !(j.IsReusable() && len(wj.Needs) == 0) {
+				if !reflect.DeepEqual(nonNil(j.Needs), nonNil(wj.Needs)) && (!j.IsReusable() || len(wj.Needs) != 0) {
 					t.Errorf("job %s needs: got %v, reference %v", j.ID, j.Needs, wj.Needs)
 				}
 				if len(j.Steps) != len(wj.Steps) {

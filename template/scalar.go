@@ -3,7 +3,6 @@
 package template
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"unicode"
@@ -140,7 +139,7 @@ func (r *reader) parseIntoExpressionToken(token Token, rawExpression string, def
 func (r *reader) parseExpression(token Token, value string, def *DefinitionInfo) (Token, error) {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
-		return nil, errors.New("An expression was expected")
+		return nil, message("An expression was expected")
 	}
 	isMatch, err := matchDirective(trimmed, insertDirective, 0)
 	if err != nil {
@@ -214,7 +213,7 @@ func matchDirective(trimmed, directive string, expectedParameters int) (bool, er
 		parameters = 1
 	}
 	if expectedParameters != parameters {
-		return false, fmt.Errorf("Exactly %d parameter(s) were expected following the directive '%s'. Actual parameter count: %d", expectedParameters, directive, parameters)
+		return false, message(fmt.Sprintf("Exactly %d parameter(s) were expected following the directive '%s'. Actual parameter count: %d", expectedParameters, directive, parameters))
 	}
 	return true, nil
 }

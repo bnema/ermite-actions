@@ -249,7 +249,7 @@ func (c *converter) convertInput(name string, m *template.Mapping, call bool) In
 	if def != nil {
 		in.HasDefault = true
 		in.Default = def.String()
-		if !(call && template.IsExpression(def)) {
+		if !call || !template.IsExpression(def) {
 			c.handle(def, func() {
 				switch in.Type {
 				case "boolean":

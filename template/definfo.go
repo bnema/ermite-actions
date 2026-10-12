@@ -85,12 +85,12 @@ func parseFuncEntry(s string) (expr.FuncInfo, bool) {
 	}
 	name := s[:open]
 	for _, r := range name {
-		if !(r == '_' || r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z') {
+		if r != '_' && (r < '0' || r > '9') && (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') {
 			return expr.FuncInfo{}, false
 		}
 	}
 	minS, maxS, ok := strings.Cut(s[open+1:len(s)-1], ",")
-	if !ok || !isDigits(minS) || !(isDigits(maxS) || maxS == "MAX") {
+	if !ok || !isDigits(minS) || (!isDigits(maxS) && maxS != "MAX") {
 		return expr.FuncInfo{}, false
 	}
 	lo, err := strconv.Atoi(minS)
