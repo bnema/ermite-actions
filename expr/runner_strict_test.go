@@ -11,8 +11,8 @@ import (
 // knownRunnerDifference classifies the answers of the corpus on which this
 // package knowingly differs from the runner. It returns the reason, or "".
 func knownRunnerDifference(g, r runnerCase) string {
-	switch {
-	case r.E == "-0" || r.E == "toJSON(-0)":
+	switch r.E {
+	case "-0", "toJSON(-0)":
 		// .NET Core formats negative zero as "-0". The runner's newer copy
 		// (src/Sdk/Expressions/EvaluationResult.cs) maps it back to "0" and the
 		// shared fixtures (coerce_string.json) say "0", so "0" is kept.

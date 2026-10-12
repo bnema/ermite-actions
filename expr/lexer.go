@@ -70,17 +70,6 @@ type Token struct {
 	Value Value
 }
 
-// tokenString is the text an error message shows for a token.
-func tokenString(t Token) string {
-	switch t.Type {
-	case TokenEOF:
-		return "EOF"
-	case TokenString:
-		return string(t.Value.(String))
-	}
-	return t.Lexeme
-}
-
 // Lex splits an expression into tokens the way the JavaScript reference's
 // lexer does, ending with a TokenEOF token. [Parse] does not use it: it
 // follows the C# runner, whose tokenizer is context sensitive and lazy (see

@@ -82,15 +82,6 @@ type Error struct {
 
 func (e *Error) Error() string { return e.Message }
 
-func newTokenError(t ErrorType, tok Token) *Error {
-	return &Error{
-		Type:    t,
-		Message: t.description() + ": '" + tokenString(tok) + "'",
-		Pos:     tok.Range.Start,
-		Token:   tokenString(tok),
-	}
-}
-
 // EvalError is an error raised while evaluating an expression: a failing
 // function, such as fromJSON on invalid input, or an invalid format string.
 type EvalError struct {

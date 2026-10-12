@@ -3,6 +3,7 @@
 package expr
 
 import (
+	"strconv"
 	"strings"
 	"unicode/utf16"
 )
@@ -206,7 +207,7 @@ func (l *csLexer) readNumber() *csToken {
 	start := l.index
 	for {
 		l.index++
-		if !(l.index < len(l.units) && (!isCSBoundary(l.units[l.index]) || l.units[l.index] == '.')) {
+		if l.index >= len(l.units) || (isCSBoundary(l.units[l.index]) && l.units[l.index] != '.') {
 			break
 		}
 	}
@@ -407,26 +408,10 @@ func (p *csParser) fail(t ErrorType, tok *csToken) *Error {
 	}
 	return &Error{
 		Type:    t,
-		Message: t.description() + ": '" + tok.raw + "'. Located at position " + itoa(tok.index+1) + " within expression: " + p.expression,
+		Message: t.description() + ": '" + tok.raw + "'. Located at position " + strconv.Itoa(tok.index+1) + " within expression: " + p.expression,
 		Pos:     p.position(tok.index),
 		Token:   tok.raw,
 	}
-}
-
-func itoa(n int) string { return strings.TrimSpace(strings.Repeat(" ", 0) + intString(n)) }
-
-func intString(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	var b [20]byte
-	i := len(b)
-	for n > 0 {
-		i--
-		b[i] = byte('0' + n%10)
-		n /= 10
-	}
-	return string(b[i:])
 }
 
 // position converts an absolute index into the line and column of the
