@@ -1,0 +1,2 @@
+scalars.json is the output of the yaml npm package (https://github.com/eemeli/yaml, ISC) used by
+@actions/workflow-parser 0.3.61, on the scalars listed in ../gen/scalars.mjs.

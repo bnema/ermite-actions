@@ -19,9 +19,10 @@ available. Nothing here has been checked against it.
   core schema: `yes`/`no`/`on`/`off` are strings, `0o17` and `0x1F` are
   numbers, `.inf` and `.nan` are numbers, `0b11`, `1_000` and sexagesimal
   numbers are strings. Quoted, block and `!!str` scalars are strings.
-  Verify: octal `017` (1.2 reads 17), timestamps, `!!binary`, merge keys `<<`
-  (yaml.v3 resolves them when decoding but not in the Node API; they are kept
-  as an ordinary key `<<`, as in the reference).
+  `TestPlainScalarsAgainstReference` checks 64 plain scalars (octal `017`,
+  `00`, `1.`, `.inf`, `-.nan`, `0b11`, `1_000`, dates...) against the
+  JavaScript library's answers (`testdata/scalars.json`). Not checked: tags
+  other than `!!str`, `!!binary`, merge keys `<<` (kept as an ordinary key).
 - **YAML syntax errors** have yaml.v3's wording and only a line number, and are
   reported as `file.yml: message at line N`. The reference's are
   `file.yml: <message> at line N, column M:\n\n<excerpt>`. Only the shape
