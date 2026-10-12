@@ -52,10 +52,11 @@ type PushInfo struct {
 //
 // Commit-message directives are separate: see [SkipCI].
 //
-// TODO(verify with recording): the order in which a branch filter and a
-// paths filter combine is "both must pass" (documented); behaviour on refs
-// that are neither a branch nor a tag, and on a push that changes no file, is
-// assumed.
+// Recorded on github.com: push-tags-limit, filter-tags, filter-branches-ignore,
+// filter-tag-branches-only, filter-paths-tag, push-delete-branch and
+// push-delete-tag, see TestMatchPushRecordedTags. Still assumed: the
+// behaviour on refs that are neither a branch nor a tag, and on a push that
+// changes no file.
 func (w *Workflow) MatchPush(p PushInfo) bool {
 	if w == nil || w.On == nil {
 		return false

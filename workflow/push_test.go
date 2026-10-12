@@ -149,6 +149,83 @@ func TestMatchPushFileLimit(t *testing.T) {
 	}
 }
 
+// TestMatchPushRecordedTags replays what github.com did in the scenarios
+// push-tags-limit, filter-tags, filter-branches-ignore,
+// filter-tag-branches-only and filter-paths-tag. The branches are named
+// scn/<scenario>/<run> and the tags scn-<scenario>-<run>-<n>.
+func TestMatchPushRecordedTags(t *testing.T) {
+	tag := func(n, count int) PushInfo {
+		return PushInfo{Ref: fmt.Sprintf("refs/tags/scn-filter-tags-1-%d", n), Created: true, TagCount: count}
+	}
+	branch := PushInfo{Ref: "refs/heads/scn/filter-tags/1", Created: true, ChangedFiles: []string{"a.txt"}}
+	tests := []struct {
+		scenario string
+		on       string
+		push     PushInfo
+		want     bool
+	}{
+		// push-tags-limit: three tags at once start three runs, four tags none.
+		{"push-tags-limit 3 tags", "on: push", tag(1, 3), true},
+		{"push-tags-limit 3 tags (third)", "on: push", tag(3, 3), true},
+		{"push-tags-limit 4 tags (first)", "on: push", tag(1, 4), false},
+		{"push-tags-limit 4 tags (last)", "on: push", tag(4, 4), false},
+		{"push-tags-limit 4 tags, tags filter", "on:\n  push:\n    tags: ['scn-*']", tag(2, 4), false},
+
+		// filter-tags, push 1 (a branch): t-both and t-branches-only ran, the
+		// tags-only workflows did not.
+		{"filter-tags branch t-both", "on:\n  push:\n    branches: ['scn/**']\n    tags: ['scn-*']", branch, true},
+		{"filter-tags branch t-branches-only", "on:\n  push:\n    branches: ['scn/**']", branch, true},
+		{"filter-tags branch t-match", "on:\n  push:\n    tags: ['scn-*']", branch, false},
+		{"filter-tags branch t-ignore-other", "on:\n  push:\n    tags-ignore: ['v*']", branch, false},
+		{"filter-tags branch t-negated", "on:\n  push:\n    tags:\n      - 'scn-*'\n      - '!scn-*-1'", branch, false},
+		// filter-tags, push 2 (tag scn-...-1): ran for t-both, t-match,
+		// t-ignore-other and t-negated-other; not for t-branches-only, t-ignore,
+		// t-negated and t-nomatch.
+		{"filter-tags tag t-both", "on:\n  push:\n    branches: ['scn/**']\n    tags: ['scn-*']", tag(1, 1), true},
+		{"filter-tags tag t-match", "on:\n  push:\n    tags: ['scn-*']", tag(1, 1), true},
+		{"filter-tags tag t-ignore-other", "on:\n  push:\n    tags-ignore: ['v*']", tag(1, 1), true},
+		{"filter-tags tag t-negated-other", "on:\n  push:\n    tags:\n      - 'scn-*'\n      - '!scn-*-2'", tag(1, 1), true},
+		{"filter-tags tag t-branches-only", "on:\n  push:\n    branches: ['scn/**']", tag(1, 1), false},
+		{"filter-tags tag t-ignore", "on:\n  push:\n    tags-ignore: ['scn-*']", tag(1, 1), false},
+		{"filter-tags tag t-negated", "on:\n  push:\n    tags:\n      - 'scn-*'\n      - '!scn-*-1'", tag(1, 1), false},
+		{"filter-tags tag t-nomatch", "on:\n  push:\n    tags: ['v*']", tag(1, 1), false},
+
+		// filter-branches-ignore: the branch push ran bi-other and
+		// bi-single-star, not bi-ignored and not bi-tags-too; the tag push ran
+		// only bi-tags-too (branches-ignore alone ignores tags).
+		{"filter-branches-ignore branch bi-ignored", "on:\n  push:\n    branches-ignore: ['scn/**']", branch, false},
+		{"filter-branches-ignore branch bi-other", "on:\n  push:\n    branches-ignore: ['main', 'release/**']", branch, true},
+		{"filter-branches-ignore branch bi-single-star", "on:\n  push:\n    branches-ignore: ['scn/*']", branch, true},
+		{"filter-branches-ignore branch bi-tags-too", "on:\n  push:\n    branches-ignore: ['scn/**']\n    tags: ['scn-*']", branch, false},
+		{"filter-branches-ignore tag bi-tags-too", "on:\n  push:\n    branches-ignore: ['scn/**']\n    tags: ['scn-*']", tag(1, 1), true},
+		{"filter-branches-ignore tag bi-ignored", "on:\n  push:\n    branches-ignore: ['scn/**']", tag(1, 1), false},
+		{"filter-branches-ignore tag bi-other", "on:\n  push:\n    branches-ignore: ['main']", tag(1, 1), false},
+
+		// filter-tag-branches-only: a tag pushed to a repository whose only
+		// workflow filters on branches starts nothing.
+		{"filter-tag-branches-only", "on:\n  push:\n    branches: ['scn/**']", tag(1, 1), false},
+
+		// filter-paths-tag: paths are not evaluated for tags.
+		{"filter-paths-tag paths-only", "on:\n  push:\n    paths: ['nothing/**']", tag(1, 1), true},
+		{"filter-paths-tag tag-and-paths-ignore", "on:\n  push:\n    tags: ['scn-*']\n    paths-ignore: ['**']", tag(1, 1), true},
+		{"filter-paths-tag tag-and-paths-nomatch", "on:\n  push:\n    tags: ['scn-*']\n    paths: ['nothing/**']", tag(1, 1), true},
+		{"filter-paths-tag branches-and-paths", "on:\n  push:\n    branches: ['scn/**']\n    paths: ['nothing/**']", tag(1, 1), false},
+		{"filter-paths-tag branches-and-paths, branch", "on:\n  push:\n    branches: ['scn/**']\n    paths: ['nothing/**']", branch, false},
+
+		// push-delete-branch, push-delete-tag: a deletion starts nothing,
+		// whatever the filters.
+		{"push-delete-branch", "on: push", PushInfo{Ref: "refs/heads/scn/push-delete-branch/1", Deleted: true}, false},
+		{"push-delete-tag", "on: push", PushInfo{Ref: "refs/tags/scn-push-delete-tag-1-1", Deleted: true, TagCount: 1}, false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.scenario, func(t *testing.T) {
+			if got := pushWorkflow(t, tc.on).MatchPush(tc.push); got != tc.want {
+				t.Errorf("MatchPush = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestMatchPushNilSafe(t *testing.T) {
 	var w *Workflow
 	if w.MatchPush(PushInfo{Ref: "refs/heads/main"}) {
