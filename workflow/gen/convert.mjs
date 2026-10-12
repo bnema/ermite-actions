@@ -4,17 +4,18 @@
 // the errors and the model summary that @actions/workflow-parser 0.3.61 (MIT,
 // GitHub) produces. convert_test.go replays the files and compares.
 //
-//   node gen/convert.mjs /path/to/@actions/workflow-parser/dist > testdata/convert.json
+//   gen/regen.sh
 //
-// The package imports "yaml" and "@actions/expressions"; the JSON import of the
-// schema needs `with { type: "json" }` in dist/workflows/workflow-schema.js on
-// recent Node versions.
+// which installs the versions pinned in gen/package-lock.json and runs this
+// script with the loader of gen/register.mjs (the package imports its JSON
+// schema without the import attribute recent Node versions require). A dist
+// path may be given as the first argument.
 
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
 
-const dist = path.resolve(process.argv[2]);
+const dist = path.resolve(process.argv[2] ?? new URL("../../gen/node_modules/@actions/workflow-parser/dist", import.meta.url).pathname);
 const imp = p => import(pathToFileURL(path.join(dist, p)).href);
 const { parseWorkflow } = await imp("workflows/workflow-parser.js");
 const { NoOperationTraceWriter } = await imp("templates/trace-writer.js");

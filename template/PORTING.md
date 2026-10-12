@@ -11,6 +11,19 @@ replays them (messages, line and column included).
 The C# runner (`ObjectTemplating`) is what runs on github.com. It was not
 available. Nothing here has been checked against it.
 
+## Reference versions and regeneration
+
+The answers in `../workflow/testdata/convert.json` and `testdata/scalars.json`
+come from the versions pinned in `../gen/package.json` and
+`../gen/package-lock.json`: `@actions/workflow-parser` 0.3.61,
+`@actions/expressions` 0.3.61, `yaml` 2.8.3, `cronstrue` 2.61.0 (only imported
+by the parser's cron description helper, which is not used here). Run
+`../gen/regen.sh`: it does an `npm ci` and rewrites both files; `git diff`
+must show nothing. The loader hook `../gen/register.mjs` adds the
+`with { type: "json" }` import attribute that Node 22+ requires and the
+parser omits, so the packages run unmodified. The last check, on a clean
+`npm ci`, gave identical files.
+
 ## Differences from the reference
 
 - **YAML parser.** The reference uses the JavaScript `yaml` library (YAML 1.2,
@@ -38,6 +51,10 @@ available. Nothing here has been checked against it.
   messages use too (checked on `multiline_*`, `expr_multi`).
   `BasicExpression.Source` is the value of the scalar, not the raw source text
   (so a block scalar's indentation is not in it).
+- **File size.** A document over `MaxFileBytes` (1 MiB) is refused before any
+  parsing, with `file.yml: The file is too large: N bytes, the limit is M
+  bytes` (our wording; the reference has no limit, GitHub has its own).
+  TODO(verify with recording).
 - **Error limit.** `Context` keeps at most `MaxErrors` (1 000) errors.
 - **Limits on evaluation.** `MaxEvalDepth` (100) nested tokens; the result
   budget of package expr applies per expression.

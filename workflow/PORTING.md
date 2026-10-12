@@ -18,6 +18,20 @@ code.
   accepts them; GitHub refuses the file. `Parse` reports
   `Event 'push' cannot use both 'branches' and 'branches-ignore'. Use only one
   of them.` (our wording, to replace with GitHub's). Applied to every event.
+- **A filter list made only of `!` patterns** (`branches: ['!main']`) is an
+  error (`Event 'push' filter 'branches' has only patterns that start with
+  '!'...`), and so is a pattern that does not compile. Both are ours; GitHub's
+  texts are unknown. Applied to every event and every filter.
+- **Matrix exclude** with a key that is not a vector of the matrix is
+  `Matrix exclude key '<k>' does not match any key within the matrix`
+  (GitHub's text as remembered, not recorded).
+- **Limits that GitHub does not state**: the cross product of the vectors may
+  not exceed `MaxMatrixProduct` (65 536) before exclusions, include and exclude
+  have at most `MaxMatrixEntries` (256) entries each, and the context is
+  checked every 1 024 combinations. They keep a hostile matrix from running
+  for long; a legitimate one (at most 256 jobs) is far below them. The
+  product limit also refuses a matrix GitHub would accept by excluding most
+  of a huge product.
 - **Reusable workflows** are parsed (`uses`, `with`, `secrets`, `inherit`) but
   not followed, and the called workflow's inputs and secrets are not checked.
 - Unknown event types are reported by the schema (`Unexpected value 'x'`).
@@ -50,12 +64,25 @@ code.
       combinations after include, key case-insensitivity, value comparison
       (same kind; objects by containment), the error when all combinations are
       excluded (GitHub may fail the run differently), empty vector error.
+- [ ] A **null matrix value** is shown as an empty segment (`job (, 1)`);
+      GitHub may skip it.
 - [ ] **Job display names** (`MatrixCombo.DisplayName`, `Job.DisplayName`):
       `name (v1, v2)` listing every scalar value of the combination in key
-      order, then keys added by include; a name that refers to `matrix.` is
-      used as is. Booleans/numbers/null are shown with `CoerceString`.
+      order, then keys added by include; a name that reads the `matrix`
+      context (found in the expression's syntax tree, not by searching the
+      text) is used as is. Booleans/numbers/null are shown with `CoerceString`.
 - [ ] **`strategy` context** (`Strategy.Context`): `fail-fast`, `job-index`,
       `job-total`, `max-parallel` (the job count when unlimited).
 - [ ] `fail-fast` and `max-parallel` accept strings (`"false"`, `"2"`) after
       evaluation; `max-parallel` must be a whole number ≥ 1.
 - [ ] The 1 000-commit and 300-file limits themselves are the caller's.
+
+## New in the second pass
+
+- `Job.EvaluateRunsOn`, `Job.EvaluateIf`, `Step.EvaluateIf` and
+  `Workflow.JobLevels` are conveniences for the planner and are not in the
+  reference. `EvaluateRunsOn` applies the reference's runs-on checks to the
+  evaluated value (labels must be strings; group names as in the converter).
+  `JobLevels` is a layering of `needs` by depth, file order inside a level.
+- The reference versions and the regeneration of its answers are in
+  `../template/PORTING.md`.
