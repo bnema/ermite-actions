@@ -12,10 +12,12 @@ import (
 	"unicode/utf8"
 )
 
-// maxJSONDepth bounds the nesting FromJSON accepts. JavaScript engines fail
-// with a stack overflow somewhere in that region, which fromJSON reports like
-// any other parse error.
-const maxJSONDepth = 10000
+// MaxJSONDepth bounds the nesting that FromJSON accepts and that ToJSON and
+// EncodeJSON write. JavaScript engines fail with a stack overflow somewhere
+// in that region; fromJSON reports it like any other parse error. The bound
+// also stops the encoder on cyclic values, which can be built through
+// [Array.Append].
+const MaxJSONDepth = 1000
 
 // FromJSON parses JSON text into a [Value], like the fromJSON function.
 //
@@ -80,7 +82,7 @@ func (p *jsonParser) literal(word string, v Value) (Value, error) {
 }
 
 func (p *jsonParser) value(depth int) (Value, error) {
-	if depth > maxJSONDepth {
+	if depth > MaxJSONDepth {
 		return nil, errors.New("maximum JSON nesting depth exceeded")
 	}
 	if p.i >= len(p.s) {
@@ -204,16 +206,10 @@ func (p *jsonParser) str() (string, error) {
 					p.i = save // not a pair; the second escape is read on its own
 				}
 			}
-			if r >= 0xD800 && r < 0xE000 {
-				// A lone surrogate cannot be a Go rune. Keep it as its
-				// three-byte WTF-8 form so that toJSON writes it back as
-				// the same \uXXXX escape, like JSON.stringify.
-				b.WriteByte(0xE0 | byte(r>>12))
-				b.WriteByte(0x80 | byte(r>>6)&0x3F)
-				b.WriteByte(0x80 | byte(r)&0x3F)
-				continue
-			}
-			b.WriteRune(r)
+			// A lone surrogate cannot be a Go rune: writeRune keeps it in
+			// its three-byte WTF-8 form so that toJSON writes it back as
+			// the same \uXXXX escape, like JSON.stringify.
+			writeRune(&b, r)
 		default:
 			p.i--
 			return "", p.unexpected()
@@ -376,116 +372,185 @@ func jsKeyOrder(keys []string) []string {
 // JavaScript object. Control characters, quotes and backslashes in strings
 // are escaped; everything else, including non-ASCII text, is written as is.
 // Lone surrogates, which FromJSON keeps in WTF-8 form, are written as \uXXXX.
+//
+// ToJSON suits the finite values that FromJSON and Evaluate produce. A value
+// nested deeper than [MaxJSONDepth], which only a cyclic value built by hand
+// can be, makes it return "null"; use [EncodeJSON] to get an error instead
+// and to bound the output.
 func ToJSON(v Value) string {
-	var b strings.Builder
-	writeJSON(&b, v, 0)
-	return b.String()
+	s, err := EncodeJSON(v, -1)
+	if err != nil {
+		return "null"
+	}
+	return s
 }
 
-func writeJSON(b *strings.Builder, v Value, depth int) {
+// EncodeJSON is [ToJSON] with limits: it fails when v is nested deeper than
+// [MaxJSONDepth] and, when maxBytes is not negative, as soon as the output
+// would exceed maxBytes bytes, without building the rest.
+func EncodeJSON(v Value, maxBytes int) (string, error) {
+	w := &jsonWriter{limit: maxBytes}
+	w.value(v, 0)
+	if w.err != nil {
+		return "", w.err
+	}
+	return w.b.String(), nil
+}
+
+var (
+	errJSONTooDeep = errors.New("value nested too deeply to encode as JSON (a cycle?)")
+	errJSONTooBig  = errors.New("JSON output exceeds the size limit")
+)
+
+type jsonWriter struct {
+	b     strings.Builder
+	limit int // negative: unlimited
+	err   error
+}
+
+// grow reports whether n more bytes may be written, recording the error
+// otherwise.
+func (w *jsonWriter) grow(n int) bool {
+	if w.err != nil {
+		return false
+	}
+	if w.limit >= 0 && n > w.limit-w.b.Len() {
+		w.err = errJSONTooBig
+		return false
+	}
+	return true
+}
+
+func (w *jsonWriter) str(s string) {
+	if w.grow(len(s)) {
+		w.b.WriteString(s)
+	}
+}
+
+func (w *jsonWriter) indent(depth int) {
+	if w.grow(2 * depth) {
+		for i := 0; i < depth; i++ {
+			w.b.WriteString("  ")
+		}
+	}
+}
+
+func (w *jsonWriter) value(v Value, depth int) {
+	if w.err != nil {
+		return
+	}
+	if depth > MaxJSONDepth {
+		w.err = errJSONTooDeep
+		return
+	}
 	switch x := normalize(v).(type) {
 	case Null:
-		b.WriteString("null")
+		w.str("null")
 	case Boolean:
 		if x {
-			b.WriteString("true")
+			w.str("true")
 		} else {
-			b.WriteString("false")
+			w.str("false")
 		}
 	case Number:
 		f := float64(x)
 		if math.IsNaN(f) || math.IsInf(f, 0) {
-			b.WriteString("null")
+			w.str("null")
 		} else {
-			b.WriteString(jsNumberToString(f))
+			w.str(jsNumberToString(f))
 		}
 	case String:
-		writeJSONString(b, string(x))
+		w.jsonString(string(x))
 	case *Array:
 		if len(x.items) == 0 {
-			b.WriteString("[]")
+			w.str("[]")
 			return
 		}
-		b.WriteString("[\n")
+		w.str("[\n")
 		for i, it := range x.items {
-			indent(b, depth+1)
-			writeJSON(b, it, depth+1)
+			w.indent(depth + 1)
+			w.value(it, depth+1)
 			if i < len(x.items)-1 {
-				b.WriteByte(',')
+				w.str(",")
 			}
-			b.WriteByte('\n')
+			w.str("\n")
+			if w.err != nil {
+				return
+			}
 		}
-		indent(b, depth)
-		b.WriteByte(']')
+		w.indent(depth)
+		w.str("]")
 	case *Dictionary:
 		if len(x.keys) == 0 {
-			b.WriteString("{}")
+			w.str("{}")
 			return
 		}
 		keys := jsKeyOrder(x.keys)
-		b.WriteString("{\n")
+		w.str("{\n")
 		for i, k := range keys {
 			val, _ := x.Get(k)
-			indent(b, depth+1)
-			writeJSONString(b, k)
-			b.WriteString(": ")
-			writeJSON(b, val, depth+1)
+			w.indent(depth + 1)
+			w.jsonString(k)
+			w.str(": ")
+			w.value(val, depth+1)
 			if i < len(keys)-1 {
-				b.WriteByte(',')
+				w.str(",")
 			}
-			b.WriteByte('\n')
+			w.str("\n")
+			if w.err != nil {
+				return
+			}
 		}
-		indent(b, depth)
-		b.WriteByte('}')
-	}
-}
-
-func indent(b *strings.Builder, depth int) {
-	for i := 0; i < depth; i++ {
-		b.WriteString("  ")
+		w.indent(depth)
+		w.str("}")
 	}
 }
 
 const hexDigits = "0123456789abcdef"
 
-func writeJSONString(b *strings.Builder, s string) {
-	b.WriteByte('"')
+func (w *jsonWriter) jsonString(s string) {
+	if !w.grow(len(s) + 2) {
+		return
+	}
+	w.b.WriteByte('"')
 	for i := 0; i < len(s); {
-		r, w := utf8.DecodeRuneInString(s[i:])
-		if r == utf8.RuneError && w == 1 && i+2 < len(s) && s[i] == 0xED && s[i+1] >= 0xA0 && s[i+1] <= 0xBF && s[i+2]&0xC0 == 0x80 {
-			// WTF-8 lone surrogate (see FromJSON).
-			sur := rune(s[i]&0x0F)<<12 | rune(s[i+1]&0x3F)<<6 | rune(s[i+2]&0x3F)
-			b.WriteString(`\u`)
-			b.WriteByte(hexDigits[sur>>12])
-			b.WriteByte(hexDigits[sur>>8&0xF])
-			b.WriteByte(hexDigits[sur>>4&0xF])
-			b.WriteByte(hexDigits[sur&0xF])
-			i += 3
-			continue
-		}
-		i += w
+		r, n := decodeRune(s[i:])
+		i += n
+		var esc string
 		switch {
 		case r == '"':
-			b.WriteString(`\"`)
+			esc = `\"`
 		case r == '\\':
-			b.WriteString(`\\`)
+			esc = `\\`
 		case r == '\b':
-			b.WriteString(`\b`)
+			esc = `\b`
 		case r == '\f':
-			b.WriteString(`\f`)
+			esc = `\f`
 		case r == '\n':
-			b.WriteString(`\n`)
+			esc = `\n`
 		case r == '\r':
-			b.WriteString(`\r`)
+			esc = `\r`
 		case r == '\t':
-			b.WriteString(`\t`)
+			esc = `\t`
 		case r < 0x20:
-			b.WriteString(`\u00`)
-			b.WriteByte(hexDigits[r>>4])
-			b.WriteByte(hexDigits[r&0xF])
-		default:
-			b.WriteRune(r) // other invalid UTF-8 comes out as U+FFFD
+			esc = `\u00` + string([]byte{hexDigits[r>>4], hexDigits[r&0xF]})
+		case r >= 0xD800 && r < 0xE000:
+			// A lone surrogate (WTF-8, see FromJSON).
+			esc = `\u` + string([]byte{hexDigits[r>>12], hexDigits[r>>8&0xF], hexDigits[r>>4&0xF], hexDigits[r&0xF]})
 		}
+		if esc != "" {
+			if !w.grow(len(esc)) {
+				return
+			}
+			w.b.WriteString(esc)
+			continue
+		}
+		if !w.grow(utf8.RuneLen(r)) {
+			return
+		}
+		w.b.WriteRune(r) // other invalid UTF-8 comes out as U+FFFD
 	}
-	b.WriteByte('"')
+	if w.grow(1) {
+		w.b.WriteByte('"')
+	}
 }

@@ -2,7 +2,10 @@
 
 package expr
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 // mustJSON parses JSON text into a Value or fails the test.
 func mustJSON(tb testing.TB, s string) Value {
@@ -51,7 +54,7 @@ func evalString(tb testing.TB, src string) string {
 	if err != nil {
 		return "PARSE " + err.Error()
 	}
-	v, err := Evaluate(node, EvalContext{Contexts: testContexts(tb)})
+	v, err := Evaluate(context.Background(), node, EvalContext{Contexts: testContexts(tb)})
 	if err != nil {
 		return "ERR " + err.Error()
 	}

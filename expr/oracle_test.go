@@ -4,9 +4,13 @@ package expr
 
 import (
 	"compress/gzip"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -18,9 +22,18 @@ import (
 // string coercions and toJSON output.
 
 type oracleFile struct {
-	Reference string                     `json:"reference"`
+	Reference oracleReference            `json:"reference"`
 	Contexts  map[string]json.RawMessage `json:"contexts"`
 	Cases     []oracleCase               `json:"cases"`
+}
+
+// oracleReference records where the oracle comes from.
+type oracleReference struct {
+	Package   string `json:"package"`
+	Integrity string `json:"integrity"`
+	Node      string `json:"node"`
+	V8        string `json:"v8"`
+	Unicode   string `json:"unicode"`
 }
 
 type oracleCase struct {
@@ -38,6 +51,9 @@ type oracleResult struct {
 	K string `json:"k"`
 	S string `json:"s"`
 	J string `json:"j"`
+	// U holds the UTF-16 code units of the string form when it contains a
+	// lone surrogate and S is therefore empty.
+	U []uint16 `json:"u"`
 }
 
 var oracleFuncInfos = []FuncInfo{
@@ -47,9 +63,9 @@ var oracleFuncInfos = []FuncInfo{
 }
 
 var oracleFuncs = map[string]Func{
-	"success": func([]Value) (Value, error) { return Boolean(true), nil },
-	"always":  func([]Value) (Value, error) { return Boolean(true), nil },
-	"hashFiles": func(args []Value) (Value, error) {
+	"success": func(context.Context, []Value) (Value, error) { return Boolean(true), nil },
+	"always":  func(context.Context, []Value) (Value, error) { return Boolean(true), nil },
+	"hashFiles": func(_ context.Context, args []Value) (Value, error) {
 		s := "hash:"
 		for i, a := range args {
 			if i > 0 {
@@ -105,124 +121,176 @@ func loadOracle(tb testing.TB) (*oracleFile, map[string]Value, []string) {
 	return &of, ctx, names
 }
 
+// oracleRun carries the state shared by the checks of one oracle case.
+type oracleRun struct {
+	t        *testing.T
+	ec       EvalContext
+	ctxNames []string
+	failures int
+	c        oracleCase
+}
+
+func (r *oracleRun) fail(format string, args ...any) {
+	r.failures++
+	if r.failures <= 40 {
+		e := r.c.E
+		if len(e) > 200 {
+			e = e[:200] + "..."
+		}
+		r.t.Errorf("%q: %s", e, fmt.Sprintf(format, args...))
+	}
+}
+
+// checkLex compares the tokens and reports whether the case lexes.
+func (r *oracleRun) checkLex() bool {
+	c := r.c
+	tokens, err := Lex(c.E)
+	if c.LexErr != nil {
+		switch {
+		case err == nil:
+			r.fail("lex: want error %q, got none", *c.LexErr)
+		case err.Error() != *c.LexErr:
+			r.fail("lex error: want %q, got %q", *c.LexErr, err.Error())
+		}
+		return false
+	}
+	if err != nil {
+		r.fail("lex: unexpected error %v", err)
+		return false
+	}
+	if len(tokens) != len(c.Tokens) {
+		r.fail("lex: %d tokens, want %d", len(tokens), len(c.Tokens))
+		return false
+	}
+	for i, tk := range tokens {
+		w := c.Tokens[i]
+		got := []any{float64(tk.Type), tk.Lexeme, float64(tk.Range.Start.Line), float64(tk.Range.Start.Column), float64(tk.Range.End.Line), float64(tk.Range.End.Column)}
+		for j := range got {
+			if got[j] != w[j] {
+				r.fail("token %d field %d: got %v, want %v", i, j, got[j], w[j])
+			}
+		}
+		var gv any
+		switch tk.Type {
+		case TokenNumber:
+			f := float64(tk.Value.(Number))
+			if math.IsNaN(f) {
+				gv = "NaN"
+			} else {
+				gv = jsNumberToString(f)
+			}
+		case TokenString:
+			gv = string(tk.Value.(String))
+		}
+		if gv != w[6] {
+			r.fail("token %d value: got %v, want %v", i, gv, w[6])
+		}
+	}
+	return true
+}
+
+// checkParse compares the parse outcome and returns the tree when the case
+// parses to something to evaluate.
+func (r *oracleRun) checkParse() Node {
+	c := r.c
+	node, err := Parse(c.E, r.ctxNames, oracleFuncInfos)
+	if c.ParseErr != nil {
+		var pe *Error
+		switch {
+		case err == nil:
+			r.fail("parse: want error %q, got none", *c.ParseErr)
+		case err.Error() != *c.ParseErr:
+			r.fail("parse error: want %q, got %q", *c.ParseErr, err.Error())
+		case !errors.As(err, &pe):
+			r.fail("parse error has type %T", err)
+		case c.Pos != nil && (pe.Pos.Line != c.Pos[0] || pe.Pos.Column != c.Pos[1]):
+			r.fail("parse error position: got %v, want %v", pe.Pos, c.Pos)
+		}
+		return nil
+	}
+	if err != nil {
+		r.fail("parse: unexpected error %v", err)
+		return nil
+	}
+	if c.Empty {
+		if node != nil {
+			r.fail("parse: want empty")
+		}
+		return nil
+	}
+	return node
+}
+
+func (r *oracleRun) checkEval(node Node) {
+	c := r.c
+	v, err := Evaluate(context.Background(), node, r.ec)
+	if c.EvalErr != nil {
+		switch {
+		case err == nil:
+			r.fail("eval: want error %q, got %s", *c.EvalErr, CoerceString(v))
+		case err.Error() != *c.EvalErr:
+			r.fail("eval error: want %q, got %q", *c.EvalErr, err.Error())
+		}
+		return
+	}
+	if err != nil {
+		r.fail("eval: unexpected error %v", err)
+		return
+	}
+	if k := kindName(v); k != c.R.K {
+		r.fail("result kind: got %s, want %s", k, c.R.K)
+	}
+	if c.R.U != nil {
+		if got := utf16Units(CoerceString(v)); !unitsEqual(got, c.R.U) {
+			r.fail("result string units: got %04x, want %04x", got, c.R.U)
+		}
+	} else if s := CoerceString(v); s != c.R.S {
+		r.fail("result string: got %q, want %q", s, c.R.S)
+	}
+	if j := ToJSON(v); j != c.R.J {
+		r.fail("result JSON: got %q, want %q", j, c.R.J)
+	}
+}
+
 func TestOracle(t *testing.T) {
 	of, ctxValues, ctxNames := loadOracle(t)
 	if len(of.Cases) < 30000 {
 		t.Fatalf("oracle has only %d cases", len(of.Cases))
 	}
-	ec := EvalContext{Contexts: ctxValues, Funcs: oracleFuncs}
-	failures := 0
-	fail := func(c oracleCase, format string, args ...any) {
-		failures++
-		if failures <= 40 {
-			e := c.E
-			if len(e) > 200 {
-				e = e[:200] + "..."
-			}
-			t.Errorf("%q: %s", e, fmt.Sprintf(format, args...))
-		}
+	ref := of.Reference
+	if !strings.HasPrefix(ref.Integrity, "sha512-") {
+		t.Errorf("oracle does not record the integrity of the reference package: %+v", ref)
 	}
+	t.Logf("reference: %s, integrity %s, generated with node %s (V8 %s, Unicode %s)", ref.Package, ref.Integrity, ref.Node, ref.V8, ref.Unicode)
+
+	run := &oracleRun{t: t, ctxNames: ctxNames, ec: EvalContext{Contexts: ctxValues, Funcs: oracleFuncs, MaxResultBytes: -1}}
 	var counts struct{ lexErr, parseErr, evalErr, ok, empty int }
 	for _, c := range of.Cases {
-		tokens, err := Lex(c.E)
-		if c.LexErr != nil {
+		run.c = c
+		switch {
+		case c.LexErr != nil:
 			counts.lexErr++
-			if err == nil {
-				fail(c, "lex: want error %q, got none", *c.LexErr)
-			} else if err.Error() != *c.LexErr {
-				fail(c, "lex error: want %q, got %q", *c.LexErr, err.Error())
-			}
-			continue
-		}
-		if err != nil {
-			fail(c, "lex: unexpected error %v", err)
-			continue
-		}
-		if len(tokens) != len(c.Tokens) {
-			fail(c, "lex: %d tokens, want %d", len(tokens), len(c.Tokens))
-			continue
-		}
-		for i, tk := range tokens {
-			w := c.Tokens[i]
-			got := []any{float64(tk.Type), tk.Lexeme, float64(tk.Range.Start.Line), float64(tk.Range.Start.Column), float64(tk.Range.End.Line), float64(tk.Range.End.Column)}
-			for j := range got {
-				if got[j] != w[j] {
-					fail(c, "token %d field %d: got %v, want %v", i, j, got[j], w[j])
-				}
-			}
-			var gv any
-			switch tk.Type {
-			case TokenNumber:
-				f := float64(tk.Value.(Number))
-				if f != f {
-					gv = "NaN"
-				} else {
-					gv = jsNumberToString(f)
-				}
-			case TokenString:
-				gv = string(tk.Value.(String))
-			}
-			if gv != w[6] {
-				fail(c, "token %d value: got %v, want %v", i, gv, w[6])
-			}
-		}
-
-		node, err := Parse(c.E, ctxNames, oracleFuncInfos)
-		if c.ParseErr != nil {
+		case c.ParseErr != nil:
 			counts.parseErr++
-			var pe *Error
-			switch {
-			case err == nil:
-				fail(c, "parse: want error %q, got none", *c.ParseErr)
-			case err.Error() != *c.ParseErr:
-				fail(c, "parse error: want %q, got %q", *c.ParseErr, err.Error())
-			case func() bool { pe, _ = err.(*Error); return pe == nil }():
-				fail(c, "parse error has type %T", err)
-			case c.Pos != nil && (pe.Pos.Line != c.Pos[0] || pe.Pos.Column != c.Pos[1]):
-				fail(c, "parse error position: got %v, want %v", pe.Pos, c.Pos)
-			}
-			continue
-		}
-		if err != nil {
-			fail(c, "parse: unexpected error %v", err)
-			continue
-		}
-		if c.Empty {
+		case c.Empty:
 			counts.empty++
-			if node != nil {
-				fail(c, "parse: want empty")
-			}
-			continue
-		}
-
-		v, err := Evaluate(node, ec)
-		if c.EvalErr != nil {
+		case c.EvalErr != nil:
 			counts.evalErr++
-			if err == nil {
-				fail(c, "eval: want error %q, got %s", *c.EvalErr, CoerceString(v))
-			} else if err.Error() != *c.EvalErr {
-				fail(c, "eval error: want %q, got %q", *c.EvalErr, err.Error())
-			}
+		default:
+			counts.ok++
+		}
+		if !run.checkLex() {
 			continue
 		}
-		if err != nil {
-			fail(c, "eval: unexpected error %v", err)
+		node := run.checkParse()
+		if node == nil {
 			continue
 		}
-		counts.ok++
-		if k := kindName(v); k != c.R.K {
-			fail(c, "result kind: got %s, want %s", k, c.R.K)
-		}
-		if s := CoerceString(v); s != c.R.S {
-			fail(c, "result string: got %q, want %q", s, c.R.S)
-		}
-		if j := ToJSON(v); j != c.R.J {
-			fail(c, "result JSON: got %q, want %q", j, c.R.J)
-		}
+		run.checkEval(node)
 	}
 	t.Logf("%d cases: %d lex errors, %d parse errors, %d empty, %d eval errors, %d values; %d failures",
-		len(of.Cases), counts.lexErr, counts.parseErr, counts.empty, counts.evalErr, counts.ok, failures)
-	if failures > 0 {
-		t.Fatalf("%d oracle mismatches", failures)
+		len(of.Cases), counts.lexErr, counts.parseErr, counts.empty, counts.evalErr, counts.ok, run.failures)
+	if run.failures > 0 {
+		t.Fatalf("%d oracle mismatches", run.failures)
 	}
 }

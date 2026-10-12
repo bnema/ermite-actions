@@ -5,17 +5,37 @@
 // tests (oracle_test.go) replay the corpus and compare token by token what
 // GitHub's JavaScript library does with what this package does.
 //
-//   node gen/oracle.mjs /path/to/@actions/expressions/dist | gzip -9 -n > testdata/oracle.json.gz
+//   node gen/oracle.mjs /path/to/@actions/expressions/dist [/path/to/actions-expressions-X.tgz] \\
+//     | gzip -9 -n > testdata/oracle.json.gz
+//
+// The optional tarball is the npm package the dist directory came from: its
+// sha512 (base64, the "integrity" field of the npm registry) is recorded next
+// to the Node version in the output, so the provenance of the oracle is
+// checkable.
 //
 // The corpus is hand-written edge cases plus a seeded pseudo-random walk over
 // the grammar and over mutations of it, so the file is reproducible.
 
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import path from "node:path";
 
 const dist = path.resolve(process.argv[2] ?? "node_modules/@actions/expressions/dist");
 const ex = await import(pathToFileURL(path.join(dist, "index.js")).href);
 const { Lexer, Parser, Evaluator, data } = ex;
+
+const pkgJson = JSON.parse(readFileSync(path.join(dist, "..", "package.json"), "utf8"));
+const integrity = process.argv[3]
+  ? "sha512-" + createHash("sha512").update(readFileSync(process.argv[3])).digest("base64")
+  : "";
+const reference = {
+  package: `${pkgJson.name} ${pkgJson.version}`,
+  integrity,
+  node: process.version,
+  v8: process.versions.v8,
+  unicode: process.versions.unicode,
+};
 
 // ---- contexts -------------------------------------------------------------
 
@@ -128,7 +148,14 @@ function run(expr) {
     return out;
   }
   if (res === undefined) { out.skip = "undefined result"; return out; }
-  out.r = { k: kindOf(res), s: res.coerceString(), j: JSON.stringify(res, data.replacer, "  ") };
+  const str = res.coerceString();
+  out.r = { k: kindOf(res), s: str, j: JSON.stringify(res, data.replacer, "  ") };
+  if (!str.isWellFormed()) {
+    // A string holding a lone surrogate cannot travel through JSON text and
+    // UTF-8: give its UTF-16 code units instead.
+    out.r.s = "";
+    out.r.u = Array.from({ length: str.length }, (_, i) => str.charCodeAt(i));
+  }
   return out;
 }
 
@@ -233,6 +260,28 @@ add("contains('a', 'b',)", "contains(1,)", "contains(,1)", "contains('a' 'b')", 
   "join(fromJSON(toJSON(github.event.labels.*.name)), '+')", "toJSON(fromJSON(toJSON(github.event.commits)))", "format('{0}', toJSON(null))", "fromJSON(format('[{0},{1}]', 1, 2))[1]", "fromJSON('[{\"a\":1},{\"a\":2},{\"b\":3}]').*.a", "toJSON(fromJSON('[{\"a\":1},{\"a\":2},{\"b\":3}]').*.a)", "toJSON(fromJSON('[{\"a\":[1,2]},{\"a\":[3]}]').*.a.*)", "toJSON(fromJSON('[{\"a\":[1,2]},{\"a\":[3]}]').*.a[0])", "toJSON(fromJSON('[[1,2],[3]]').*[0])", "toJSON(fromJSON('[[1,2],[3]]')[*][1])",
   "toJSON(fromJSON('{\"a\":{\"x\":1},\"b\":{\"x\":2}}').*.x)", "toJSON(fromJSON('{\"a\":{\"x\":1},\"b\":{\"x\":2}}')[*].x)", "toJSON(fromJSON('{\"a\":{\"x\":1},\"b\":2}').*.x)", "toJSON(fromJSON('[1,2]').*.x)", "toJSON(fromJSON('1').*)", "toJSON(null.*)", "toJSON('abc'.*)", "toJSON(fromJSON('[]').*.a)", "toJSON(fromJSON('[]').*)", "toJSON(fromJSON('{}').*)");
 
+// lone surrogates (kept as WTF-8 by the Go port)
+{
+  const H = "fromJSON('\"\\ud800\"')", L = "fromJSON('\"\\udc00\"')", H2 = "fromJSON('\"\\ud83d\"')", L2 = "fromJSON('\"\\ude00\"')";
+  const lone = [H, L, H2, L2, "'\u{1F600}'", "'\ue000'", "'\uffff'", "'a'", "''", "'\ufffd'", "'\u{10000}'"];
+  for (const a of lone) {
+    add(`toJSON(${a})`, `format('{0}', ${a})`, `join(${a})`, `${a} || 'd'`, `startsWith(${a}, ${a})`, `case(true, ${a}, 1)`);
+    for (const b of lone) {
+      for (const op of ["==", "!=", "<", "<=", ">", ">="]) add(`${a} ${op} ${b}`);
+      add(`contains(${a}, ${b})`, `startsWith(${a}, ${b})`, `endsWith(${a}, ${b})`, `format('{0}{1}', ${a}, ${b})`, `join(fromJSON('[]'), ${a}) == ''`,
+        `toJSON(fromJSON(toJSON(${a})))`, `format('{0}', ${a}) == format('{0}', ${b})`);
+    }
+  }
+  add(`${H} == ${L}`, `${H} != ${L}`, `${H} < ${L}`, `${H} > ${L}`, `contains('x${"\u{1F600}"}', ${H2})`, `contains('x\u{1F600}', ${L2})`, `startsWith('\u{1F600}', ${H2})`, `endsWith('\u{1F600}', ${L2})`,
+    `format('{0}{1}', ${H2}, ${L2}) == '\u{1F600}'`, `format('{0}{1}', ${L2}, ${H2}) == '\u{1F600}'`, `join(fromJSON('["\\ud83d","\\ude00"]'), '') == '\u{1F600}'`,
+    `join(fromJSON('["\\ud83d","\\ude00"]'), '')`, `format('{0}{1}', ${H2}, ${L2})`, `format('{0}{1}{0}', ${H2}, ${L2})`, `toJSON(format('{0}{1}', ${H2}, ${L2}))`,
+    `toJSON(fromJSON('{"\\ud800":1,"\\ud800x":2,"a\\udc00":3}'))`, `fromJSON('{"\\ud800":1}')[${H}]`, `fromJSON('{"\\ud800":1}')[${L}]`, `toJSON(fromJSON('["\\ud800\\ud800","\\udc00\\ud800"]'))`,
+    `${H} == '\ufffd'`, `'\ufffd' == ${H}`, `'\ufffd' < ${H}`, `${H} < '\ufffd'`, `${H} < '\u{1F600}'`, `'\u{1F600}' < ${H}`, `${L} < '\ue000'`, `'\ue000' < ${L}`,
+    `fromJSON('"\\ud800\\u0041"') == 'A'`, `contains(fromJSON('"A\\ud800"'), 'a')`, `startsWith(fromJSON('"a\\ud800"'), 'A')`, `endsWith(fromJSON('"\\ud800a"'), 'A')`,
+    `contains(fromJSON('"\\ud800\\udc00"'), ${H})`, `contains(fromJSON('"\\ud800\\udc00"'), ${L})`, `startsWith(fromJSON('"\\ud800\\udc00"'), ${H})`, `endsWith(fromJSON('"\\ud800\\udc00"'), ${L})`,
+    `contains(fromJSON('["\\ud800"]'), ${H})`, `contains(fromJSON('["\\ud800"]'), ${L})`, `fromJSON('"\\ud800"') == fromJSON('"\\ud800"')`);
+}
+
 // depth and length limits
 const nest = (n, open, body, close) => open.repeat(n) + body + close.repeat(n);
 for (const n of [1, 10, 24, 25, 26, 48, 49, 50, 51, 52, 100, 200]) {
@@ -314,4 +363,4 @@ for (const e of corpus) {
 }
 const skipped = cases.filter(c => c.skip).length;
 console.error(`cases=${cases.length} skipped(JS crash)=${skipped}`);
-process.stdout.write(JSON.stringify({ reference: "@actions/expressions 0.3.61", contexts, cases: cases.filter(c => !c.skip) }) + "\n");
+process.stdout.write(JSON.stringify({ reference, contexts, cases: cases.filter(c => !c.skip) }) + "\n");

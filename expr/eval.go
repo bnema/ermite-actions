@@ -3,15 +3,35 @@
 package expr
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"math"
 	"sort"
 )
 
+// MaxResultBytes is the default budget of an evaluation: the total size, in
+// bytes, of the strings that format, join and toJSON build plus a nominal
+// cost for every element of the arrays that the * filter builds. The
+// reference implementation has no such limit; without one a few kilobytes of
+// expression can allocate gigabytes (format('{0}{0}{0}...', format(...))),
+// and arrays shared in a context can multiply under .* filters.
+const MaxResultBytes = 1 << 20
+
+// filterElementCost is what one element of a filtered array costs against the
+// budget: the size of an interface value.
+const filterElementCost = 16
+
+// maxEvalDepth bounds the recursion of the evaluator. The parser never
+// produces trees anywhere near it; it protects against hand-built ASTs.
+const maxEvalDepth = 1000
+
 // Func implements a function callable from expressions. It receives the
-// evaluated arguments in order and returns the result or an error, which
-// [Evaluate] returns as is. Arity is not checked at call time: declare it in
-// a [FuncInfo] given to [Parse].
-type Func func(args []Value) (Value, error)
+// evaluation's context, which it should honour if it blocks or loops, and the
+// evaluated arguments in order, and returns the result or an error.
+// [Evaluate] wraps the error in an [*EvalError] that unwraps to it. Arity is
+// not checked at call time: declare it in a [FuncInfo] given to [Parse].
+type Func func(ctx context.Context, args []Value) (Value, error)
 
 // EvalContext is the environment an expression is evaluated in.
 type EvalContext struct {
@@ -25,38 +45,55 @@ type EvalContext struct {
 	// case-insensitively. As in the reference implementation these take
 	// precedence over the built-in functions.
 	Funcs map[string]Func
+	// MaxResultBytes is the output budget of the evaluation, see
+	// [MaxResultBytes]. Zero means the default; a negative value removes the
+	// limit. The budget is shared by the whole evaluation, not per call.
+	MaxResultBytes int
 }
 
 // Evaluate computes the value of a parsed expression.
 //
-// Values of the context are never modified, and results may share them with
-// the context: treat the result as read-only. The error is an [*EvalError].
-func Evaluate(node Node, ctx EvalContext) (Value, error) {
+// Evaluation stops with an error that wraps ctx.Err() when ctx is done, and
+// with an [*EvalError] when the output budget is exceeded. Values of the
+// context are never modified, and results may share them with the context:
+// treat the result as read-only. The error is an [*EvalError].
+func Evaluate(ctx context.Context, node Node, ec EvalContext) (Value, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	if node == nil {
 		return nil, &EvalError{Message: "cannot evaluate an empty expression"}
 	}
-	ev := &evaluator{
-		contexts: make(map[string]Value, len(ctx.Contexts)),
-		funcs:    make(map[string]Func, len(ctx.Funcs)),
+	if err := ctx.Err(); err != nil {
+		return nil, cancelError(err)
 	}
-	names := make([]string, 0, len(ctx.Contexts))
-	for k := range ctx.Contexts {
+	ev := &evaluator{
+		ctx:      ctx,
+		contexts: make(map[string]Value, len(ec.Contexts)),
+		funcs:    make(map[string]Func, len(ec.Funcs)),
+		limit:    ec.MaxResultBytes,
+	}
+	if ev.limit == 0 {
+		ev.limit = MaxResultBytes
+	}
+	names := make([]string, 0, len(ec.Contexts))
+	for k := range ec.Contexts {
 		names = append(names, k)
 	}
 	sort.Strings(names)
 	for _, k := range names {
 		if _, dup := ev.contexts[foldKey(k)]; !dup {
-			ev.contexts[foldKey(k)] = ctx.Contexts[k]
+			ev.contexts[foldKey(k)] = ec.Contexts[k]
 		}
 	}
 	names = names[:0]
-	for k := range ctx.Funcs {
+	for k := range ec.Funcs {
 		names = append(names, k)
 	}
 	sort.Strings(names)
 	for _, k := range names {
 		if _, dup := ev.funcs[foldKey(k)]; !dup {
-			ev.funcs[foldKey(k)] = ctx.Funcs[k]
+			ev.funcs[foldKey(k)] = ec.Funcs[k]
 		}
 	}
 	v, err := ev.eval(node)
@@ -66,15 +103,60 @@ func Evaluate(node Node, ctx EvalContext) (Value, error) {
 	return normalize(v), nil
 }
 
+func cancelError(err error) *EvalError {
+	return &EvalError{Message: "evaluation canceled: " + err.Error(), Err: err}
+}
+
 type evaluator struct {
+	ctx      context.Context
 	contexts map[string]Value
 	funcs    map[string]Func
+	limit    int // output budget; negative: unlimited
+	used     int
+	depth    int
+	ticks    int
+}
+
+// tick is called in loops and on every node: it checks the context once in a
+// while.
+func (e *evaluator) tick() error {
+	e.ticks++
+	if e.ticks&63 == 0 {
+		if err := e.ctx.Err(); err != nil {
+			return cancelError(err)
+		}
+	}
+	return nil
+}
+
+// charge spends n bytes of the output budget.
+func (e *evaluator) charge(n int) error {
+	if e.limit < 0 {
+		return nil
+	}
+	if n > e.limit-e.used { // written to be overflow-proof
+		return e.budgetError()
+	}
+	e.used += n
+	return nil
+}
+
+func (e *evaluator) budgetError() *EvalError {
+	return &EvalError{Message: fmt.Sprintf("expression output exceeds the limit of %d bytes", e.limit)}
 }
 
 func (e *evaluator) eval(n Node) (Value, error) {
+	if err := e.tick(); err != nil {
+		return nil, err
+	}
+	e.depth++
+	defer func() { e.depth-- }()
+	if e.depth > maxEvalDepth {
+		return nil, &EvalError{Message: fmt.Sprintf("expression tree deeper than %d levels", maxEvalDepth)}
+	}
 	switch n := n.(type) {
 	case *Literal:
-		return n.Value, nil
+		return normalize(n.Value), nil
 	case *Unary:
 		r, err := e.eval(n.Expr)
 		if err != nil {
@@ -143,10 +225,30 @@ func (e *evaluator) logical(l *Logical) (Value, error) {
 			break
 		}
 	}
+	if result == nil {
+		return Null{}, nil // a Logical without operands, possible only in a hand-built tree
+	}
 	return result, nil
 }
 
 func (e *evaluator) call(c *FunctionCall) (Value, error) {
+	name := foldKey(c.Name.Lexeme)
+	ext, isExt := e.funcs[name]
+	isExt = isExt && ext != nil
+	var impl builtinFunc
+	if !isExt {
+		// Arity of the built-ins is checked by the parser, and again here
+		// so that a hand-built tree cannot reach an implementation with the
+		// wrong number of arguments.
+		f, ok := builtinFuncs[name]
+		if !ok {
+			return nil, evalErrorf("function %s is not implemented", c.Name.Lexeme)
+		}
+		if t, bad := arityError(name, f, len(c.Args)); bad {
+			return nil, &EvalError{Message: t.description() + ": '" + c.Name.Lexeme + "'"}
+		}
+		impl = builtinImpls[name]
+	}
 	args := make([]Value, len(c.Args))
 	for i, a := range c.Args {
 		v, err := e.eval(a)
@@ -155,14 +257,18 @@ func (e *evaluator) call(c *FunctionCall) (Value, error) {
 		}
 		args[i] = v
 	}
-	name := foldKey(c.Name.Lexeme)
-	if f, ok := e.funcs[name]; ok && f != nil {
-		return f(args)
+	if isExt {
+		v, err := ext(e.ctx, args)
+		if err != nil {
+			var ee *EvalError
+			if errors.As(err, &ee) {
+				return nil, err
+			}
+			return nil, &EvalError{Message: err.Error(), Err: err}
+		}
+		return v, nil
 	}
-	if f, ok := builtinImpls[name]; ok {
-		return f(args)
-	}
-	return nil, evalErrorf("function %s is not implemented", c.Name.Lexeme)
+	return impl(e, args)
 }
 
 // indexer is idxHelper of the reference: how an index value is read, as a
@@ -221,11 +327,11 @@ func (e *evaluator) indexAccess(ia *IndexAccess) (Value, error) {
 	switch o := normalize(obj).(type) {
 	case *Array:
 		if o.filtered {
-			return filteredArrayAccess(o, ix), nil
+			return e.filteredArrayAccess(o, ix)
 		}
-		return arrayAccess(o, ix), nil
+		return e.arrayAccess(o, ix)
 	case *Dictionary:
-		return objectAccess(o, ix), nil
+		return e.objectAccess(o, ix)
 	}
 	if ix.star {
 		return &Array{filtered: true}, nil
@@ -235,49 +341,70 @@ func (e *evaluator) indexAccess(ia *IndexAccess) (Value, error) {
 
 // filteredArrayAccess applies an index to each element of a filtered array
 // and collects the hits: "a.*.b" is the b of every element that has one.
-func filteredArrayAccess(fa *Array, ix indexer) *Array {
+func (e *evaluator) filteredArrayAccess(fa *Array, ix indexer) (Value, error) {
 	result := &Array{filtered: true}
 	for _, item := range fa.items {
+		if err := e.tick(); err != nil {
+			return nil, err
+		}
 		switch it := normalize(item).(type) {
 		case *Dictionary:
 			if ix.star {
+				if err := e.charge(len(it.vals) * filterElementCost); err != nil {
+					return nil, err
+				}
 				result.items = append(result.items, it.vals...)
 			} else if ix.hasStr {
 				if v, ok := it.Get(ix.str); ok {
+					if err := e.charge(filterElementCost); err != nil {
+						return nil, err
+					}
 					result.items = append(result.items, v)
 				}
 			}
 		case *Array:
 			if ix.star {
+				if err := e.charge(len(it.items) * filterElementCost); err != nil {
+					return nil, err
+				}
 				result.items = append(result.items, it.items...)
 			} else if i, ok := ix.pos(len(it.items)); ok {
+				if err := e.charge(filterElementCost); err != nil {
+					return nil, err
+				}
 				result.items = append(result.items, it.items[i])
 			}
 		}
 	}
-	return result
+	return result, nil
 }
 
-func arrayAccess(a *Array, ix indexer) Value {
+func (e *evaluator) arrayAccess(a *Array, ix indexer) (Value, error) {
 	if ix.star {
-		return &Array{items: append([]Value(nil), a.items...), filtered: true}
+		if err := e.charge(len(a.items) * filterElementCost); err != nil {
+			return nil, err
+		}
+		return &Array{items: append([]Value(nil), a.items...), filtered: true}, nil
 	}
 	if i, ok := ix.pos(len(a.items)); ok {
-		return normalize(a.items[i])
+		return normalize(a.items[i]), nil
 	}
-	return Null{}
+	return Null{}, nil
 }
 
-func objectAccess(d *Dictionary, ix indexer) Value {
+func (e *evaluator) objectAccess(d *Dictionary, ix indexer) (Value, error) {
 	if ix.star {
-		return &Array{items: append([]Value(nil), d.vals...), filtered: true}
+		if err := e.charge(len(d.vals) * filterElementCost); err != nil {
+			return nil, err
+		}
+		return &Array{items: append([]Value(nil), d.vals...), filtered: true}, nil
 	}
 	if ix.hasStr {
 		if v, ok := d.Get(ix.str); ok {
-			return v
+			return v, nil
 		}
 	}
-	return Null{}
+	return Null{}, nil
 }
 
 // coerceTypes converts two values of different kinds to a common kind the

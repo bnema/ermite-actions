@@ -93,11 +93,11 @@ func TestFromJSONInvalidUTF8(t *testing.T) {
 }
 
 func TestFromJSONDeepNesting(t *testing.T) {
-	deep := strings.Repeat("[", 5000) + strings.Repeat("]", 5000)
+	deep := strings.Repeat("[", 900) + strings.Repeat("]", 900)
 	if _, err := FromJSON([]byte(deep)); err != nil {
-		t.Errorf("depth 5000: %v", err)
+		t.Errorf("depth 900: %v", err)
 	}
-	tooDeep := strings.Repeat("[", maxJSONDepth+10) + strings.Repeat("]", maxJSONDepth+10)
+	tooDeep := strings.Repeat("[", MaxJSONDepth+10) + strings.Repeat("]", MaxJSONDepth+10)
 	if _, err := FromJSON([]byte(tooDeep)); err == nil {
 		t.Error("absurd depth accepted")
 	}

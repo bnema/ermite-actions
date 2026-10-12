@@ -3,6 +3,7 @@
 package expr
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -16,7 +17,7 @@ var fuzzSeeds = []string{
 	"fromJSON('[1,{\"a\":null}]')[1].a", "toJSON(fromJSON('{\"b\":1,\"1\":2}'))", "join(matrix.node.*, ', ')", "case(true, 1, 2)", "case(false, 1, true, 2, 3)",
 	"((((((((((1))))))))))", "!!!!!!true", "1 || 2 && 3 == 4 < 5", "hashFiles('**/*.go', '!vendor/**')", "success() && always()", "\n\t \r", "\u00a0", "'😀' == '\U00010000'",
 	"=", "&", "|", "!=", "<=", ">=", "()", "(1", "1)", "a.", ".a", "a..b", "a[", "a[]", "a[*]", "*", "a.*.*", "1.2.3", "--1", "1_000", "'\xed\xa0\x80'",
-	"format('{0:x}{', 1)", "format('}}{{', 1)", "contains(1,2,3)", "ß == 'SS'", "İ", "'ı' == 'I'", "'\u03a3' < 'z'",
+	"fromJSON('\"\\ud800\"') == fromJSON('\"\\udc00\"')", "format('{0}{1}', fromJSON('\"\\ud83d\"'), fromJSON('\"\\ude00\"'))", "contains(fromJSON('\"\\ud83d\\ude00\"'), fromJSON('\"\\ude00\"'))", "format('{0}{0}', format('{0}{0}', 'xxxxxxxx'))", "github.event.commits.*.*.*", "format('{0:x}{', 1)", "format('}}{{', 1)", "contains(1,2,3)", "ß == 'SS'", "İ", "'ı' == 'I'", "'\u03a3' < 'z'",
 }
 
 func addSeeds(f *testing.F) {
@@ -127,8 +128,8 @@ func FuzzEvaluate(f *testing.F) {
 			"env":    mustJSON(f, `{"A":"","B":"1","C":"x","J":"{\"a\":[1,2]}"}`),
 		},
 		Funcs: map[string]Func{
-			"hashfiles": func(args []Value) (Value, error) { return String("h"), nil },
-			"success":   func([]Value) (Value, error) { return Boolean(true), nil },
+			"hashfiles": func(_ context.Context, args []Value) (Value, error) { return String("h"), nil },
+			"success":   func(context.Context, []Value) (Value, error) { return Boolean(true), nil },
 		},
 	}
 	before := map[string]string{}
@@ -140,7 +141,7 @@ func FuzzEvaluate(f *testing.F) {
 		if err != nil || node == nil {
 			return
 		}
-		v, err := Evaluate(node, ctx)
+		v, err := Evaluate(context.Background(), node, ctx)
 		if err != nil {
 			if _, ok := err.(*EvalError); !ok {
 				t.Fatalf("error is %T, not *EvalError", err)

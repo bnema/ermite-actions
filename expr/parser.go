@@ -268,16 +268,24 @@ func (p *parser) validateFunction(ident Token, argCount int) error {
 			return newTokenError(ErrorUnrecognizedFunction, ident)
 		}
 	}
-	if argCount < f.MinArgs {
-		return newTokenError(ErrorTooFewParameters, ident)
-	}
-	if f.MaxArgs >= 0 && argCount > f.MaxArgs {
-		return newTokenError(ErrorTooManyParameters, ident)
-	}
-	if name == "case" && argCount%2 == 0 {
-		return newTokenError(ErrorEvenParameters, ident)
+	if t, bad := arityError(name, f, argCount); bad {
+		return newTokenError(t, ident)
 	}
 	return nil
+}
+
+// arityError reports whether argCount is wrong for f, and how. name is the
+// lower-cased function name: case also needs an odd number of arguments.
+func arityError(name string, f FuncInfo, argCount int) (ErrorType, bool) {
+	switch {
+	case argCount < f.MinArgs:
+		return ErrorTooFewParameters, true
+	case f.MaxArgs >= 0 && argCount > f.MaxArgs:
+		return ErrorTooManyParameters, true
+	case name == "case" && argCount%2 == 0:
+		return ErrorEvenParameters, true
+	}
+	return 0, false
 }
 
 func (p *parser) primary() (Node, error) {

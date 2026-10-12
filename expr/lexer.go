@@ -84,12 +84,14 @@ func tokenString(t Token) string {
 // Lex splits an expression into tokens. The result always ends with a
 // TokenEOF token.
 func Lex(input string) ([]Token, error) {
-	units := utf16.Encode([]rune(input))
-	if len(units) > MaxExpressionLength {
+	if exceedsUTF16Len(input, MaxExpressionLength) {
 		// The reference throws a bare Error("ErrorExceededMaxLength") here,
-		// not the descriptive ExpressionError the parser would build.
+		// not the descriptive ExpressionError the parser would build. The
+		// length is checked before the input is converted so that a huge
+		// input costs no allocation.
 		return nil, &Error{Type: ErrorExceededMaxLength, Message: "ErrorExceededMaxLength"}
 	}
+	units := utf16.Encode([]rune(input))
 	lx := &lexer{input: string(utf16.Decode(units)), units: units}
 	if err := lx.lex(); err != nil {
 		return nil, err

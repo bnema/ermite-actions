@@ -3,6 +3,7 @@
 package expr
 
 import (
+	"context"
 	"errors"
 	"math"
 	"strings"
@@ -539,7 +540,7 @@ func TestEmptyExpression(t *testing.T) {
 			t.Errorf("Parse(%q) = %v, %v; want nil, nil", s, node, err)
 		}
 	}
-	if _, err := Evaluate(nil, EvalContext{}); err == nil {
+	if _, err := Evaluate(context.Background(), nil, EvalContext{}); err == nil {
 		t.Error("Evaluate(nil) succeeded")
 	}
 }
@@ -686,21 +687,21 @@ func TestExtensionFunctions(t *testing.T) {
 	ctx := EvalContext{
 		Contexts: map[string]Value{"G": String("v")},
 		Funcs: map[string]Func{
-			"HashFiles": func(args []Value) (Value, error) {
+			"HashFiles": func(_ context.Context, args []Value) (Value, error) {
 				calls++
 				return String("h:" + CoerceString(args[0])), nil
 			},
-			"success": func([]Value) (Value, error) { return Boolean(true), nil },
-			"boom":    func([]Value) (Value, error) { return nil, errors.New("kaput") },
+			"success": func(context.Context, []Value) (Value, error) { return Boolean(true), nil },
+			"boom":    func(context.Context, []Value) (Value, error) { return nil, errors.New("kaput") },
 			// An extra function replaces a built-in of the same name.
-			"contains": func([]Value) (Value, error) { return String("mine"), nil },
+			"contains": func(context.Context, []Value) (Value, error) { return String("mine"), nil },
 		},
 	}
 	node, err := Parse("hashFiles(g) == 'h:v' && success() && contains('a','b')", []string{"g"}, funcs)
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := Evaluate(node, ctx)
+	v, err := Evaluate(context.Background(), node, ctx)
 	if err != nil || CoerceString(v) != "mine" || calls != 1 {
 		t.Errorf("got %v, %v, %d calls", v, err, calls)
 	}
@@ -708,12 +709,12 @@ func TestExtensionFunctions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = Evaluate(node, ctx); err == nil || err.Error() != "kaput" {
+	if _, err = Evaluate(context.Background(), node, ctx); err == nil || err.Error() != "kaput" {
 		t.Errorf("function error not propagated: %v", err)
 	}
 	// A declared function without an implementation is an evaluation error.
 	node, _ = Parse("success()", nil, funcs)
-	if _, err = Evaluate(node, EvalContext{}); err == nil {
+	if _, err = Evaluate(context.Background(), node, EvalContext{}); err == nil {
 		t.Error("calling an unimplemented function succeeded")
 	}
 }
@@ -726,13 +727,13 @@ func TestContextNames(t *testing.T) {
 	for _, key := range []string{"github", "GITHUB", "GitHub"} {
 		d := NewDictionary()
 		d.Add("ref", String("main"))
-		v, err := Evaluate(node, EvalContext{Contexts: map[string]Value{key: d}})
+		v, err := Evaluate(context.Background(), node, EvalContext{Contexts: map[string]Value{key: d}})
 		if err != nil || CoerceString(v) != "main" {
 			t.Errorf("context key %q: %v, %v", key, v, err)
 		}
 	}
 	// A declared but absent context is null.
-	v, err := Evaluate(node, EvalContext{})
+	v, err := Evaluate(context.Background(), node, EvalContext{})
 	if err != nil || v.Kind() != KindNull {
 		t.Errorf("absent context: %v, %v", v, err)
 	}
@@ -742,14 +743,14 @@ func TestContextNames(t *testing.T) {
 	}
 	// A nil Value in a context behaves as null.
 	node, _ = Parse("github.a.b", []string{"github"}, nil)
-	if v, err := Evaluate(node, EvalContext{Contexts: map[string]Value{"github": nil}}); err != nil || v.Kind() != KindNull {
+	if v, err := Evaluate(context.Background(), node, EvalContext{Contexts: map[string]Value{"github": nil}}); err != nil || v.Kind() != KindNull {
 		t.Errorf("nil context value: %v, %v", v, err)
 	}
 	var nilDict *Dictionary
 	var nilArr *Array
 	node, _ = Parse("(github)[0] || x", []string{"github", "x"}, nil)
 	for _, bad := range []Value{nilDict, nilArr} {
-		if _, err := Evaluate(node, EvalContext{Contexts: map[string]Value{"github": bad}}); err != nil {
+		if _, err := Evaluate(context.Background(), node, EvalContext{Contexts: map[string]Value{"github": bad}}); err != nil {
 			t.Errorf("typed nil %T: %v", bad, err)
 		}
 	}
@@ -766,7 +767,7 @@ func TestEvaluateDoesNotMutateContext(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		v, err := Evaluate(node, EvalContext{Contexts: ctxs})
+		v, err := Evaluate(context.Background(), node, EvalContext{Contexts: ctxs})
 		if err != nil {
 			t.Fatal(err)
 		}
