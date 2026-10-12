@@ -155,7 +155,9 @@ func clip(s string) string {
 // when both sides are one; an expression that merely mentions fromJSON does not
 // get a free pass.
 func TestSameAnswerFromJSON(t *testing.T) {
-	ev := func(m, x string) runnerCase { return runnerCase{E: "fromJSON('x')", Err: &runnerErr{T: "eval", M: m, X: x}} }
+	ev := func(m, x string) runnerCase {
+		return runnerCase{E: "fromJSON('x')", Err: &runnerErr{T: "eval", M: m, X: x}}
+	}
 	reader := ev("Error parsing JSON when evaluating fromJson", "JsonReaderException")
 	runnerReader := ev("Unexpected character encountered while parsing value: x. Path '', line 0, position 0.", "JsonReaderException")
 	format := ev("The following format string is invalid: {", "FormatException")
