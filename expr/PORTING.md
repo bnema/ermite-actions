@@ -7,11 +7,56 @@ reference answers for 33 575 expressions (tokens with positions, error
 messages, result kinds, string coercions, `toJSON` output), and
 `TestOracle` replays it. `gen/oracle.mjs` regenerates it, `gen/golden.mjs` the
 `testdata/tojson` goldens, and `gen/casing_dump.mjs` + `gen/casing.go` the
-casing tables (Node 25 / V8 14.1, Unicode 16; Go 1.27 ships Unicode 15).
+casing tables (`go generate ./expr`; Node 25 / V8 14.1, Unicode 16). The
+tables are relative to the Go toolchain's own Unicode tables
+(`unicode.Version`); `TestCasingTablesMatchGoUnicodeVersion` fails with the
+regeneration command when the toolchain changes. The oracle records the
+npm integrity (sha512) of the reference tarball and the Node/V8/Unicode
+versions in its `reference` field, and `TestOracle` logs them.
 
 The C# runner (actions/runner, `DistributedTask/Expressions2`) is the
 implementation that runs on github.com. It was not available while this was
 written. Nothing below has been checked against it.
+
+## Limits added by this port (not in the JavaScript)
+
+The reference has no bound on what an evaluation may build. These are
+additions, each reported as an `*EvalError` (or `*Error` for the parser) and
+none changes the result of an evaluation that stays within them.
+
+- **Output budget** (`MaxResultBytes`, 1 MiB by default, `EvalContext.
+  MaxResultBytes` to override, negative to disable). One budget per
+  `Evaluate`, charged by `format` (every piece appended), `join` (items and
+  separators), `toJSON` (the encoder stops as soon as the output would exceed
+  what is left) and by every element of the arrays built by `.*` / `[*]`
+  (16 bytes each). `format('{0}{0}', format('{0}{0}', ...))` chains and
+  `a.*.*.*` fan-outs over shared arrays are cut off instead of exhausting
+  memory. Strings that come out of `fromJSON` are not charged: their size is
+  bounded by the input the caller provided. The cost per filtered element is a
+  guess; revisit it if real workflows hit the limit.
+- **Cancellation**: `Evaluate(ctx, ...)` checks `ctx` every 64 nodes and in the
+  loops of filters, `join` and `contains`, and passes `ctx` to extension
+  functions.
+- **Evaluation depth** of 1000 for hand-built trees (parsed trees stay far
+  below it), **JSON depth** `MaxJSONDepth` = 1000 for `FromJSON` and for the
+  encoder (cyclic values built with `Array.Append` yield an error from
+  `EncodeJSON`, `"null"` from `ToJSON`, an `*EvalError` from `toJSON()`).
+  The JS recursion limit is engine-dependent, around 5 000 to 10 000.
+- **Built-in arity is re-checked at evaluation**, so a hand-built AST gets an
+  `*EvalError`, not a panic.
+- **Input length** is checked before the input is converted, without
+  allocating.
+
+Other limits that exist in the JS and are ported: expression length 21000
+UTF-16 units and parser depth 50 (see below).
+
+## Performance notes (deferred)
+
+- GO-008: `Evaluate` rebuilds the case-folded context and function maps on
+  every call, and `foldKey` lower-cases on each lookup. Fine for per-step
+  evaluation; when a caller evaluates thousands of expressions against the
+  same contexts, add a prepared `Environment` (fold once, reuse) and cache
+  folded names in the AST.
 
 ## Where the JavaScript is believed to differ from the C# runner
 
@@ -125,7 +170,15 @@ a bug.
   evaluating e.g. `github.true` with an empty context: the reference does not
   handle a missing root context. Here it is null.
 - Recursion limits: JS recursion depth for `fromJSON` input is engine
-  dependent (about 5 000 to 10 000 levels). `FromJSON` accepts 10 000 levels.
+  dependent (about 5 000 to 10 000 levels). `FromJSON` accepts `MaxJSONDepth`
+  (1000) levels.
+- Lone surrogates: JS strings are UTF-16 and can hold them; Go strings are
+  UTF-8. They are kept as WTF-8 (`0xED 0xA0-0xBF xx`) so that `fromJSON` /
+  `toJSON` round-trip, `==`/`<`/`contains`/`startsWith`/`endsWith` compare
+  them like code units, case mapping copies them, and `format`/`join` rejoin a
+  high surrogate followed by a low one into the character they form. This is
+  covered by oracle cases. Two surrogate strings concatenated by other means
+  (an extension function) are not rejoined.
 
 ## Other things to check once the runner is available
 
