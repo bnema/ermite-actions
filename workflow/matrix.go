@@ -34,8 +34,9 @@ type MatrixCombo struct {
 	// they were first added.
 	Values *expr.Dictionary
 	// Segments are the scalar values of Values, in order, shown in the name
-	// of the job: "build (ubuntu-latest, 14)". Arrays and mappings are left
-	// out; null shows as an empty segment.
+	// of the job: "build (ubuntu-latest, 14)". Null and the empty string are
+	// left out, as recorded (matrix-edge-values); arrays and mappings are
+	// left out too, which is assumed.
 	Segments []string
 }
 
@@ -69,16 +70,19 @@ func (c MatrixCombo) DisplayName(base string) string {
 // [MaxMatrixProduct], include and exclude may have [MaxMatrixEntries] entries
 // each, and ctx is checked every few thousand combinations.
 //
-// TODO(verify with recording): the documented semantics of include and
-// exclude are implemented as documented, but the following are assumed: the
-// order of the cross product (first key slowest), the display name listing
-// every scalar value including those added by include (see
-// [MatrixCombo.DisplayName]) and showing null as an empty segment, the
-// comparison of values (same kind, strings compared exactly, mappings by
-// containment), an include key matching a vector key case-insensitively, the
-// error when every combination is excluded, the limits above, and the
-// wording of all errors except the unknown exclude key, which is GitHub's
-// (also to verify).
+// What github.com settled. Recorded (matrix-edge-values): null and the empty
+// string are left out of the default job name. For matrix-edge-values (exclude key not
+// in the matrix) and matrix-over-256 the recordings hold only a failed run
+// with no job: the wording of the two errors below, and the unknown exclude
+// key being reported once per offending entry, were observed on the github.com
+// run page, not in the recordings. Still assumed, from the documented
+// semantics of include and exclude: the order of the cross product (first key
+// slowest), the display name listing every scalar value including those
+// added by include (see [MatrixCombo.DisplayName]), the comparison of values
+// (same kind, strings compared exactly, mappings by containment), an include
+// key matching a vector key case-insensitively, the error when every
+// combination is excluded, the other limits above, and the wording of the
+// other errors.
 func ExpandMatrix(ctx context.Context, strategy expr.Value) ([]MatrixCombo, error) {
 	s, err := ParseStrategy(ctx, strategy)
 	if err != nil {
@@ -121,7 +125,7 @@ func buildMatrix(ctx context.Context, m expr.Value) ([]MatrixCombo, bool, error)
 				return nil, false, fmt.Errorf("matrix vector '%s' does not contain any values", p.Key)
 			}
 			if arr.Len() > MaxMatrixProduct {
-				return nil, false, errTooBig
+				return nil, false, errProductTooBig
 			}
 			vecs = append(vecs, vector{key: p.Key, items: arr.Items()})
 		}
@@ -153,7 +157,32 @@ type message string
 
 func (m message) Error() string { return string(m) }
 
-var errTooBig = fmt.Errorf("matrix size limit of %d exceeded", MaxMatrixJobs)
+// errProductTooBig is returned when the cross product of the vectors is too
+// large to be enumerated. GitHub would count the configurations left after
+// the exclusions; this limit keeps the work bounded, see [MaxMatrixProduct].
+var errProductTooBig = fmt.Errorf("matrix too large: the cross product of the vectors exceeds %d combinations", MaxMatrixProduct)
+
+// configurationLimitError is returned when a matrix produces more than
+// [MaxMatrixJobs] configurations. Its text is the one observed on the
+// github.com run page for matrix-over-256 (not in the recordings, which only
+// hold the failed run): "Strategy for job 'too-many' produced 272
+// configurations which exceeds the maximum of 256 configurations". Job is
+// empty when the matrix was expanded without a job, see
+// [Job.EvaluateStrategy].
+type configurationLimitError struct {
+	// Job is the id of the job.
+	Job string
+	// Count is the number of configurations the matrix produces.
+	Count int
+}
+
+func (e *configurationLimitError) Error() string {
+	subject := "Strategy"
+	if e.Job != "" {
+		subject = fmt.Sprintf("Strategy for job '%s'", e.Job)
+	}
+	return fmt.Sprintf("%s produced %d configurations which exceeds the maximum of %d configurations", subject, e.Count, MaxMatrixJobs)
+}
 
 type vector struct {
 	key   string
@@ -188,18 +217,26 @@ func expand(ctx context.Context, vecs []vector, includes, excludes []*expr.Dicti
 	// Exclude entries become lists of conditions on item positions, so that
 	// testing a combination costs a few array reads.
 	var excl [][]condition
+	var bad []error
 	for _, ex := range excludes {
 		var conds []condition
+		unknown := false
 		for _, p := range ex.Pairs() {
 			vi, ok := index[strings.ToLower(p.Key)]
 			if !ok {
-				return nil, false, message(fmt.Sprintf("Matrix exclude key '%s' does not match any key within the matrix", p.Key))
+				// One error per offending entry, for its first unknown key.
+				bad = append(bad, message(fmt.Sprintf("Matrix exclude key '%s' does not match any key within the matrix", p.Key)))
+				unknown = true
+				break
 			}
 			conds = append(conds, compileCondition(vecs, vi, p.Value))
 		}
-		if len(conds) > 0 {
+		if len(conds) > 0 && !unknown {
 			excl = append(excl, conds)
 		}
+	}
+	if len(bad) > 0 {
+		return nil, false, errors.Join(bad...)
 	}
 	incl := make([]includeEntry, len(includes))
 	for n, inc := range includes {
@@ -212,14 +249,17 @@ func expand(ctx context.Context, vecs []vector, includes, excludes []*expr.Dicti
 		}
 	}
 
+	// total counts every configuration, so that the error of a matrix over the
+	// limit tells how many it produces; only the first MaxMatrixJobs are built.
 	var combos []MatrixCombo
+	total := 0
 	matched := make([]bool, len(includes))
 	if len(vecs) > 0 {
 		product := 1
 		for _, v := range vecs {
 			product *= len(v.items)
 			if product > MaxMatrixProduct {
-				return nil, false, errTooBig
+				return nil, false, errProductTooBig
 			}
 		}
 		tuple := make([]int, len(vecs))
@@ -245,22 +285,28 @@ func expand(ctx context.Context, vecs []vector, includes, excludes []*expr.Dicti
 					continue next
 				}
 			}
-			b := &comboBuilder{vals: map[string]expr.Value{}}
-			for k, v := range vecs {
-				b.set(v.key, v.items[tuple[k]])
+			total++
+			build := total <= MaxMatrixJobs
+			var b *comboBuilder
+			if build {
+				b = &comboBuilder{vals: map[string]expr.Value{}}
+				for k, v := range vecs {
+					b.set(v.key, v.items[tuple[k]])
+				}
 			}
 			for n, inc := range incl {
 				if !allHold(inc.conds, tuple) {
 					continue
 				}
 				matched[n] = true
-				for _, p := range inc.extra {
-					b.set(p.Key, p.Value)
+				if build {
+					for _, p := range inc.extra {
+						b.set(p.Key, p.Value)
+					}
 				}
 			}
-			combos = append(combos, b.combo())
-			if len(combos) > MaxMatrixJobs {
-				return nil, false, errTooBig
+			if build {
+				combos = append(combos, b.combo())
 			}
 		}
 	}
@@ -268,14 +314,18 @@ func expand(ctx context.Context, vecs []vector, includes, excludes []*expr.Dicti
 		if matched[n] {
 			continue
 		}
+		total++
+		if total > MaxMatrixJobs {
+			continue
+		}
 		b := &comboBuilder{vals: map[string]expr.Value{}}
 		for _, p := range inc.Pairs() {
 			b.set(p.Key, p.Value)
 		}
 		combos = append(combos, b.combo())
-		if len(combos) > MaxMatrixJobs {
-			return nil, false, errTooBig
-		}
+	}
+	if total > MaxMatrixJobs {
+		return nil, false, &configurationLimitError{Count: total}
 	}
 	if len(combos) == 0 {
 		if len(vecs) == 0 && len(includes) == 0 && len(excludes) == 0 {
@@ -368,12 +418,16 @@ func valuesMatch(have, want expr.Value) bool {
 	return false
 }
 
-// segment is the text a matrix value adds to the name of a job; arrays and
-// mappings add nothing.
+// segment is the text a matrix value adds to the name of a job. Null and the
+// empty string add nothing, numbers and booleans are shown as in an
+// expression ("1.5", "true"); all recorded (matrix-edge-values:
+// "default-name", "two-axes (x)"). Arrays and mappings add nothing: assumed,
+// not recorded.
 func segment(v expr.Value) (string, bool) {
 	switch v.(type) {
-	case *expr.Array, *expr.Dictionary:
+	case nil, expr.Null, *expr.Array, *expr.Dictionary:
 		return "", false
 	}
-	return expr.CoerceString(v), true
+	s := expr.CoerceString(v)
+	return s, s != ""
 }

@@ -134,7 +134,12 @@ func (j *Job) EvaluateStrategy(ctx context.Context, env template.Env) (*Strategy
 	if err != nil {
 		return nil, err
 	}
-	return ParseStrategy(ctx, v)
+	st, err := ParseStrategy(ctx, v)
+	var limit *configurationLimitError
+	if errors.As(err, &limit) {
+		return nil, &configurationLimitError{Job: j.ID, Count: limit.Count}
+	}
+	return st, err
 }
 
 // MatrixEnv returns env with the "matrix" and "strategy" contexts of
@@ -158,11 +163,12 @@ func (s *Strategy) MatrixEnv(env template.Env, index int) (template.Env, error) 
 // DisplayName evaluates the job's name for combination index of its
 // strategy: the name token (or the job id) with the matrix values added in
 // parentheses, unless the name is set and reads the matrix context, in which
-// case it is used as is. env must already include the matrix and strategy
-// contexts, see [Strategy.MatrixEnv].
+// case it is used as is. Null and empty values are not listed. env must
+// already include the matrix and strategy contexts, see [Strategy.MatrixEnv].
 //
-// TODO(verify with recording): GitHub adds the values to the name unless the
-// name is set and refers to the matrix.
+// Recorded on github.com (matrix-job-name): "default-name (a, 1)", a custom
+// name using the matrix as is, and a custom name that does not read the
+// matrix followed by the values ("same name for every leg (1)").
 func (j *Job) DisplayName(ctx context.Context, env template.Env, s *Strategy, index int) (string, error) {
 	if index < 0 || index >= len(s.Combos) {
 		return "", fmt.Errorf("matrix combination %d out of range (%d combinations)", index, len(s.Combos))

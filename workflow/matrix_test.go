@@ -140,7 +140,7 @@ func TestExpandMatrix(t *testing.T) {
 		{
 			"booleans, null and numbers in names",
 			`{"matrix": {"a": [true, null, 1.5]}}`,
-			[]string{`a=true | job (true)`, `a=null | job ()`, `a=1.5 | job (1.5)`},
+			[]string{`a=true | job (true)`, `a=null | job`, `a=1.5 | job (1.5)`},
 		},
 		{
 			"objects and arrays are not in names",
@@ -212,7 +212,7 @@ func TestMatrixLimit(t *testing.T) {
 		t.Errorf("256 jobs: %d, %v", len(c), err)
 	}
 	_, err := ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": `+vec(16)+`, "b": `+vec(16)+`, "include": [{"a": 99}]}}`))
-	if err == nil || !strings.Contains(err.Error(), "matrix size limit of 256 exceeded") {
+	if err == nil || !strings.Contains(err.Error(), "Strategy produced 257 configurations which exceeds the maximum of 256 configurations") {
 		t.Errorf("257 jobs: %v", err)
 	}
 	_, err = ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": `+vec(17)+`, "b": `+vec(16)+`}}`))
@@ -290,7 +290,7 @@ func TestHostileMatrixFailsFast(t *testing.T) {
 	src := `{"matrix": {"a": ` + vec(100) + `, "b": ` + vec(100) + `, "c": ` + vec(100) + `, "exclude": ` + strings.ReplaceAll(entries(256), `"a": 1`, `"c": 5`) + `}}`
 	start := time.Now()
 	_, err := ExpandMatrix(ctxbg, jsonValue(t, src))
-	if err == nil || !strings.Contains(err.Error(), "matrix size limit") {
+	if err == nil || !strings.Contains(err.Error(), "matrix too large") {
 		t.Errorf("err = %v", err)
 	}
 	if d := time.Since(start); d > time.Second {
@@ -321,11 +321,12 @@ func TestMatrixProductCap(t *testing.T) {
 	}
 	// 2^16 is allowed by the cap (and fails on the job limit), 2^16+1 is refused outright.
 	_, err := ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": `+vec(MaxMatrixProduct/2)+`, "b": `+vec(2)+`, "c": `+vec(1)+`}}`))
-	if err == nil || !strings.Contains(err.Error(), "matrix size limit") {
+	var limit *configurationLimitError
+	if !errors.As(err, &limit) || limit.Count != MaxMatrixProduct {
 		t.Errorf("err = %v", err)
 	}
 	_, err = ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": `+vec(MaxMatrixProduct+1)+`}}`))
-	if err == nil || !strings.Contains(err.Error(), "matrix size limit") {
+	if err == nil || !strings.Contains(err.Error(), "matrix too large") {
 		t.Errorf("one huge vector: %v", err)
 	}
 }
@@ -348,15 +349,89 @@ func TestMatrixContextIsHonoured(t *testing.T) {
 	}
 }
 
-func TestNullMatrixValueSegment(t *testing.T) {
-	// TODO(verify with recording): a null value shows as an empty segment,
-	// "job (, 1)"; GitHub may skip it.
-	combos, err := ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": [null], "b": [1]}}`))
-	if err != nil {
-		t.Fatal(err)
+// TestRecordedMatrixNames follows the job names GitHub gave in the scenarios
+// matrix-edge-values (b-null-values.yml) and matrix-job-name.
+func TestRecordedMatrixNames(t *testing.T) {
+	names := func(matrix string) []string {
+		t.Helper()
+		combos, err := ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": `+matrix+`}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var out []string
+		for _, c := range combos {
+			out = append(out, c.DisplayName("default-name"))
+		}
+		return out
 	}
-	if got := combos[0].DisplayName("job"); got != "job (, 1)" {
-		t.Errorf("name = %q", got)
+	// v: [1, null, '', true, 1.50, 'x y'] gave default-name, default-name,
+	// default-name (1), default-name (1.5), default-name (true) and
+	// default-name (x y): null and '' add nothing, 1.50 is 1.5.
+	want := []string{"default-name (1)", "default-name", "default-name", "default-name (true)", "default-name (1.5)", "default-name (x y)"}
+	if got := names(`{"v": [1, null, "", true, 1.50, "x y"]}`); !reflect.DeepEqual(got, want) {
+		t.Errorf("one axis: got %q, want %q", got, want)
+	}
+	// a: [x, null], b: ['', y] gave "two-axes (x)", "two-axes (x, y)",
+	// "two-axes (y)" and "two-axes".
+	want = []string{"default-name (x)", "default-name (x, y)", "default-name", "default-name (y)"}
+	if got := names(`{"a": ["x", null], "b": ["", "y"]}`); !reflect.DeepEqual(got, want) {
+		t.Errorf("two axes: got %q, want %q", got, want)
+	}
+	// matrix-job-name: os [a, b] x n [1, 2] gave "default-name (a, 1)" ...
+	want = []string{"default-name (a, 1)", "default-name (a, 2)", "default-name (b, 1)", "default-name (b, 2)"}
+	if got := names(`{"os": ["a", "b"], "n": [1, 2]}`); !reflect.DeepEqual(got, want) {
+		t.Errorf("matrix-job-name: got %q, want %q", got, want)
+	}
+	// Objects are not listed. Assumed, not recorded: matrix-value-types has
+	// custom names only.
+	if got := names(`{"n": [1], "obj": [{"k": "v"}]}`); !reflect.DeepEqual(got, []string{"default-name (1)"}) {
+		t.Errorf("object value: got %q", got)
+	}
+}
+
+// TestRecordedExcludeUnknownKey is matrix-edge-values a-exclude-unknown-key.yml:
+// exclude: [{nokey: x}, {os: one, nokey: y}] made the workflow invalid. The
+// recording holds only the failed run; the message, once per offending entry,
+// was observed on the github.com run page.
+func TestRecordedExcludeUnknownKey(t *testing.T) {
+	_, err := ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"os": ["one", "two"], "exclude": [{"nokey": "x"}, {"os": "one", "nokey": "y"}]}}`))
+	const one = "Matrix exclude key 'nokey' does not match any key within the matrix"
+	if err == nil || err.Error() != one+"\n"+one {
+		t.Fatalf("err = %v, want the message once per offending entry", err)
+	}
+	// An entry that is fine does not add one.
+	_, err = ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"os": ["one", "two"], "exclude": [{"os": "one"}, {"nokey": "x"}]}}`))
+	if err == nil || err.Error() != one {
+		t.Errorf("err = %v, want %q", err, one)
+	}
+}
+
+// TestRecordedMatrixOver256 is the scenario matrix-over-256: 17 x 16 = 272
+// configurations in job too-many made the workflow invalid. The recording
+// holds only the failed run; the message was observed on the github.com run
+// page.
+func TestRecordedMatrixOver256(t *testing.T) {
+	w, errs := Parse("ci.yml", []byte(`on: push
+jobs:
+  too-many:
+    runs-on: x
+    strategy:
+      matrix:
+        a: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+        b: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    steps: [{run: a}]
+`))
+	if len(errs) > 0 {
+		t.Fatal(errs)
+	}
+	_, err := w.Job("too-many").EvaluateStrategy(ctxbg, template.Env{})
+	const want = "Strategy for job 'too-many' produced 272 configurations which exceeds the maximum of 256 configurations"
+	if err == nil || err.Error() != want {
+		t.Errorf("err = %v, want %q", err, want)
+	}
+	var limit *configurationLimitError
+	if !errors.As(err, &limit) || limit.Job != "too-many" || limit.Count != 272 {
+		t.Errorf("err = %#v", err)
 	}
 }
 

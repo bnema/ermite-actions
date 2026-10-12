@@ -6,9 +6,13 @@ import "strings"
 
 // Limits GitHub applies to push events.
 const (
-	// MaxFilesEvaluated is the number of changed files a paths filter looks
-	// at; files after the 300th are ignored.
-	MaxFilesEvaluated = 300
+	// MaxFilesEvaluated is the number of changed files a paths or paths-ignore
+	// filter looks at; files after the 3000th are ignored. Recorded on
+	// github.com (filter-paths-3000-boundary): a push of exactly 3000 files
+	// whose only match is the last one runs the workflow, the same push with
+	// 3001 files does not. It is not 300 (filter-paths-300-files and
+	// filter-paths-1200-files: a match beyond the 300th file still runs).
+	MaxFilesEvaluated = 3000
 	// MaxTagsPerPush is the number of tags that can be pushed at once before
 	// GitHub creates no event for them.
 	MaxTagsPerPush = 3
@@ -43,15 +47,17 @@ type PushInfo struct {
 //   - when both a branches and a tags filter exist, a ref is checked against
 //     the filter for its kind;
 //   - paths and paths-ignore apply to branch pushes only, against the first
-//     300 changed files; when the list is truncated they pass;
+//     3000 changed files; when the list is unavailable (see
+//     [PushInfo.FilesTruncated]) they pass;
 //   - patterns are evaluated in order and the last one that matches wins.
 //
 // Commit-message directives are separate: see [SkipCI].
 //
-// TODO(verify with recording): the order in which a branch filter and a
-// paths filter combine is "both must pass" (documented); behaviour on refs
-// that are neither a branch nor a tag, and on a push that changes no file, is
-// assumed.
+// Recorded on github.com: push-tags-limit, filter-tags, filter-branches-ignore,
+// filter-tag-branches-only, filter-paths-tag, push-delete-branch and
+// push-delete-tag, see TestMatchPushRecordedTags. Still assumed: the
+// behaviour on refs that are neither a branch nor a tag, and on a push that
+// changes no file.
 func (w *Workflow) MatchPush(p PushInfo) bool {
 	if w == nil || w.On == nil {
 		return false
