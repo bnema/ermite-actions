@@ -5,7 +5,7 @@ The package is a port of the template layer of `@actions/workflow-parser`
 schema) and `workflows/yaml-object-reader`. The schema
 `schema/workflow-v1.0.min.json` is copied unmodified. The reference's own
 output is the specification: `../workflow/testdata/convert.json` holds what it
-answers for 160 workflow files and `workflow.TestConvertAgainstReference`
+answers for 153 workflow files and `workflow.TestConvertAgainstReference`
 replays them (messages, line and column included).
 
 The C# runner (`ObjectTemplating`) is what runs on github.com. It was not
