@@ -72,21 +72,8 @@ func (c *converter) convertRunsOn(t template.Token) {
 				continue
 			}
 			group := asString(p.Value, "job runs-on group name").Value
-			names := strings.Split(group, "/")
-			switch len(names) {
-			case 1:
-			case 2:
-				switch names[0] {
-				case "org", "organization", "ent", "enterprise":
-				default:
-					c.ctx.Errorf(p.Value, "Invalid runs-on group name '%s. Please use 'organization/' or 'enterprise/' prefix to target a single runner group.'", group)
-					continue
-				}
-				if names[1] == "" {
-					c.ctx.Errorf(p.Value, "Invalid runs-on group name '%s'.", group)
-				}
-			default:
-				c.ctx.Errorf(p.Value, "Invalid runs-on group name '%s. Please use 'organization/' or 'enterprise/' prefix to target a single runner group.'", group)
+			if msg := checkGroup(group); msg != "" {
+				c.ctx.ErrorAt(p.Value, msg)
 			}
 		case "labels":
 			runsOnLabels(p.Value)

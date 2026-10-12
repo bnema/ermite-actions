@@ -65,7 +65,10 @@ jobs:
 	names := make([]string, len(s.Combos))
 	runsOn := make([]string, len(s.Combos))
 	for i := range s.Combos {
-		e := s.MatrixEnv(env, i)
+		e, err := s.MatrixEnv(env, i)
+		if err != nil {
+			t.Fatal(err)
+		}
 		names[i], err = job.DisplayName(context.Background(), e, s, i)
 		if err != nil {
 			t.Fatal(err)
@@ -88,7 +91,7 @@ jobs:
 	// The strategy context.
 	schema, _ := template.WorkflowSchema()
 	e := template.NewExpression(template.Origin{}, "format('{0}/{1}', strategy.job-index, strategy.job-total)", schema.Info("runs-on"))
-	if got, err := template.EvaluateString(context.Background(), e, s.MatrixEnv(env, 2)); err != nil || got != "2/4" {
+	if got, err := template.EvaluateString(context.Background(), e, mustMatrixEnv(t, s, env, 2)); err != nil || got != "2/4" {
 		t.Errorf("strategy context = %q, %v", got, err)
 	}
 }
@@ -113,7 +116,7 @@ jobs:
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got, _ := j.DisplayName(context.Background(), s.MatrixEnv(env, 1), s, 1); got != "build-m" {
+	if got, _ := j.DisplayName(context.Background(), mustMatrixEnv(t, s, env, 1), s, 1); got != "build-m" {
 		t.Errorf("name = %q", got)
 	}
 	b := w.Job("b")
@@ -178,4 +181,13 @@ jobs:
 	if b.Steps[0].If.Expression != "always()" || b.Steps[1].If.Expression != "success()" {
 		t.Errorf("step ifs = %s, %s", b.Steps[0].If.Expression, b.Steps[1].If.Expression)
 	}
+}
+
+func mustMatrixEnv(t testing.TB, s *Strategy, env template.Env, i int) template.Env {
+	t.Helper()
+	e, err := s.MatrixEnv(env, i)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return e
 }

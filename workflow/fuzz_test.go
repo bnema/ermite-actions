@@ -41,7 +41,7 @@ func FuzzExpandMatrix(f *testing.F) {
 		if v == nil {
 			return
 		}
-		_, _ = ExpandMatrix(v)
+		_, _ = ExpandMatrix(ctxbg, v)
 	})
 }
 
