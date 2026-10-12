@@ -15,6 +15,14 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
+// MaxFileBytes is the largest document [ReadYAML] accepts: 1 MiB. The check
+// comes before any parsing, so that a hostile file costs nothing more than
+// its length; a file this size can still expand through aliases (see
+// [MaxNodes]).
+//
+// TODO(verify with recording): GitHub's own limit and message.
+const MaxFileBytes = 1 << 20
+
 // MaxNodes is the number of YAML nodes a document may expand to, counting
 // every use of an alias. The reference expands aliases without a limit, so a
 // small document of nested aliases can allocate gigabytes.

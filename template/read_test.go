@@ -129,3 +129,33 @@ func TestAliasBombIsRejected(t *testing.T) {
 		t.Errorf("errs = %q", errs)
 	}
 }
+
+func TestFileSizeLimit(t *testing.T) {
+	s, err := WorkflowSchema()
+	if err != nil {
+		t.Fatal(err)
+	}
+	big := []byte("on: push\n# " + strings.Repeat("x", MaxFileBytes) + "\n")
+	ctx := NewContext(s)
+	if tok := ReadYAML(ctx, "workflow-root-strict", "big.yml", big); tok != nil {
+		t.Error("token returned for an oversized file")
+	}
+	errs := ctx.Messages()
+	if len(errs) != 1 || !strings.HasPrefix(errs[0], "big.yml: The file is too large: ") {
+		t.Errorf("errors = %q", errs)
+	}
+	// Exactly at the limit is read.
+	ok := append([]byte("on: push\njobs: {}\n# "), make([]byte, 0)...)
+	pad := MaxFileBytes - len(ok) - 1
+	ok = append(ok, []byte(strings.Repeat("x", pad)+"\n")...)
+	if len(ok) != MaxFileBytes {
+		t.Fatalf("test file is %d bytes", len(ok))
+	}
+	ctx = NewContext(s)
+	ReadYAML(ctx, "workflow-root-strict", "ok.yml", ok)
+	for _, m := range ctx.Messages() {
+		if strings.Contains(m, "too large") {
+			t.Errorf("file at the limit refused: %s", m)
+		}
+	}
+}

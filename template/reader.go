@@ -14,8 +14,15 @@ import (
 // misplaced expressions, are recorded in ctx; the returned token holds what
 // could be read and is nil when the document is not valid YAML.
 //
-// An empty document is an error, as in the reference.
+// An empty document is an error, as in the reference. A document larger than
+// [MaxFileBytes] is refused before it is parsed, with one error about the
+// file.
 func ReadYAML(ctx *Context, rootType, file string, content []byte) (root Token) {
+	if len(content) > MaxFileBytes {
+		e := &Error{File: file, fileOnly: true, Raw: fmt.Sprintf("The file is too large: %d bytes, the limit is %d bytes", len(content), MaxFileBytes)}
+		ctx.add(e)
+		return nil
+	}
 	res := readYAMLDocument(file, content)
 	for _, e := range res.errs {
 		ctx.add(e)

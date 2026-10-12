@@ -288,3 +288,36 @@ func trimDisplay(s string) string {
 // is empty. Callers that only inspect the tree (to look for function calls,
 // for instance) use it with the types of package expr.
 func (t *BasicExpression) Node() expr.Node { return t.node }
+
+// UsesContext reports whether the expression reads the named context
+// ("matrix", "secrets"...), anywhere in its syntax tree and whatever the
+// case. A function call is not a use of a context named like the function.
+func (t *BasicExpression) UsesContext(name string) bool { return nodeUsesContext(t.node, name) }
+
+func nodeUsesContext(n expr.Node, name string) bool {
+	switch n := n.(type) {
+	case *expr.ContextAccess:
+		return strings.EqualFold(n.Name.Lexeme, name)
+	case *expr.Unary:
+		return nodeUsesContext(n.Expr, name)
+	case *expr.Binary:
+		return nodeUsesContext(n.Left, name) || nodeUsesContext(n.Right, name)
+	case *expr.Grouping:
+		return nodeUsesContext(n.Group, name)
+	case *expr.IndexAccess:
+		return nodeUsesContext(n.Expr, name) || nodeUsesContext(n.Index, name)
+	case *expr.Logical:
+		for _, a := range n.Args {
+			if nodeUsesContext(a, name) {
+				return true
+			}
+		}
+	case *expr.FunctionCall:
+		for _, a := range n.Args {
+			if nodeUsesContext(a, name) {
+				return true
+			}
+		}
+	}
+	return false
+}

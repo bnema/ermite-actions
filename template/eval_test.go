@@ -210,3 +210,37 @@ func TestJSNumberString(t *testing.T) {
 		}
 	}
 }
+
+func TestUsesContext(t *testing.T) {
+	info := mustInfo(t, "step-env")
+	tests := []struct {
+		expr, ctx string
+		want      bool
+	}{
+		{"matrix.os", "matrix", true},
+		{"MATRIX.os", "matrix", true},
+		{"github.ref == 'x' && matrix.os", "matrix", true},
+		{"format('{0}', fromJSON(matrix.a))", "matrix", true},
+		{"!(matrix.a)", "matrix", true},
+		{"github.event.matrix", "matrix", false},
+		{"github['matrix']", "matrix", false},
+		{"github[matrix.k]", "matrix", true},
+		{"'matrix.os'", "matrix", false},
+		{"contains(github.ref, 'matrix.')", "matrix", false},
+		{"matrix", "matrix", true},
+		{"env.matrix", "matrix", false},
+	}
+	for _, tc := range tests {
+		e := NewExpression(Origin{}, tc.expr, info)
+		if e.Err() != nil {
+			t.Errorf("%s: %v", tc.expr, e.Err())
+			continue
+		}
+		if got := e.UsesContext(tc.ctx); got != tc.want {
+			t.Errorf("UsesContext(%q, %q) = %v, want %v", tc.expr, tc.ctx, got, tc.want)
+		}
+	}
+	if (&BasicExpression{}).UsesContext("matrix") {
+		t.Error("empty expression uses a context")
+	}
+}
