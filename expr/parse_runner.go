@@ -3,6 +3,7 @@
 package expr
 
 import (
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf16"
@@ -398,6 +399,7 @@ type csParser struct {
 	operators  []*csToken
 	last       *csToken // the previous token
 	cur        *csToken
+	lineStarts []int // offsets of the first unit of each line, see position
 }
 
 // fail builds the ParseException of the runner: with a token, the message names
@@ -415,16 +417,21 @@ func (p *csParser) fail(t ErrorType, tok *csToken) *Error {
 }
 
 // position converts an absolute index into the line and column of the
-// JavaScript-style Position (line breaks are U+000A).
+// JavaScript-style Position (line breaks are U+000A). The offsets of the line
+// starts are computed once, on first use, so that building the position of
+// every token stays linear in the length of the expression.
 func (p *csParser) position(index int) Position {
-	line, lineStart := 0, 0
-	for i := 0; i < index && i < len(p.units); i++ {
-		if p.units[i] == '\n' {
-			line++
-			lineStart = i + 1
+	if p.lineStarts == nil {
+		p.lineStarts = []int{0}
+		for i, u := range p.units {
+			if u == '\n' {
+				p.lineStarts = append(p.lineStarts, i+1)
+			}
 		}
 	}
-	return Position{Line: line, Column: index - lineStart}
+	// The line is the last start that is <= index.
+	line := sort.Search(len(p.lineStarts), func(i int) bool { return p.lineStarts[i] > index }) - 1
+	return Position{Line: line, Column: index - p.lineStarts[line]}
 }
 
 func (p *csParser) token(t *csToken, typ TokenType) Token {
@@ -638,10 +645,18 @@ func (p *csParser) flushTop() error {
 			typ = TokenOr
 		}
 		l := &Logical{Operator: p.token(op, typ)}
-		for _, a := range args {
+		for i, a := range args {
 			// A nested chain of the same operator is merged, as the runner does.
+			// The left operand of "a || b || c" is the chain built so far: its
+			// slice is extended instead of copied, which keeps a long chain
+			// linear.
 			if nested, ok := a.(*Logical); ok && nested.Operator.Type == typ {
-				l.Args = append(l.Args, nested.Args...)
+				if i == 0 {
+					l.Operator = nested.Operator
+					l.Args = nested.Args
+				} else {
+					l.Args = append(l.Args, nested.Args...)
+				}
 			} else {
 				l.Args = append(l.Args, a)
 			}

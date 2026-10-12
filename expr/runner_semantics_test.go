@@ -4,7 +4,9 @@ package expr
 
 import (
 	"context"
+	"strings"
 	"testing"
+	"unicode/utf16"
 )
 
 // TestRunnerSemantics pins behaviours of the PORTING.md list that the C# runner
@@ -110,6 +112,32 @@ func TestRunnerSemantics(t *testing.T) {
 	for _, src := range []string{"", "   ", "\n", "\u00a0"} {
 		if n, err := Parse(src, nil, nil); n != nil || err != nil {
 			t.Errorf("Parse(%q) = %v, %v; want nil, nil", src, n, err)
+		}
+	}
+}
+
+// BenchmarkParseLong parses an expression of the maximum length made of many
+// short tokens spread over many lines: building the position of every token
+// must not rescan the expression.
+func BenchmarkParseLong(b *testing.B) {
+	src := strings.Repeat("1 ||\n", MaxExpressionLength/5-1) + "1"
+	if len(src) > MaxExpressionLength {
+		b.Fatal(len(src))
+	}
+	b.SetBytes(int64(len(src)))
+	for i := 0; i < b.N; i++ {
+		if _, err := Parse(src, nil, nil); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func TestPositionLines(t *testing.T) {
+	src := "a\n\nbc d\n  e"
+	p := &csParser{units: utf16.Encode([]rune(src))}
+	for _, tc := range []struct{ idx, line, col int }{{0, 0, 0}, {1, 0, 1}, {2, 1, 0}, {3, 2, 0}, {5, 2, 2}, {7, 2, 4}, {8, 3, 0}, {10, 3, 2}, {len(src), 3, 3}} {
+		if got := p.position(tc.idx); got.Line != tc.line || got.Column != tc.col {
+			t.Errorf("position(%d) = %v, want %d:%d", tc.idx, got, tc.line, tc.col)
 		}
 	}
 }
