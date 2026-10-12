@@ -1,0 +1,6 @@
+on: push
+x: &v x
+jobs:
+  a:
+    runs-on: *v
+    steps: [{run: a}]

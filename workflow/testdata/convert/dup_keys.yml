@@ -1,0 +1,9 @@
+on: push
+on: pull_request
+Name: a
+name: b
+jobs:
+  a:
+    runs-on: x
+    runs-on: y
+    steps: [{run: a}]

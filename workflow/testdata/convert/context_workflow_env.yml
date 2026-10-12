@@ -1,0 +1,7 @@
+on: push
+env:
+  A: ${{ matrix.x }}
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

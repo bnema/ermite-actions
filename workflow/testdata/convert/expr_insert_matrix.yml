@@ -1,0 +1,8 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ${{ insert }}: ${{ fromJSON(needs.x.outputs.m) }}
+    steps: [{run: a}]

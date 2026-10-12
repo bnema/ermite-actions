@@ -1,0 +1,7 @@
+on: push
+jobs:
+  a:
+    runs-on: x
+    continue-on-error: True
+    timeout-minutes: 0x10
+    steps: [{run: true}, {run: 12}, {run: 1.5}, {run: null}, {run: ~}]

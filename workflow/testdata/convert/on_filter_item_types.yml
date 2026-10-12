@@ -1,0 +1,8 @@
+on:
+  push:
+    branches: [1, a]
+    paths: [[x]]
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

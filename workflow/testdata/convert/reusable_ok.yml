@@ -1,0 +1,8 @@
+on: push
+jobs:
+  a:
+    uses: org/repo/.github/workflows/x.yml@v1
+    with:
+      a: 1
+    secrets:
+      s: ${{ secrets.t }}

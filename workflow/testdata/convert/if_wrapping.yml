@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    if: github.ref == 'x'
+    steps: [{run: a, if: "hashFiles('a')"}, {run: b, if: "${{ always() }}"}, {run: c, if: failure()}, {run: d, if: ''}, {run: e, if: '!cancelled()'}, {run: f, if: "contains(github.ref, 'a') || success()"}, {run: g, if: "toJSON(success())"}, {run: h, if: true}, {run: i, if: "${{ github.ref }} == 'x'"}]

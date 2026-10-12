@@ -1,0 +1,5 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps: [{run: 'echo ${{ matrix.a }} ${{ secrets.b }} ${{ job.status }} ${{ runner.os }} ${{ steps.x.outputs.y }} ${{ hashFiles("a") }} ${{ vars.q }} ${{ inputs.i }} ${{ env.x }}'}]

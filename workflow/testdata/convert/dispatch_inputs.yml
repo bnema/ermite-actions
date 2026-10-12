@@ -1,0 +1,23 @@
+on:
+  workflow_dispatch:
+    inputs:
+      a:
+        type: choice
+      b:
+        type: string
+        options: [x]
+      c:
+        type: boolean
+        default: foo
+      d:
+        type: environment
+      e:
+        description: x
+        required: true
+        default: y
+      f:
+        type: number
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

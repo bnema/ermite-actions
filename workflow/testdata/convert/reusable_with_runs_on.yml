@@ -1,0 +1,5 @@
+on: push
+jobs:
+  a:
+    uses: ./x.yml
+    runs-on: x

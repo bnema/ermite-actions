@@ -1,0 +1,5 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps: [{uses: a/b@v1, with: {a: 1, b: true, c: [1]}}]

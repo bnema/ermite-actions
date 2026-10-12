@@ -1,0 +1,5 @@
+on: push
+jobs:
+  a:
+    runs-on: {labels: [[a]]}
+    steps: [{run: a}]

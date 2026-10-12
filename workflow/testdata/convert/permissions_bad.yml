@@ -1,0 +1,8 @@
+on: push
+permissions:
+  bogus: read
+  contents: maybe
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

@@ -1,0 +1,7 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ${{ insert }}
+        run: x

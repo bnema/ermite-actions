@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    environment: {url: x}
+    steps: [{run: a}]

@@ -1,0 +1,5 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps: [{run: a, id: __run}, {run: b, id: _run}, {run: c}, {run: d}, {uses: _x/_y@v1}]

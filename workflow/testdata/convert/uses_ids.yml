@@ -1,0 +1,5 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps: [{uses: actions/checkout@v4}, {uses: ./x}, {uses: docker://alpine:3}, {run: a}, {run: b}, {uses: actions/checkout@v4}, {uses: a}, {uses: 'a/b/c@v1'}, {uses: '$/x'}, {uses: 'a@b@c'}, {uses: '/a/b@v'}, {uses: '.\x'}, {run: 1, id: __run}]

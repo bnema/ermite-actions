@@ -1,0 +1,86 @@
+name: CI
+run-name: Run ${{ github.actor }}
+on:
+  push:
+    branches: [main, 'release/**']
+    tags: ['v*']
+    paths: ['src/**']
+  pull_request:
+    branches-ignore: [wip]
+  schedule:
+    - cron: '30 5,17 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      level:
+        type: choice
+        options: [a, b]
+        default: a
+env:
+  A: 1
+  B: ${{ github.ref }}
+defaults:
+  run:
+    shell: bash
+    working-directory: ./x
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: [18, 20]
+        include:
+          - os: ubuntu-latest
+            extra: yes
+        exclude:
+          - os: macos-latest
+            node: 18
+    outputs:
+      v: ${{ steps.s.outputs.v }}
+    env:
+      X: ${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: s
+        run: echo "v=1" >> "$GITHUB_OUTPUT"
+        shell: bash
+        working-directory: sub
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: ${{ matrix.experimental }}
+        timeout-minutes: 3
+        env:
+          Y: ${{ steps.s.outputs.v }}
+      - run: echo
+        if: always()
+  test:
+    needs: build
+    runs-on: [self-hosted, linux]
+    if: ${{ needs.build.result == 'success' }}
+    container:
+      image: node:20
+      env: {A: b}
+      ports: ['80']
+    services:
+      db:
+        image: postgres
+        credentials: {username: u, password: p}
+    steps:
+      - run: echo ${{ needs.build.outputs.v }}
+  deploy:
+    needs: [build, test]
+    uses: ./.github/workflows/d.yml
+    with:
+      a: ${{ needs.build.outputs.v }}
+    secrets: inherit

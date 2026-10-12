@@ -1,0 +1,8 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        a: x ${{ insert }}
+    steps: [{run: a}]

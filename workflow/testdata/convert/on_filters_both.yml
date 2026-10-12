@@ -1,0 +1,12 @@
+on:
+  push:
+    branches: [a]
+    branches-ignore: [b]
+    tags: v*
+    tags-ignore: [x]
+    paths: ['**.go']
+    paths-ignore: []
+jobs:
+  a:
+    runs-on: x
+    steps: [{run: a}]

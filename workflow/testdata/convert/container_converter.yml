@@ -1,0 +1,6 @@
+on: push
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    container: {image: a, env: {A: 1}, ports: [80, '81'], volumes: [x], options: 1, credentials: {username: 1}}
+    steps: [{run: a}]

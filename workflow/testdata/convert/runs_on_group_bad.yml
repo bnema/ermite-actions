@@ -1,0 +1,14 @@
+on: push
+jobs:
+  a:
+    runs-on: {group: foo/bar/baz}
+    steps: [{run: a}]
+  b:
+    runs-on: {group: org/}
+    steps: [{run: a}]
+  c:
+    runs-on: {group: bogus/x}
+    steps: [{run: a}]
+  d:
+    runs-on: {group: org/x}
+    steps: [{run: a}]

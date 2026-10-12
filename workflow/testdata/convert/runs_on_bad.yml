@@ -1,0 +1,11 @@
+on: push
+jobs:
+  a:
+    runs-on: [[a]]
+    steps: [{run: a}]
+  b:
+    runs-on: 3
+    steps: [{run: a}]
+  c:
+    runs-on: ''
+    steps: [{run: a}]
