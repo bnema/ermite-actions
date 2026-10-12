@@ -42,6 +42,11 @@ code.
 
 ## Recorded (github.com, ermite-conformance corpus)
 
+Opt-in check against the corpus itself: `ERMITE_CORPUS=<ermite-conformance
+checkout> go test ./workflow -run Corpus` (`corpus_test.go`) replays the
+scenario files and compares the runs SkipCI, MatchPush and Parse predict with
+the recordings. The cases copied into the unit tests stay.
+
 - Status functions (`success()`, `failure()`, `always()`, `cancelled()`) in
   `env` or `run` expressions make the workflow invalid (recorded:
   expr-status-in-env, expr-status-in-run, each a failed run with no job). The
