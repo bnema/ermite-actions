@@ -81,7 +81,7 @@ func FuzzParse(f *testing.F) {
 			}
 			return
 		}
-		if node == nil && strings.TrimFunc(s, func(r rune) bool { return r == ' ' || r == '\t' || r == '\r' || r == '\n' }) != "" {
+		if node == nil && strings.TrimFunc(s, isNetSpace) != "" {
 			t.Fatalf("empty tree for non-blank input %q", s)
 		}
 		if d := nodeDepth(node); d > 2*MaxParserDepth+2 {

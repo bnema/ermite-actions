@@ -22,17 +22,18 @@ const head = "on: push\njobs:\n  a:\n    runs-on: x\n    steps:\n"
 
 func TestReadErrors(t *testing.T) {
 	// Expected messages come from @actions/workflow-parser 0.3.61 run on the
-	// same inputs.
+	// same inputs, except that expression errors carry the position suffix of
+	// the C# runner (package expr follows it).
 	tests := []struct {
 		name, src string
 		want      []string
 	}{
 		{"unknown context, block scalar", head + "      - run: |\n          echo hi\n          echo ${{ foo.bar }}\n",
-			[]string{"a.yml (Line: 6, Col: 14): Unrecognized named-value: 'foo'"}},
+			[]string{"a.yml (Line: 6, Col: 14): Unrecognized named-value: 'foo'. Located at position 1 within expression: foo.bar"}},
 		{"unknown context, plain", head + "      - run: echo ${{ foo.bar }} abc\n",
-			[]string{"a.yml (Line: 6, Col: 14): Unrecognized named-value: 'foo'"}},
+			[]string{"a.yml (Line: 6, Col: 14): Unrecognized named-value: 'foo'. Located at position 1 within expression: foo.bar"}},
 		{"unknown context, double quoted", head + "      - run: \"echo ${{ foo.bar }} abc\"\n",
-			[]string{"a.yml (Line: 6, Col: 14): Unrecognized named-value: 'foo'"}},
+			[]string{"a.yml (Line: 6, Col: 14): Unrecognized named-value: 'foo'. Located at position 1 within expression: foo.bar"}},
 		{"bad expression and insert in a name", head + "      - run: echo ${{ 1 +  }}\n      - name: ${{ insert }}\n        run: x\n",
 			[]string{"a.yml (Line: 6, Col: 14): Unexpected symbol: '+'. Located at position 3 within expression: 1 +", "a.yml (Line: 7, Col: 15): Unexpected value '${{ insert }}'"}},
 		{"not closed", head + "      - run: echo ${{ 1\n",

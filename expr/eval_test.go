@@ -81,14 +81,14 @@ func TestEvalLiteralsAndOperators(t *testing.T) {
 		{"0x10", "Number:16"},
 		{"0o17", "Number:15"},
 		{"0xffffffff", "Number:-1"}, // read as a 32-bit integer, like the runner
-		{"0b101", "PARSE Unexpected symbol: '0b101'. Located at position 1 within expression: 0b101"},
-		{"0X10", "PARSE Unexpected symbol: '0X10'. Located at position 1 within expression: 0X10"},
+		{"0b101", "PARSE Unexpected symbol: '0b101'"},
+		{"0X10", "PARSE Unexpected symbol: '0X10'"},
 		{"'0b11' == 3", "Boolean:false"},
 		{"'0x1F' == 31", "Boolean:true"},
 		{"'infinity' == Infinity", "Boolean:true"},
 		{"'\u0085 1 \u0085' == 1", "Boolean:true"},
 		{"'\ufeff1' == 1", "Boolean:false"},
-		{"-0x10", "PARSE Unexpected symbol: '-0x10'. Located at position 1 within expression: -0x10"},
+		{"-0x10", "PARSE Unexpected symbol: '-0x10'"},
 		{"NaN", "Number:NaN"},
 		{"Infinity", "Number:Infinity"},
 		{"-Infinity", "Number:-Infinity"},
@@ -290,7 +290,7 @@ func TestEvalAccess(t *testing.T) {
 		{"steps[10].outputs.r", "String:ten"},
 		{"steps['10'].outputs.r", "String:ten"},
 		// After an identifier, ".10" is not a number: the lexer reads a DOT and then "10.outputs.r" as one number-like word.
-		{"steps.10.outputs.r", "PARSE Unexpected symbol: '10.outputs.r'. Located at position 7 within expression: steps.10.outputs.r"},
+		{"steps.10.outputs.r", "PARSE Unexpected symbol: '10.outputs.r'"},
 		{"steps[2].outputs.r", "String:two"},
 		{"matrix.obj[0]", "Null:"},
 		{"matrix.node['0']", "Number:14"},
@@ -366,9 +366,9 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"contains('ǅ', 'ǆ')", "Boolean:true"},
 		{"contains('A\u03a3', 'a\u03c2')", "Boolean:true"},
 		{"contains('K', 'k')", "Boolean:true"}, // KELVIN SIGN lower-cases to k
-		{"contains()", "PARSE Too few parameters supplied: 'contains'"},
-		{"contains(1)", "PARSE Too few parameters supplied: 'contains'"},
-		{"contains(1, 2, 3)", "PARSE Too many parameters supplied: 'contains'"},
+		{"contains()", "PARSE Too few parameters supplied: '('"},
+		{"contains(1)", "PARSE Too few parameters supplied: '('"},
+		{"contains(1, 2, 3)", "PARSE Too many parameters supplied: '('"},
 
 		// startsWith, endsWith
 		{"startsWith('abc', 'AB')", "Boolean:true"},
@@ -383,7 +383,7 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"endsWith('abc', 'abcd')", "Boolean:false"},
 		{"endsWith(1.50, '5')", "Boolean:true"},
 		{"endsWith(1.50, 5)", "Boolean:true"},
-		{"endsWith('abc')", "PARSE Too few parameters supplied: 'endsWith'"},
+		{"endsWith('abc')", "PARSE Too few parameters supplied: '('"},
 		{"STARTSWITH('abc', 'a')", "Boolean:true"},
 
 		// join
@@ -400,8 +400,8 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"join(fromJSON('[1,2,3]'), null)", "String:123"},
 		{"join(fromJSON('[1,2,3]'), github)", "String:1,2,3"}, // a non-primitive separator is ignored
 		{"join(fromJSON('[null,true,\"a\",1.5,[1],{}]'))", "String:,true,a,1.5,Array,Object"},
-		{"join()", "PARSE Too few parameters supplied: 'join'"},
-		{"join(1, 2, 3)", "PARSE Too many parameters supplied: 'join'"},
+		{"join()", "PARSE Too few parameters supplied: '('"},
+		{"join(1, 2, 3)", "PARSE Too many parameters supplied: '('"},
 
 		// toJSON
 		{"toJSON(null)", "String:null"},
@@ -417,8 +417,8 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"toJSON(fromJSON('[]'))", "String:[]"},
 		{"toJSON(fromJSON('{}'))", "String:{}"},
 		{"toJSON(fromJSON('[[],{}]'))", "String:[\n  [],\n  {}\n]"},
-		{"toJSON(1, 2)", "PARSE Too many parameters supplied: 'toJSON'"},
-		{"toJSON()", "PARSE Too few parameters supplied: 'toJSON'"},
+		{"toJSON(1, 2)", "PARSE Too many parameters supplied: '('"},
+		{"toJSON()", "PARSE Too few parameters supplied: '('"},
 		{"fromJSON(toJSON(github.event.commits[0])).author.name", "String:Ann"},
 
 		// fromJSON
@@ -442,7 +442,7 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"fromJSON(1)", "Number:1"},
 		{"fromJSON(true)", "Boolean:true"},
 		{"fromJSON(matrix.node)", "ERR Error parsing JSON when evaluating fromJson"}, // the string "Array"
-		{"fromJSON(1, 2)", "PARSE Too many parameters supplied: 'fromJSON'"},
+		{"fromJSON(1, 2)", "PARSE Too many parameters supplied: '('"},
 
 		// format
 		{"format('a')", "String:a"},
@@ -493,7 +493,7 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"format('{0}}', 1)", "ERR The following format string is invalid: {0}}"},
 		// The index is a byte: a longer number makes the string invalid.
 		{"format('{12345678901234567890123}', 1)", "ERR The following format string is invalid: {12345678901234567890123}"},
-		{"format()", "PARSE Too few parameters supplied: 'format'"},
+		{"format()", "PARSE Too few parameters supplied: '('"},
 
 		// case
 		{"case(true, 'a', 'b')", "String:a"},
@@ -506,9 +506,9 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"case(1, 2, 3)", "ERR case predicate must evaluate to a boolean value"},
 		{"case('true', 2, 3)", "ERR case predicate must evaluate to a boolean value"},
 		{"case(null, 2, 3)", "ERR case predicate must evaluate to a boolean value"},
-		{"case(true, 1, 2, 3)", "PARSE Even number of parameters supplied, requires an odd number of parameters: 'case'"},
-		{"case(true, 1)", "PARSE Too few parameters supplied: 'case'"},
-		{"case()", "PARSE Too few parameters supplied: 'case'"},
+		{"case(true, 1, 2, 3)", "PARSE Even number of parameters supplied, requires an odd number of parameters: '('"},
+		{"case(true, 1)", "PARSE Too few parameters supplied: '('"},
+		{"case()", "PARSE Too few parameters supplied: '('"},
 		// Predicates after the first true one are not checked...
 		{"case(true, 1, 'bad', 2, 3)", "Number:1"},
 		// ...but earlier ones are.
@@ -523,7 +523,7 @@ func TestEvalErrorMessages(t *testing.T) {
 		{"", "PARSE Unexpected end of expression: 'x'"}, // replaced below: the empty expression is not an error
 	}[:0])
 	cases := []evalCase{
-		{"1 +", "PARSE Unexpected symbol: '+'. Located at position 3 within expression: 1 +"},
+		{"1 +", "PARSE Unexpected symbol: '+'"},
 		{"a b", "PARSE Unrecognized named-value: 'a'"},
 		{"github github", "PARSE Unexpected symbol: 'github'"},
 		{"github.event_name ==", "PARSE Unexpected end of expression: '=='"},
@@ -531,9 +531,9 @@ func TestEvalErrorMessages(t *testing.T) {
 		{"(github.event_name", "PARSE Unexpected end of expression: 'event_name'"},
 		{"github.event_name)", "PARSE Unexpected symbol: ')'"},
 		{"contains('a',", "PARSE Unexpected end of expression: ','"},
-		{"contains('a'", "PARSE Unexpected symbol: 'EOF'"},
-		{"contains('a' 'b')", "PARSE Unexpected symbol: 'b'"},
-		{"foo(", "PARSE Unexpected end of expression: '('"},
+		{"contains('a'", "PARSE Unexpected end of expression: ''a''"},
+		{"contains('a' 'b')", "PARSE Unexpected symbol: ''b''"},
+		{"foo(", "PARSE Unrecognized function: 'foo'"},
 		{"foo()", "PARSE Unrecognized function: 'foo'"},
 		{"foo", "PARSE Unrecognized named-value: 'foo'"},
 		{"unknown(1)", "PARSE Unrecognized function: 'unknown'"},
@@ -545,22 +545,22 @@ func TestEvalErrorMessages(t *testing.T) {
 		{"1 !", "PARSE Unexpected symbol: '!'"},
 		{"[1]", "PARSE Unexpected symbol: '['"},
 		{"github.[0]", "PARSE Unexpected symbol: '['"},
-		{"github.", "PARSE Unexpected symbol: 'EOF'"},
+		{"github.", "PARSE Unexpected end of expression: '.'"},
 		{"github[", "PARSE Unexpected end of expression: '['"},
 		{"github[]", "PARSE Unexpected symbol: ']'"},
-		{"github[*", "PARSE Unexpected symbol: 'EOF'"},
+		{"github[*", "PARSE Unexpected end of expression: '*'"},
 		{"github.true", "Null:"}, // keywords are plain identifiers after a dot
 		{"env.true", "Null:"},
-		{"1 = 1", "PARSE Unexpected symbol: '='. Located at position 3 within expression: 1 = 1"},
-		{"1 & 1", "PARSE Unexpected symbol: '&'. Located at position 3 within expression: 1 & 1"},
-		{"1 | 1", "PARSE Unexpected symbol: '|'. Located at position 3 within expression: 1 | 1"},
-		{"1 + 1", "PARSE Unexpected symbol: '+'. Located at position 3 within expression: 1 + 1"},
+		{"1 = 1", "PARSE Unexpected symbol: '='"},
+		{"1 & 1", "PARSE Unexpected symbol: '&'"},
+		{"1 | 1", "PARSE Unexpected symbol: '|'"},
+		{"1 + 1", "PARSE Unexpected symbol: '+'"},
 		{"a-b", "PARSE Unrecognized named-value: 'a-b'"},
-		{"1a", "PARSE Unexpected symbol: '1a'. Located at position 1 within expression: 1a"},
-		{"'unterminated", "PARSE Unexpected symbol: ''unterminated'. Located at position 1 within expression: 'unterminated"},
-		{"@", "PARSE Unexpected symbol: '@'. Located at position 1 within expression: @"},
-		{"${{ 1 }}", "PARSE Unexpected symbol: '${{'. Located at position 1 within expression: ${{ 1 }}"},
-		{"1 \u00a0 2", "PARSE Unexpected symbol: '\u00a0'. Located at position 3 within expression: 1 \u00a0 2"},
+		{"1a", "PARSE Unexpected symbol: '1a'"},
+		{"'unterminated", "PARSE Unexpected symbol: ''unterminated'"},
+		{"@", "PARSE Unexpected symbol: '@'"},
+		{"${{ 1 }}", "PARSE Unexpected symbol: '${{'"},
+		{"1 \u00a0 2", "PARSE Unexpected symbol: '2'"}, // U+00A0 is white space for .NET
 	}
 	runEvalCases(t, cases)
 }
@@ -577,6 +577,9 @@ func TestEmptyExpression(t *testing.T) {
 	}
 }
 
+// TestParseErrorPositions: the runner (ParseException) reports the absolute
+// index of the token in the expression, 1-based, and the whole expression;
+// Error.Pos is the same place as a line and a column.
 func TestParseErrorPositions(t *testing.T) {
 	tests := []struct {
 		src       string
@@ -584,14 +587,16 @@ func TestParseErrorPositions(t *testing.T) {
 		msg       string
 	}{
 		{"1 ==\n 2 ===\n 3", 1, 5, "Unexpected symbol: '='. Located at position 11 within expression: 1 ==\n 2 ===\n 3"},
-		{"true &&\n  false ||\n  nope", 2, 2, "Unrecognized named-value: 'nope'"},
-		{"\n\n  bogus", 2, 2, "Unrecognized named-value: 'bogus'"},
-		{"github github", 0, 7, "Unexpected symbol: 'github'"},
-		{"  )  ", 0, 2, "Unexpected symbol: ')'"},
-		{"contains('a',", 0, 12, "Unexpected end of expression: ','"},
-		{"foo()", 0, 0, "Unrecognized function: 'foo'"},
-		{"1 && foo()", 0, 5, "Unrecognized function: 'foo'"},
-		{"'a'\n 'b'\n  zzz", 1, 1, "Unexpected symbol: 'b'"},
+		{"true &&\n  false ||\n  nope", 2, 2, "Unrecognized named-value: 'nope'. Located at position 22 within expression: true &&\n  false ||\n  nope"},
+		{"\n\n  bogus", 2, 2, "Unrecognized named-value: 'bogus'. Located at position 5 within expression: \n\n  bogus"},
+		{"github github", 0, 7, "Unexpected symbol: 'github'. Located at position 8 within expression: github github"},
+		{"  )  ", 0, 2, "Unexpected symbol: ')'. Located at position 3 within expression:   )  "},
+		{"contains('a',", 0, 12, "Unexpected end of expression: ','. Located at position 13 within expression: contains('a',"},
+		{"foo()", 0, 0, "Unrecognized function: 'foo'. Located at position 1 within expression: foo()"},
+		{"1 && foo()", 0, 5, "Unrecognized function: 'foo'. Located at position 6 within expression: 1 && foo()"},
+		{"'a'\n 'b'\n  zzz", 1, 1, "Unexpected symbol: ''b''. Located at position 6 within expression: 'a'\n 'b'\n  zzz"},
+		{"contains()", 0, 8, "Too few parameters supplied: '('. Located at position 9 within expression: contains()"},
+		{"1 2", 0, 2, "Unexpected symbol: '2'. Located at position 3 within expression: 1 2"},
 	}
 	for _, tc := range tests {
 		_, err := Parse(tc.src, testContextNames, nil)
@@ -618,7 +623,7 @@ func TestParseErrorTypes(t *testing.T) {
 		{"contains(1)", ErrorTooFewParameters},
 		{"contains(1,2,3)", ErrorTooManyParameters},
 		{"case(true, 1, 2, 3)", ErrorEvenParameters},
-		{strings.Repeat("(", 60) + "1" + strings.Repeat(")", 60), ErrorExceededMaxDepth},
+		{strings.Repeat("!", 60) + "1", ErrorExceededMaxDepth},
 		{"1 = 1", ErrorUnexpectedSymbol},
 	}
 	for _, tc := range tests {
@@ -630,6 +635,10 @@ func TestParseErrorTypes(t *testing.T) {
 	}
 }
 
+// TestLimits: the expectations were established with the runner's own parser.
+// Depth is that of the finished tree (CheckMaxDepth): the root is 1, parentheses
+// add nothing, a run of && or || is a single node, a call adds one level for
+// its arguments, "a.b" and "a[b]" one level each, and "!" one.
 func TestLimits(t *testing.T) {
 	deepParens := func(n int) string { return strings.Repeat("(", n) + "1" + strings.Repeat(")", n) }
 	tests := []struct {
@@ -637,9 +646,7 @@ func TestLimits(t *testing.T) {
 		src  string
 		ok   bool
 	}{
-		// Each "(" costs one level, plus one for the outermost expression.
-		{"49 parens", deepParens(49), true},
-		{"50 parens", deepParens(50), false},
+		{"parentheses do not count", deepParens(500), true},
 		{"49 nots", strings.Repeat("!", 49) + "true", true},
 		{"50 nots", strings.Repeat("!", 50) + "true", false},
 		{"49 calls", strings.Repeat("format(", 49) + "'x'" + strings.Repeat(")", 49), true},
@@ -647,7 +654,9 @@ func TestLimits(t *testing.T) {
 		{"long dotted path", "github" + strings.Repeat(".event", 49), true},
 		{"too long dotted path", "github" + strings.Repeat(".event", 50), false},
 		{"long flat ||", "1" + strings.Repeat(" || 1", 3000), true},
-		{"long flat ==", "1" + strings.Repeat(" == 1", 3000), true},
+		{"nested || is flat", "1" + strings.Repeat(" || (1", 60) + strings.Repeat(")", 60), true},
+		{"49 ==", "1" + strings.Repeat(" == 1", 49), true},
+		{"50 ==", "1" + strings.Repeat(" == 1", 50), false},
 	}
 	for _, tc := range tests {
 		_, err := Parse(tc.src, testContextNames, nil)
@@ -655,18 +664,18 @@ func TestLimits(t *testing.T) {
 			t.Errorf("%s: err = %v, want ok=%v", tc.name, err, tc.ok)
 		}
 		var pe *Error
-		if err != nil && errors.As(err, &pe) && pe.Type == ErrorExceededMaxDepth && pe.Message != "Exceeded max expression depth 50: '1'" && !strings.HasPrefix(pe.Message, "Exceeded max expression depth 50: '") {
+		if err != nil && errors.As(err, &pe) && pe.Type == ErrorExceededMaxDepth && pe.Message != "Exceeded max expression depth 50" {
 			t.Errorf("%s: message %q", tc.name, pe.Message)
 		}
 	}
 
-	// Length: counted in UTF-16 code units, error is the bare token.
+	// Length: counted in UTF-16 code units, no token in the message.
 	long := "'" + strings.Repeat("a", MaxExpressionLength-2) + "'"
 	if _, err := Parse(long, nil, nil); err != nil {
 		t.Errorf("expression of exactly %d characters: %v", MaxExpressionLength, err)
 	}
 	_, err := Parse(long+" ", nil, nil)
-	if err == nil || err.Error() != "ErrorExceededMaxLength" {
+	if err == nil || err.Error() != "Exceeded max expression length 21000" {
 		t.Errorf("expression of %d characters: err = %v", MaxExpressionLength+1, err)
 	}
 	// 10501 emoji are 21002 UTF-16 units but only 10501 runes.
@@ -681,8 +690,8 @@ func TestLimits(t *testing.T) {
 }
 
 func TestDepthMessage(t *testing.T) {
-	_, err := Parse(strings.Repeat("(", 60)+"1"+strings.Repeat(")", 60), nil, nil)
-	want := "Exceeded max expression depth 50: '('"
+	_, err := Parse(strings.Repeat("!", 60)+"1", nil, nil)
+	want := "Exceeded max expression depth 50"
 	if err == nil || err.Error() != want {
 		t.Errorf("got %v, want %q", err, want)
 	}
@@ -698,19 +707,23 @@ func TestExtensionFunctions(t *testing.T) {
 	for _, c := range []struct{ src, err string }{
 		{"hashFiles('a')", ""},
 		{"HASHFILES('a', 'b', 'c', 'd')", ""},
-		{"hashFiles()", "Too few parameters supplied: 'hashFiles'"},
+		{"hashFiles()", "Too few parameters supplied: '('"},
 		{"success()", ""},
-		{"success(1)", "Too many parameters supplied: 'success'"},
+		{"success(1)", "Too many parameters supplied: '('"},
 		{"bounded(1, 2)", ""},
-		{"bounded(1, 2, 3)", "Too many parameters supplied: 'bounded'"},
-		{"contains()", "Too few parameters supplied: 'contains'"},
+		{"bounded(1, 2, 3)", "Too many parameters supplied: '('"},
+		{"contains()", "Too few parameters supplied: '('"},
 		{"nothere()", "Unrecognized function: 'nothere'"},
 	} {
 		_, err := Parse(c.src, nil, funcs)
+		msg := ""
+		if err != nil {
+			msg, _, _ = strings.Cut(err.Error(), ". Located at position ")
+		}
 		switch {
 		case c.err == "" && err != nil:
 			t.Errorf("%s: %v", c.src, err)
-		case c.err != "" && (err == nil || err.Error() != c.err):
+		case c.err != "" && (err == nil || msg != c.err):
 			t.Errorf("%s: err = %v, want %q", c.src, err, c.err)
 		}
 	}
@@ -725,7 +738,7 @@ func TestExtensionFunctions(t *testing.T) {
 			},
 			"success": func(context.Context, []Value) (Value, error) { return Boolean(true), nil },
 			"boom":    func(context.Context, []Value) (Value, error) { return nil, errors.New("kaput") },
-			// An extra function replaces a built-in of the same name.
+			// An extra function does not replace a built-in of the same name.
 			"contains": func(context.Context, []Value) (Value, error) { return String("mine"), nil },
 		},
 	}
@@ -734,7 +747,7 @@ func TestExtensionFunctions(t *testing.T) {
 		t.Fatal(err)
 	}
 	v, err := Evaluate(context.Background(), node, ctx)
-	if err != nil || CoerceString(v) != "mine" || calls != 1 {
+	if err != nil || CoerceString(v) != "false" || calls != 1 {
 		t.Errorf("got %v, %v, %d calls", v, err, calls)
 	}
 	node, err = Parse("boom()", nil, []FuncInfo{{Name: "boom"}})
@@ -770,7 +783,7 @@ func TestContextNames(t *testing.T) {
 		t.Errorf("absent context: %v, %v", v, err)
 	}
 	// Names that were not declared to Parse are errors, even if present at evaluation.
-	if _, err := Parse("secrets.X", []string{"github"}, nil); err == nil || err.Error() != "Unrecognized named-value: 'secrets'" {
+	if _, err := Parse("secrets.X", []string{"github"}, nil); err == nil || !strings.HasPrefix(err.Error(), "Unrecognized named-value: 'secrets'. Located at position 1 ") {
 		t.Errorf("undeclared context: %v", err)
 	}
 	// A nil Value in a context behaves as null.

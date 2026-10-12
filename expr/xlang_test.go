@@ -59,11 +59,8 @@ type xlangCase struct {
 // xlangKnownDifferences maps "file: group (expr prefix)" keys to the reason
 // the fixture is not satisfied. Keep it empty if possible.
 var xlangKnownDifferences = map[string]string{
-	"syntax-errors: memory-errors#0":   "memory accounting differs from the runner's EvaluationMemory",
-	"syntax-errors: parsing-errors#25": "position is the column in the line, the runner reports the index in the expression",
-	"syntax-errors: parsing-errors#26": "position is the column in the line, the runner reports the index in the expression",
-	"syntax-errors: parsing-errors#27": "position is the column in the line, the runner reports the index in the expression",
-	"syntax-errors: parsing-errors#28": "position is the column in the line, the runner reports the index in the expression",
+	"case: case#27":                  "the runner reports an even number of case() arguments on the '(' token (position 5), not on the name: ExpressionParser.FlushTopEndParameters passes the popped StartParameters token; checked by running the runner's code",
+	"syntax-errors: memory-errors#0": "memory accounting differs from the runner's EvaluationMemory",
 }
 
 // xlangKind is the kind name the fixtures use.
@@ -178,7 +175,12 @@ func runXlangCase(tb testing.TB, c xlangCase) string {
 			if !errors.As(err, &pe) {
 				return fmt.Sprintf("parse error has type %T", err)
 			}
-			full := fmt.Sprintf("%s. Located at position %d within expression: %s", pe.Message, pe.Pos.Column+1, c.Expr)
+			// The TypeScript runner builds the suffix from a column; this
+			// package, like the C# runner, already has it in the message.
+			full := pe.Message
+			if !strings.Contains(full, ". Located at position ") {
+				full = fmt.Sprintf("%s. Located at position %d within expression: %s", pe.Message, pe.Pos.Column+1, c.Expr)
+			}
 			if strings.Contains(full, c.Err.Value) {
 				return ""
 			}

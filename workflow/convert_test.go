@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -46,6 +47,26 @@ func errorTexts(errs []Error) []string {
 	out := make([]string, len(errs))
 	for i := range errs {
 		out[i] = errs[i].Error()
+	}
+	return out
+}
+
+// The reference (@actions/workflow-parser) words expression parse errors like
+// the JavaScript expression library: no position suffix, and the function name
+// in arity errors. package expr follows the C# runner, which is what runs the
+// workflow: "<description>: '<token>'. Located at position N within
+// expression: <expression>", with the "(" token in arity errors. The tests
+// compare after reducing both to the part the two share.
+var (
+	runnerSuffix = regexp.MustCompile(`(?s)\. Located at position \d+ within expression: .*$`)
+	runnerArity  = regexp.MustCompile(`((?:Too few|Too many) parameters supplied|Even number of parameters supplied, requires an odd number of parameters): '[^']*'`)
+)
+
+func runnerNeutral(msgs []string) []string {
+	out := make([]string, len(msgs))
+	for i, m := range msgs {
+		m = runnerSuffix.ReplaceAllString(m, "")
+		out[i] = runnerArity.ReplaceAllString(m, "$1: '...'")
 	}
 	return out
 }
@@ -101,7 +122,7 @@ func TestConvertAgainstReference(t *testing.T) {
 				}
 				return
 			}
-			if !reflect.DeepEqual(nonNil(got), nonNil(want.Errors)) {
+			if !reflect.DeepEqual(runnerNeutral(nonNil(got)), runnerNeutral(nonNil(want.Errors))) {
 				t.Errorf("errors differ\n got: %q\nwant: %q", got, want.Errors)
 			}
 			if len(want.Errors) > 0 {

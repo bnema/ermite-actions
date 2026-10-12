@@ -81,8 +81,11 @@ func tokenString(t Token) string {
 	return t.Lexeme
 }
 
-// Lex splits an expression into tokens. The result always ends with a
-// TokenEOF token.
+// Lex splits an expression into tokens the way the JavaScript reference's
+// lexer does, ending with a TokenEOF token. [Parse] does not use it: it
+// follows the C# runner, whose tokenizer is context sensitive and lazy (see
+// parse_runner.go). Lex is kept because the oracle tests replay the reference's
+// tokens with it.
 func Lex(input string) ([]Token, error) {
 	if exceedsUTF16Len(input, MaxExpressionLength) {
 		// The reference throws a bare Error("ErrorExceededMaxLength") here,

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	"strconv"
 	"strings"
 	"unicode"
@@ -157,8 +158,28 @@ func (p *jsonParser) number() (Value, error) {
 		p.i = start
 		return nil, fmt.Errorf("input string %q is not a valid number", tok)
 	}
+	if isBigInteger(body) {
+		// Json.NET reads an integer that does not fit in 64 bits as a
+		// BigInteger, and (Double)BigInteger truncates toward zero to 53 bits
+		// instead of rounding to nearest.
+		if _, err := strconv.ParseInt(tok, 10, 64); err != nil {
+			n, _ := new(big.Int).SetString(tok, 10)
+			f, _ := new(big.Float).SetPrec(53).SetMode(big.ToZero).SetInt(n).Float64()
+			return Number(f), nil
+		}
+	}
 	f, _ := strconv.ParseFloat(tok, 64) // range errors give ±Inf
 	return Number(f), nil
+}
+
+// isBigInteger reports whether s is only digits.
+func isBigInteger(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return s != ""
 }
 
 // str reads a string literal; p.i is on the opening quote.

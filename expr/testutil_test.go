@@ -4,6 +4,7 @@ package expr
 
 import (
 	"context"
+	"strings"
 	"testing"
 )
 
@@ -52,7 +53,10 @@ func evalString(tb testing.TB, src string) string {
 	tb.Helper()
 	node, err := Parse(src, testContextNames, nil)
 	if err != nil {
-		return "PARSE " + err.Error()
+		// The runner appends ". Located at position N within expression: ..."
+		// to errors that name a token; TestRunnerErrorPositions covers that.
+		msg, _, _ := strings.Cut(err.Error(), ". Located at position ")
+		return "PARSE " + msg
 	}
 	v, err := Evaluate(context.Background(), node, EvalContext{Contexts: testContexts(tb)})
 	if err != nil {

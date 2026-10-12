@@ -100,6 +100,34 @@ func TestFromJSONNumbers(t *testing.T) {
 	}
 }
 
+// TestFromJSONBigIntegers: Json.NET gives integers beyond 64 bits as BigInteger
+// and (Double)BigInteger truncates; established with the runner's code
+// (fromJSON('N') == N, where the literal N rounds to nearest).
+func TestFromJSONBigIntegers(t *testing.T) {
+	for _, tc := range []struct {
+		src  string
+		want float64
+	}{
+		{"9223372036854775807", 9223372036854775807},   // fits a long: nearest
+		{"-9223372036854775808", -9223372036854775808}, // exact
+		{"12345678901234567890", 12345678901234567890}, // 64 bits, above long: truncated to the same double here
+		{"18446744073709551615", 18446744073709549568}, // 2^64-1 truncates to 2^64-2048, not 2^64
+		{"18446744073709551617", 18446744073709551616}, // 2^64+1 truncates to 2^64
+		{"-18446744073709551615", -18446744073709549568},
+		{"12345678901234567890.0", 12345678901234567168}, // a decimal point: an ordinary float
+		{"1e30", 1e30},
+	} {
+		v, err := FromJSON([]byte(tc.src))
+		if err != nil {
+			t.Errorf("FromJSON(%q): %v", tc.src, err)
+			continue
+		}
+		if got := float64(v.(Number)); got != tc.want {
+			t.Errorf("FromJSON(%q) = %v, want %v", tc.src, got, tc.want)
+		}
+	}
+}
+
 func TestFromJSONInvalidUTF8(t *testing.T) {
 	v, err := FromJSON([]byte("\"a\xffb\""))
 	if err != nil {

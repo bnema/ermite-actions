@@ -27,10 +27,10 @@ func ExampleParse() {
 	}
 	// Output:
 	// true <nil>
-	// secrets.TOKEN -> Unrecognized named-value: 'secrets' (line 0, column 0)
-	// contains('a') -> Too few parameters supplied: 'contains' (line 0, column 0)
-	// github.ref == -> Unexpected end of expression: '==' (line 0, column 11)
-	// nope() -> Unrecognized function: 'nope' (line 0, column 0)
+	// secrets.TOKEN -> Unrecognized named-value: 'secrets'. Located at position 1 within expression: secrets.TOKEN (line 0, column 0)
+	// contains('a') -> Too few parameters supplied: '('. Located at position 9 within expression: contains('a') (line 0, column 8)
+	// github.ref == -> Unexpected end of expression: '=='. Located at position 12 within expression: github.ref == (line 0, column 11)
+	// nope() -> Unrecognized function: 'nope'. Located at position 1 within expression: nope() (line 0, column 0)
 }
 
 func ExampleEvaluate() {

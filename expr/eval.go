@@ -42,8 +42,8 @@ type EvalContext struct {
 	Contexts map[string]Value
 	// Funcs implements the extra functions declared to [Parse], such as
 	// hashFiles, success, always, cancelled and failure. Names are matched
-	// case-insensitively. As in the reference implementation these take
-	// precedence over the built-in functions.
+	// case-insensitively. The built-in functions cannot be
+	// replaced: as in the runner, they win over a function of the same name.
 	Funcs map[string]Func
 	// MaxResultBytes is the output budget of the evaluation, see
 	// [MaxResultBytes]. Zero means the default; a negative value removes the
@@ -233,25 +233,22 @@ func (e *evaluator) logical(l *Logical) (Value, error) {
 
 func (e *evaluator) call(c *FunctionCall) (Value, error) {
 	name := foldKey(c.Name.Lexeme)
-	ext, isExt := e.funcs[name]
-	isExt = isExt && ext != nil
-	var impl builtinFunc
-	if !isExt {
-		// Arity of the built-ins is checked by the parser, and again here
-		// so that a hand-built tree cannot reach an implementation with the
-		// wrong number of arguments.
-		f, ok := builtinFuncs[name]
-		if !ok {
-			return nil, evalErrorf("function %s is not implemented", c.Name.Lexeme)
-		}
+	// Built-ins win over extension functions of the same name, as in the
+	// runner (ExpressionParser.TryGetFunctionInfo looks in WellKnownFunctions
+	// first); the JavaScript reference let an extension override them here.
+	if f, ok := builtinFuncs[name]; ok {
+		// Arity is checked by the parser, and again here so that a hand-built
+		// tree cannot reach an implementation with the wrong number of
+		// arguments.
 		if t, bad := arityError(name, f, len(c.Args)); bad {
 			return nil, &EvalError{Message: t.description() + ": '" + c.Name.Lexeme + "'"}
 		}
-		impl = builtinImpls[name]
-	}
-	if !isExt {
 		// Built-ins evaluate their own arguments, lazily.
-		return impl(e, c)
+		return builtinImpls[name](e, c)
+	}
+	ext, ok := e.funcs[name]
+	if !ok || ext == nil {
+		return nil, evalErrorf("function %s is not implemented", c.Name.Lexeme)
 	}
 	args := make([]Value, len(c.Args))
 	for i, a := range c.Args {
@@ -261,17 +258,15 @@ func (e *evaluator) call(c *FunctionCall) (Value, error) {
 		}
 		args[i] = v
 	}
-	{
-		v, err := ext(e.ctx, args)
-		if err != nil {
-			var ee *EvalError
-			if errors.As(err, &ee) {
-				return nil, err
-			}
-			return nil, &EvalError{Message: err.Error(), Err: err}
+	v, err := ext(e.ctx, args)
+	if err != nil {
+		var ee *EvalError
+		if errors.As(err, &ee) {
+			return nil, err
 		}
-		return v, nil
+		return nil, &EvalError{Message: err.Error(), Err: err}
 	}
+	return v, nil
 }
 
 // indexer is idxHelper of the reference: how an index value is read, as a
