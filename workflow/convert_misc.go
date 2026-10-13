@@ -106,6 +106,11 @@ func runsOnLabels(t template.Token) []string {
 // statusFunctions are the functions that make a condition a status check.
 var statusFunctions = map[string]bool{"success": true, "failure": true, "cancelled": true, "always": true}
 
+// HasStatusFunction reports whether an expression calls success, failure,
+// cancelled or always anywhere in its syntax tree, which decides whether an
+// "if" condition is wrapped as "success() && (cond)".
+func HasStatusFunction(n expr.Node) bool { return hasStatusFunction(n) }
+
 func hasStatusFunction(n expr.Node) bool {
 	switch n := n.(type) {
 	case *expr.FunctionCall:

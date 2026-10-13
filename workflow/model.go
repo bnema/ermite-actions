@@ -152,6 +152,11 @@ type Step struct {
 	With *template.Mapping
 	// Env is the step's "env" mapping, or nil.
 	Env *template.Mapping
+	// EnvExpression and WithExpression hold "env" and "with" when the whole
+	// value is an expression (env: ${{ fromJSON(...) }}); Env and With are then
+	// nil. Only package action fills them, for the steps of a composite action
+	// (the C# runner accepts such a step there); Parse of a workflow does not.
+	EnvExpression, WithExpression template.Token
 	// ContinueOnError and TimeoutMinutes are tokens, or nil.
 	ContinueOnError template.Token
 	TimeoutMinutes  template.Token

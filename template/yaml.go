@@ -51,12 +51,19 @@ type rnode struct {
 	block  bool
 	// badKey is set on a key that is a collection.
 	badKey bool
+	// fault is set in runner mode (Context.RunnerYAML) on a node the runner's
+	// YAML reader refuses. The template reader stops with this message when it
+	// reaches the node, so the errors found before it in the document are kept.
+	fault string
 }
 
 // yamlResult is the outcome of reading a YAML document.
 type yamlResult struct {
 	root *rnode // nil for an empty document
 	errs []*Error
+	// after holds errors to record once the document is read (runner mode:
+	// the runner notices a second document only after reading the first).
+	after []*Error
 }
 
 type yamlBuilder struct {
@@ -65,11 +72,13 @@ type yamlBuilder struct {
 	errs  []*Error
 	stack map[*yaml.Node]bool
 	over  bool
+	// runnerYAML selects the runner's restrictions, see Context.RunnerYAML.
+	runnerYAML bool
 }
 
 // readYAMLDocument parses content with yaml.v3 and builds the tree. Syntax
 // errors are returned in errs, with root nil.
-func readYAMLDocument(file string, content []byte) (res yamlResult) {
+func readYAMLDocument(file string, content []byte, runnerYAML bool) (res yamlResult) {
 	defer func() {
 		if r := recover(); r != nil {
 			res = yamlResult{errs: []*Error{{File: file, Raw: fmt.Sprintf("%v", r)}}}
@@ -84,25 +93,32 @@ func readYAMLDocument(file string, content []byte) (res yamlResult) {
 	if err != nil {
 		return yamlResult{errs: []*Error{yamlError(file, err)}}
 	}
+	var after []*Error
 	var second yaml.Node
 	if err := dec.Decode(&second); err == nil {
-		e := &Error{File: file, Raw: "Source contains multiple documents; please use YAML.parseAllDocuments()"}
-		e.Pos = Pos{second.Line, second.Column}
-		e.fileOnly = true
-		e.Raw += fmt.Sprintf(" at line %d, column %d", second.Line, second.Column)
-		return yamlResult{errs: []*Error{e}}
+		if runnerYAML {
+			// The runner reads the first document, then fails on the event
+			// that is not the end of the stream.
+			after = []*Error{{File: file, fileOnly: true, Raw: "Expected stream end parse event"}}
+		} else {
+			e := &Error{File: file, Raw: "Source contains multiple documents; please use YAML.parseAllDocuments()"}
+			e.Pos = Pos{second.Line, second.Column}
+			e.fileOnly = true
+			e.Raw += fmt.Sprintf(" at line %d, column %d", second.Line, second.Column)
+			return yamlResult{errs: []*Error{e}}
+		}
 	} else if !errors.Is(err, io.EOF) {
 		return yamlResult{errs: []*Error{yamlError(file, err)}}
 	}
 	if len(doc.Content) == 0 {
 		return yamlResult{}
 	}
-	b := &yamlBuilder{file: file, stack: map[*yaml.Node]bool{}}
+	b := &yamlBuilder{file: file, stack: map[*yaml.Node]bool{}, runnerYAML: runnerYAML}
 	root := b.build(doc.Content[0], false)
 	if b.over {
 		return yamlResult{errs: b.errs}
 	}
-	return yamlResult{root: root, errs: b.errs}
+	return yamlResult{root: root, errs: b.errs, after: after}
 }
 
 var yamlLineRE = regexp.MustCompile(`^(?:yaml: )?(?:unmarshal errors:\n\s*)?(?:line (\d+): )?`)
@@ -139,6 +155,14 @@ func (b *yamlBuilder) count() bool {
 }
 
 func (b *yamlBuilder) build(n *yaml.Node, asKey bool) *rnode {
+	r := b.build1(n, asKey)
+	if b.runnerYAML && r.fault == "" && n.Kind != yaml.AliasNode {
+		r.fault = runnerYAMLError(n)
+	}
+	return r
+}
+
+func (b *yamlBuilder) build1(n *yaml.Node, asKey bool) *rnode {
 	if b.over || !b.count() {
 		return &rnode{kind: rLiteral, lit: NewNull(Origin{})}
 	}
@@ -191,6 +215,94 @@ func (b *yamlBuilder) build(n *yaml.Node, asKey bool) *rnode {
 		return r
 	}
 	return &rnode{kind: rLiteral, pos: pos, lit: NewNull(o)}
+}
+
+// runnerYAMLError returns the message of the runner's YAML reader
+// (Sdk/DTPipelines/Pipelines/ObjectTemplating/YamlObjectReader.cs) for a node
+// it refuses, or "". It checks anchors, and the tag and style of scalars.
+func runnerYAMLError(n *yaml.Node) string {
+	if n.Anchor != "" {
+		return fmt.Sprintf("Anchors are not currently supported. Remove the anchor '%s'", n.Anchor)
+	}
+	if n.Kind == yaml.ScalarNode && n.Style&(yaml.TaggedStyle|yaml.DoubleQuotedStyle|yaml.SingleQuotedStyle|yaml.LiteralStyle|yaml.FoldedStyle) == 0 {
+		if msg := runnerIntegerError(n); msg != "" {
+			return msg
+		}
+	}
+	if n.Kind != yaml.ScalarNode || n.Style&yaml.TaggedStyle == 0 {
+		return ""
+	}
+	tag := n.LongTag()
+	const yamlTag = "tag:yaml.org,2002:"
+	// The runner's string tag is "tag:yaml.org,2002:string", which no YAML
+	// document spells (!!str is "tag:yaml.org,2002:str").
+	if tag == yamlTag+"string" {
+		return ""
+	}
+	plain := n.Style&(yaml.DoubleQuotedStyle|yaml.SingleQuotedStyle|yaml.LiteralStyle|yaml.FoldedStyle) == 0
+	if !plain {
+		style := "SingleQuoted"
+		switch {
+		case n.Style&yaml.DoubleQuotedStyle != 0:
+			style = "DoubleQuoted"
+		case n.Style&yaml.LiteralStyle != 0:
+			style = "Literal"
+		case n.Style&yaml.FoldedStyle != 0:
+			style = "Folded"
+		}
+		return fmt.Sprintf("The scalar style '%s' on line %d and column %d is not valid with the tag '%s'", style, n.Line, n.Column, tag)
+	}
+	switch tag {
+	case yamlTag + "bool", yamlTag + "float", yamlTag + "int", yamlTag + "null":
+	default:
+		return fmt.Sprintf("Unexpected tag '%s'", tag)
+	}
+	t := resolvePlain(Origin{}, n.Value)
+	ok := false
+	switch tag {
+	case yamlTag + "bool":
+		ok = t.Kind() == KindBoolean
+	case yamlTag + "null":
+		ok = t.Kind() == KindNull
+	case yamlTag + "float":
+		ok = t.Kind() == KindNumber
+	case yamlTag + "int":
+		ok = t.Kind() == KindNumber && (reInt.MatchString(n.Value) || reOct.MatchString(n.Value) || reHex.MatchString(n.Value))
+	}
+	if !ok {
+		return fmt.Sprintf("The value '%s' on line %d and column %d is invalid for the type '%s'", n.Value, n.Line, n.Column, tag)
+	}
+	return ""
+}
+
+// runnerIntegerError is the runner's refusal of a plain 0x or 0o integer that
+// does not fit 32 bits (Int32.TryParse with AllowHexSpecifier, which accepts up
+// to FFFFFFFF as a negative number, and Convert.ToInt32(s, 8)). The tag is
+// empty in the message, as the plain scalar has none.
+func runnerIntegerError(n *yaml.Node) string {
+	v := n.Value
+	var limit uint64 = 1<<32 - 1
+	var base int
+	switch {
+	case reHex.MatchString(v):
+		base = 16
+	case reOct.MatchString(v):
+		base = 8
+	default:
+		return ""
+	}
+	var acc uint64
+	for _, c := range strings.ToLower(v[2:]) {
+		d := uint64(c - '0')
+		if c >= 'a' {
+			d = uint64(c-'a') + 10
+		}
+		acc = acc*uint64(base) + d
+		if acc > limit {
+			return fmt.Sprintf("The value '%s' on line %d and column %d is invalid for the type ''", v, n.Line, n.Column)
+		}
+	}
+	return ""
 }
 
 // resolveScalar gives a scalar its type the way the YAML 1.2 core schema of
