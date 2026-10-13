@@ -195,21 +195,17 @@ func funcToJSON(e *evaluator, c *FunctionCall) (Value, error) {
 	return String(out), nil
 }
 
-// funcFromJSON is fromJSON(value). Blank input is "empty input"; anything
-// that is not readable by Json.NET is "Error parsing JSON when evaluating
-// fromJson" wrapping the reader's error.
+// funcFromJSON is fromJSON(value). Anything that Json.NET cannot read, blank
+// input included, fails with the message of its JsonReaderException (a
+// [*JSONError]), which is what the runner reports.
 func funcFromJSON(e *evaluator, c *FunctionCall) (Value, error) {
 	a, err := e.eval(c.Args[0])
 	if err != nil {
 		return nil, err
 	}
-	in := CoerceString(a)
-	if strings.TrimFunc(in, isNetSpace) == "" {
-		return nil, evalErrorf("empty input")
-	}
-	v, err := FromJSON([]byte(in))
+	v, err := FromJSON([]byte(CoerceString(a)))
 	if err != nil {
-		return nil, &EvalError{Message: "Error parsing JSON when evaluating fromJson", Err: err}
+		return nil, &EvalError{Message: err.Error(), Err: err}
 	}
 	return v, nil
 }

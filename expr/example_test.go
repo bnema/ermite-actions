@@ -71,7 +71,7 @@ func ExampleEvaluate() {
 	// join(github.labels.*.name, ', ') -> Bug, docs (truthy: true)
 	// format('{0} has {1} labels', github.ref, 2) -> refs/heads/main has 2 labels (truthy: true)
 	// always() && github.missing ->  (truthy: false)
-	// fromJSON('{') -> error: Error parsing JSON when evaluating fromJson
+	// fromJSON('{') -> error: Error reading JObject from JsonReader. Path '', line 1, position 1.
 }
 
 func ExampleToJSON() {

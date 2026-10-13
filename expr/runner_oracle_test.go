@@ -116,8 +116,8 @@ func goAnswer(e string, ctxNames []string, ec EvalContext) runnerCase {
 // goErrorClass names the kind of an evaluation error of this package in the
 // terms of runnerErr.X: "JsonReaderException" for the failures of fromJSON.
 func goErrorClass(err error) string {
-	var ee *EvalError
-	if errors.As(err, &ee) && (ee.Message == "empty input" || ee.Message == "Error parsing JSON when evaluating fromJson") {
+	var je *JSONError
+	if errors.As(err, &je) {
 		return "JsonReaderException"
 	}
 	return ""

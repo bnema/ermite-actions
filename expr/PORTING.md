@@ -235,9 +235,16 @@ package follows the runner.
       are errors, as are `01.5`, `012e1`, `00.5` (a leading zero before `.`,
       `e` or `E` is only valid for a single `0`); a negative number is decimal
       (`-010` is -10, `-01.5` is -1.5). An unpaired surrogate escape becomes
-      U+FFFD. Blank input is a `JsonReaderException` (here: "empty input", kept
-      as the outer message; the Json.NET message texts are not reproduced, only
-      that the call fails). Not ported: `/* */` and `//` comments (the runner
+      U+FFFD. Blank input is a `JsonReaderException` ("Error reading JToken from
+      JsonReader."). **Error texts**: a failure is a `*JSONError` whose text is
+      the Json.NET message GitHub prints, `<reason> Path '<path>', line <n>,
+      position <n>.` (`not json` is `Unexpected character encountered while
+      parsing value: n. Path '', line 0, position 0.`). Reasons, paths and
+      positions are ported from `JsonTextReader` and checked against the runner
+      on the 1 459 rejected inputs of `testdata/fromjson_errors.json`
+      (`gen/runner/fromjson_errors.mjs`); the 59 that involve comments,
+      constructors (`new Date(1)`) or a closing bracket of the wrong kind are
+      not reproduced (the message of those may differ in reason or position). Not ported: `/* */` and `//` comments (the runner
       reads `/*x*/1` as the string `x`) and `new Date(1)` constructors; both are
       errors here. A `/` after `null`, `true`, `false`, `NaN`, `Infinity`,
       `-Infinity` or `undefined`, and a `/` between values inside an array or
