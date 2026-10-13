@@ -95,6 +95,10 @@ type Context struct {
 	// ("Unexpected tag 'tag:yaml.org,2002:str'": the runner knows no !!str).
 	// Such an error is reported alone, without the schema errors that the
 	// runner would have found in the part of the document before it.
+	// Mapping keys are resolved like values (~ is a null key, 0x10 is the key
+	// 16, TRUE is true), 0x and 0o integers wrap as int32 (0xFFFFFFFF is -1),
+	// and duplicate keys compare with .NET's OrdinalIgnoreCase
+	// (expr.OrdinalFold) instead of JavaScript's toUpperCase.
 	RunnerYAML bool
 
 	schema *Schema

@@ -73,8 +73,11 @@ checked against the runner's own code): `MaxDepth` (`TemplateMemory`'s
 `maxDepth`, counting skipped values too), `ErrorLimit` (the runner keeps ten),
 `RunnerYAML` (anchors and aliases, tags other than `!!bool/!!float/!!int/!!null`,
 32-bit limits of `0x`/`0o` integers, a second document, an empty file and a
-collection used as a key all end the read with the runner's message; a number
-read as a string is shown as .NET's `G15`, `DotNetNumberString`). Without them
+collection used as a key all end the read with the runner's message; mapping
+keys are resolved like values, `~` giving an empty key and `0x10` the key `16`;
+`0x`/`0o` integers wrap as int32, `0xFFFFFFFF` being -1; duplicate keys compare
+with .NET's OrdinalIgnoreCase, `expr.OrdinalFold`; a number read as a string is
+shown as .NET's `G15`, `DotNetNumberString`). Without them
 nothing changes. `Error.Exception` marks an error that is a .NET exception the
 runner reports without a position.
 

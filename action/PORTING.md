@@ -24,7 +24,7 @@ most files and differ on a few (below); the new one is not reproduced.
 ## Checks
 
 - `testdata/runner.json`: the answer of the runner's loader on every file of
-  `testdata/cases` (299 files). `gen/runner/Driver.cs` is
+  `testdata/cases` (338 files). `gen/runner/Driver.cs` is
   `ActionManifestManagerLegacy.Load/ConvertRuns/ConvertInputs` with what needs
   an `IExecutionContext` removed (tracing, the file table, expression values:
   none of it changes loading), compiled into a copy of `src/Sdk` with
@@ -40,7 +40,7 @@ most files and differ on a few (below); the new one is not reproduced.
   (`TestParseUsesAgainstRunner`).
 - `testdata/strict.json`: `parseAction` + `convertActionTemplate` of the npm
   package on every case; `Lint` is compared on the error list
-  (`TestLintAgainstReference`). One file is excused with its reason
+  (`TestLintAgainstReference`). Eleven files are excused, each with its reason
   (`knownLintDifferences`).
 - `FuzzParse` (no panic, an action iff no error, at most ten errors, every step
   has an id and a condition) and `FuzzParseUses`.
@@ -49,7 +49,7 @@ Regenerate with `gen/regen.sh` (`RUNNER_CLONE=<clone>` for the runner part); the
 diff must be empty. The cases are: the 24 files of the runner's
 `src/Test/TestData` that are action manifests (`runner_*`), the 96 manifests
 inlined in the language service tests (`ls_*`: `action-parser.test.ts`,
-`validate-action.test.ts`), and 179 written for this package. The
+`validate-action.test.ts`), and 218 written for this package. The
 language service's own expectations (`toBeGreaterThan(0)`) are not ported: the
 cases are replayed through the reference instead, which gives the messages.
 
@@ -109,6 +109,13 @@ All verified by `TestAgainstRunner`.
   parse event`, a collection used as a key `Expected mapping end`. Such an error
   stops the read where the runner meets it, so errors found earlier in the
   document stay (`template.Context.RunnerYAML`).
+- **Keys, integers, case.** Mapping keys are resolved like values: `~` is null
+  (`Unexpected value ''`), `0x10` is the key `16`, `1.0` is `1`, `TRUE` is `true`,
+  so `0x10` and `16` are duplicates. `0x` and `0o` integers, plain or `!!int`,
+  are int32 with wraparound (`0xFFFFFFFF` is `-1`, `0x80000000` is
+  `-2147483648`; over 32 bits is an error, and `!!float` refuses them). Duplicate
+  keys, input names and step ids compare with .NET's OrdinalIgnoreCase
+  (`expr.OrdinalFold`): `é` and `É` are the same, `s` and `ſ` are not.
 - **Depth.** `TemplateMemory(maxDepth: 100)`: `Maximum object depth exceeded`
   from the 100th nested collection, the root mapping being the first. Skipped
   values (unknown keys) count (`template.Context.MaxDepth`).
@@ -209,6 +216,12 @@ All verified by `TestAgainstRunner`.
 - A mapping key that is a collection: the reference reads `undefined`
   (`Unexpected value 'undefined'`); `Lint` reports `Unexpected value ''`
   (`knownLintDifferences`). `Parse` is the runner's (`Expected mapping end`).
+- `Lint` keeps keys as strings, so it differs from the reference on keys that
+  are not strings: it misses a null key under a loose-key mapping (`inputs`,
+  `env`), which the reference and the runner reject, and the reference fails on
+  other non-string keys with `raw.indexOf is not a function`. Fixing the null
+  key in `Lint` would change how `template` reads workflow files, so it is
+  left alone.
 
 ## To verify against recordings
 

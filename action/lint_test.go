@@ -59,11 +59,16 @@ var knownLintDifferences = map[string]string{
 	"key_float_dup.yml":       jsKey,
 	"key_hex_dup.yml":         jsKey,
 	"key_hex_input.yml":       jsKey,
-	"key_null_env.yml":        jsKey,
-	"key_null_inputs.yml":     jsKey,
+	"key_null_env.yml":        nullKey,
+	"key_null_inputs.yml":     nullKey,
 	"key_null_top.yml":        jsKey,
 	"key_number_runs.yml":     jsKey,
 }
+
+// nullKey: Lint misses a null key under a loose-key mapping; the reference and
+// the runner reject it. Fixing it in template would change how workflow files
+// are read, so it is left as it is.
+const nullKey = "Lint misses a null key under a loose-key mapping; the reference and the runner reject it"
 
 // jsKey: the reference resolves a plain key to a number, boolean or null (and
 // then crashes on it, "raw.indexOf is not a function", or words it
