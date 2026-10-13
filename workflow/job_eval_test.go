@@ -202,7 +202,9 @@ jobs:
 	}
 }
 
-// needsFailedDependency is the workflow of the recorded scenario of that name.
+// needsFailedDependency is a cut-down workflow of the recorded scenario of
+// that name (without with-failure, with-success and broken's outputs), plus a
+// made-up diamond job that GitHub did not run.
 const needsFailedDependency = `on:
   push:
     branches: ['scn/**']
@@ -252,5 +254,17 @@ func TestAncestors(t *testing.T) {
 		if got := w.Ancestors(id); !reflect.DeepEqual(got, want) {
 			t.Errorf("Ancestors(%q) = %q, want %q", id, got, want)
 		}
+	}
+}
+
+// TestAncestorsCycleAndUnknownNeed covers what Parse rejects but a hand-built
+// Workflow may hold: a cycle ends, the start job and unknown ids are left out.
+func TestAncestorsCycleAndUnknownNeed(t *testing.T) {
+	w := &Workflow{Jobs: []*Job{
+		{ID: "a", Needs: []string{"b", "ghost"}},
+		{ID: "b", Needs: []string{"a"}},
+	}}
+	if got := w.Ancestors("a"); !reflect.DeepEqual(got, []string{"b"}) {
+		t.Errorf("Ancestors(a) = %q, want [b]", got)
 	}
 }
