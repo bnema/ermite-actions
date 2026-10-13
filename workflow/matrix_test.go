@@ -325,6 +325,9 @@ func TestMatrixProductCap(t *testing.T) {
 	if !errors.As(err, &limit) || limit.Count != MaxMatrixProduct {
 		t.Errorf("err = %v", err)
 	}
+	if !errors.Is(err, ErrTooManyConfigurations) {
+		t.Errorf("errors.Is(%v, ErrTooManyConfigurations) = false", err)
+	}
 	_, err = ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": `+vec(MaxMatrixProduct+1)+`}}`))
 	if err == nil || !strings.Contains(err.Error(), "matrix too large") {
 		t.Errorf("one huge vector: %v", err)
@@ -432,6 +435,9 @@ jobs:
 	var limit *configurationLimitError
 	if !errors.As(err, &limit) || limit.Job != "too-many" || limit.Count != 272 {
 		t.Errorf("err = %#v", err)
+	}
+	if !errors.Is(err, ErrTooManyConfigurations) {
+		t.Errorf("errors.Is(%v, ErrTooManyConfigurations) = false", err)
 	}
 }
 
