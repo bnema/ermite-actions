@@ -224,3 +224,42 @@ func (w *Workflow) JobLevels() [][]*Job {
 	}
 	return levels
 }
+
+// Ancestors returns the ids of every job the job with the given id depends on,
+// directly or through other jobs, in the order of the file. It is empty for a
+// job without needs and nil for an unknown id.
+//
+// GitHub's default condition of a job, success(), looks at this whole chain
+// and not only at the direct needs: a job that needs a job which ran through
+// always() after a failure is skipped, although its only direct need
+// succeeded. Recorded (needs-failed-dependency): chain-after-always needs
+// with-always, which needs broken; broken failed, with-always (if: always())
+// succeeded, and chain-after-always was skipped. Likewise failure() is true
+// when any ancestor failed, as documented.
+func (w *Workflow) Ancestors(id string) []string {
+	start := w.Job(id)
+	if start == nil {
+		return nil
+	}
+	seen := map[string]bool{id: true}
+	stack := slices.Clone(start.Needs)
+	for len(stack) > 0 {
+		n := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if seen[n] {
+			continue
+		}
+		seen[n] = true
+		if j := w.Job(n); j != nil {
+			stack = append(stack, j.Needs...)
+		}
+	}
+	delete(seen, id)
+	out := []string{}
+	for _, j := range w.Jobs {
+		if seen[j.ID] {
+			out = append(out, j.ID)
+		}
+	}
+	return out
+}

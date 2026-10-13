@@ -57,7 +57,8 @@ func (c MatrixCombo) DisplayName(base string) string {
 //     varying slowest;
 //   - exclude removes every combination that contains all the key-value
 //     pairs of one of its entries; every key of an entry must be a vector of
-//     the matrix, or the matrix is an error;
+//     the matrix, or the matrix is an error that matches
+//     [ErrExcludeUnknownKey];
 //   - then each include entry is added to every remaining combination whose
 //     values for the vector keys it mentions are equal (an entry that
 //     mentions no vector key matches all), without overwriting the original
@@ -152,10 +153,28 @@ func matrixEntries(name string, v expr.Value) ([]*expr.Dictionary, error) {
 	return out, nil
 }
 
-// message is an error whose text is GitHub's, which starts with a capital.
-type message string
+// ErrExcludeUnknownKey is matched, with [errors.Is], by the error that
+// [ExpandMatrix], [ParseStrategy] and [Job.EvaluateStrategy] return when an
+// entry of "exclude" names a key that is not a vector of the matrix (keys
+// that only "include" adds do not count). GitHub refuses such a workflow as
+// invalid, before any job exists, and names the run after the file path
+// rather than after the "name:" key (recorded: matrix-edge-values,
+// a-exclude-unknown-key.yml). The error carries one line per offending
+// entry; when several entries offend, errors.Is still holds.
+var ErrExcludeUnknownKey = errors.New("matrix exclude key does not match any key within the matrix")
 
-func (m message) Error() string { return string(m) }
+// excludeKeyError is the error for one exclude entry with an unknown key.
+type excludeKeyError struct {
+	// Key is the first unknown key of the entry.
+	Key string
+}
+
+// Unwrap makes errors.Is(err, [ErrExcludeUnknownKey]) hold.
+func (e *excludeKeyError) Unwrap() error { return ErrExcludeUnknownKey }
+
+func (e *excludeKeyError) Error() string {
+	return fmt.Sprintf("Matrix exclude key '%s' does not match any key within the matrix", e.Key)
+}
 
 // errProductTooBig is returned when the cross product of the vectors is too
 // large to be enumerated. GitHub would count the configurations left after
@@ -236,7 +255,7 @@ func expand(ctx context.Context, vecs []vector, includes, excludes []*expr.Dicti
 			vi, ok := index[strings.ToLower(p.Key)]
 			if !ok {
 				// One error per offending entry, for its first unknown key.
-				bad = append(bad, message(fmt.Sprintf("Matrix exclude key '%s' does not match any key within the matrix", p.Key)))
+				bad = append(bad, &excludeKeyError{Key: p.Key})
 				unknown = true
 				break
 			}

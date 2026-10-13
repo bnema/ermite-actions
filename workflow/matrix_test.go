@@ -402,10 +402,89 @@ func TestRecordedExcludeUnknownKey(t *testing.T) {
 	if err == nil || err.Error() != one+"\n"+one {
 		t.Fatalf("err = %v, want the message once per offending entry", err)
 	}
+	if !errors.Is(err, ErrExcludeUnknownKey) {
+		t.Errorf("errors.Is(%v, ErrExcludeUnknownKey) = false", err)
+	}
+	if errors.Is(err, ErrTooManyConfigurations) {
+		t.Errorf("errors.Is(%v, ErrTooManyConfigurations) = true", err)
+	}
 	// An entry that is fine does not add one.
 	_, err = ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"os": ["one", "two"], "exclude": [{"os": "one"}, {"nokey": "x"}]}}`))
 	if err == nil || err.Error() != one {
 		t.Errorf("err = %v, want %q", err, one)
+	}
+	if !errors.Is(err, ErrExcludeUnknownKey) {
+		t.Errorf("errors.Is(%v, ErrExcludeUnknownKey) = false", err)
+	}
+}
+
+// TestExcludeUnknownKeySentinelFromJob checks that the sentinel survives
+// Job.EvaluateStrategy, which is what a server calls, on the workflow of the
+// recorded scenario (matrix-edge-values, a-exclude-unknown-key.yml). The
+// workflow parses: GitHub still refuses it, and names the run after the file.
+func TestExcludeUnknownKeySentinelFromJob(t *testing.T) {
+	w, errs := Parse("a.yml", []byte(`name: a-exclude-unknown-key
+on:
+  push:
+    branches: ['scn/**']
+jobs:
+  main:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        os: [one, two]
+        exclude:
+          - nokey: x
+          - os: one
+            nokey: y
+    steps:
+      - run: echo "os=${{ matrix.os }}"
+`))
+	if len(errs) > 0 {
+		t.Fatal(errs)
+	}
+	_, err := w.Job("main").EvaluateStrategy(ctxbg, template.Env{})
+	if !errors.Is(err, ErrExcludeUnknownKey) {
+		t.Fatalf("EvaluateStrategy err = %v, want ErrExcludeUnknownKey", err)
+	}
+	// A key that only an include adds is no vector either.
+	_, err = ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": [1], "include": [{"b": 1}], "exclude": [{"b": 1}]}}`))
+	if !errors.Is(err, ErrExcludeUnknownKey) {
+		t.Errorf("exclude of an include-only key: %v", err)
+	}
+	// Other matrix errors do not match it.
+	_, err = ExpandMatrix(ctxbg, jsonValue(t, `{"matrix": {"a": [1], "exclude": [{"a": 1}]}}`))
+	if err == nil || errors.Is(err, ErrExcludeUnknownKey) {
+		t.Errorf("all excluded: %v", err)
+	}
+}
+
+// TestRecordedNullAndEmptyJobIndex is matrix-edge-values b-null-values.yml,
+// v: [1, null, "", true, 1.50, "x y"]. The recording has strategy.job-index 1
+// for matrix.v null and 2 for matrix.v "" (jobs 0..5 in the order of the
+// vector), which is what this package produces. conformance compare listed the
+// two as swapped only because both legs are named "default-name" and it pairs
+// equal names by their position in each source's job listing, which GitHub
+// does not give in matrix order. So the expansion order is the recorded one and
+// this test pins it.
+func TestRecordedNullAndEmptyJobIndex(t *testing.T) {
+	s, err := ParseStrategy(ctxbg, jsonValue(t, `{"matrix": {"v": [1, null, "", true, 1.50, "x y"]}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{`1`, `null`, `""`, `true`, `1.5`, `"x y"`}
+	if len(s.Combos) != len(want) {
+		t.Fatalf("%d combinations, want %d", len(s.Combos), len(want))
+	}
+	for i, c := range s.Combos {
+		v, _ := c.Values.Get("v")
+		if got := expr.ToJSON(v); got != want[i] {
+			t.Errorf("combination %d: matrix.v = %s, want %s", i, got, want[i])
+		}
+		idx, _ := s.Context(i).Get("job-index")
+		if idx != expr.Number(i) {
+			t.Errorf("combination %d: strategy.job-index = %v", i, expr.ToJSON(idx))
+		}
 	}
 }
 

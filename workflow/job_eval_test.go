@@ -3,6 +3,7 @@
 package workflow
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -198,5 +199,72 @@ jobs:
 		if err != nil || got != want {
 			t.Errorf("%s: name = %q, %v; want %q", id, got, err, want)
 		}
+	}
+}
+
+// needsFailedDependency is a cut-down workflow of the recorded scenario of
+// that name (without with-failure, with-success and broken's outputs), plus a
+// made-up diamond job that GitHub did not run.
+const needsFailedDependency = `on:
+  push:
+    branches: ['scn/**']
+jobs:
+  broken:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: exit 1
+  plain:
+    needs: broken
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo SHOULD-NOT-RUN
+  with-always:
+    needs: broken
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo
+  chain-after-always:
+    needs: with-always
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo chain-after-always-runs-because-with-always-succeeded
+  diamond:
+    needs: [chain-after-always, plain, with-always]
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo
+`
+
+// TestAncestors checks the transitive needs that GitHub's default success()
+// looks at (recorded: needs-failed-dependency, chain-after-always was skipped).
+func TestAncestors(t *testing.T) {
+	w, errs := Parse("w.yml", []byte(needsFailedDependency))
+	if len(errs) > 0 {
+		t.Fatal(errs)
+	}
+	for id, want := range map[string][]string{
+		"broken":             {},
+		"plain":              {"broken"},
+		"with-always":        {"broken"},
+		"chain-after-always": {"broken", "with-always"},
+		"diamond":            {"broken", "plain", "with-always", "chain-after-always"},
+		"nowhere":            nil,
+	} {
+		if got := w.Ancestors(id); !reflect.DeepEqual(got, want) {
+			t.Errorf("Ancestors(%q) = %q, want %q", id, got, want)
+		}
+	}
+}
+
+// TestAncestorsCycleAndUnknownNeed covers what Parse rejects but a hand-built
+// Workflow may hold: a cycle ends, the start job and unknown ids are left out.
+func TestAncestorsCycleAndUnknownNeed(t *testing.T) {
+	w := &Workflow{Jobs: []*Job{
+		{ID: "a", Needs: []string{"b", "ghost"}},
+		{ID: "b", Needs: []string{"a"}},
+	}}
+	if got := w.Ancestors("a"); !reflect.DeepEqual(got, []string{"b"}) {
+		t.Errorf("Ancestors(a) = %q, want [b]", got)
 	}
 }
