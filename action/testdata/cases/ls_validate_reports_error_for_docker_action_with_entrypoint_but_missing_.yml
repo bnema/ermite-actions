@@ -1,0 +1,5 @@
+name: My Action
+description: Invalid - docker without image
+runs:
+  using: docker
+  entrypoint: /entrypoint.sh

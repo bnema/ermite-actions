@@ -1,0 +1,8 @@
+name: My Composite Action
+description: A composite action with uses steps
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        invalid-input: value

@@ -1,0 +1,7 @@
+name: My Action
+description: Format mismatch in post-if
+runs:
+  using: node20
+  main: index.js
+  post: cleanup.js
+  post-if: format('{0} {1} {2}', 'a', 'b')

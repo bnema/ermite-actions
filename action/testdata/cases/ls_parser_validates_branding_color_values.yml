@@ -1,0 +1,10 @@
+name: Bad Color
+description: Action with invalid branding color
+branding:
+  icon: award
+  color: pink
+runs:
+  using: composite
+  steps:
+    - run: echo Hello
+      shell: bash

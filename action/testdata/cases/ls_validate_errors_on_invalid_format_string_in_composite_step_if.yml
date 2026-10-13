@@ -1,0 +1,8 @@
+name: My Action
+description: Invalid format
+runs:
+  using: composite
+  steps:
+    - if: format('{', 'arg')
+      run: echo hi
+      shell: bash

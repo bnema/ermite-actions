@@ -1,0 +1,6 @@
+name: A
+description: D
+runs:
+  steps:
+    - run: echo
+      shell: bash

@@ -1,0 +1,9 @@
+name: Docker Action
+description: A Docker action
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - ${{ inputs.name }}
+  env:
+    DEBUG: "true"

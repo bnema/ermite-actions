@@ -1,0 +1,11 @@
+name: A
+description: |
+  line1
+  line2
+runs:
+  using: composite
+  steps:
+    - run: |
+        echo ${{ github.ref }}
+        echo two
+      shell: bash

@@ -1,0 +1,19 @@
+name: A
+description: D
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - a
+    - ${{ inputs.x }}
+  entrypoint: main.sh
+  env:
+    A: b
+    C: ${{ inputs.x }}
+  pre-entrypoint: pre.sh
+  pre-if: success()
+  post-entrypoint: post.sh
+  post-if: failure()
+inputs:
+  x:
+    default: 'y'

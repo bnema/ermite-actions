@@ -1,0 +1,8 @@
+name: My Action
+description: Success function
+runs:
+  using: composite
+  steps:
+    - if: success()
+      run: echo hi
+      shell: bash

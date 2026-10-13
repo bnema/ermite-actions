@@ -1,0 +1,6 @@
+name: My Action
+description: Uses docker image
+runs:
+  using: composite
+  steps:
+    - uses: docker://alpine:3.14

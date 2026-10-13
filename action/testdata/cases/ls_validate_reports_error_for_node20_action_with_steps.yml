@@ -1,0 +1,8 @@
+name: My Action
+description: Invalid - node20 with steps
+runs:
+  using: node20
+  main: index.js
+  steps:
+    - run: echo "hello"
+      shell: bash

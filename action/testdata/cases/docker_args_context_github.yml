@@ -1,0 +1,7 @@
+name: A
+description: D
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - ${{ github.ref }}

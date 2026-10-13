@@ -1,0 +1,6 @@
+name: My Action
+description: Short SHA
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@a1b2c3d

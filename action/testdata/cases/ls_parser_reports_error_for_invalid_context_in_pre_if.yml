@@ -1,0 +1,7 @@
+name: Node Action
+description: A node action
+runs:
+  using: node20
+  main: dist/index.js
+  pre: dist/setup.js
+  pre-if: foo == bar

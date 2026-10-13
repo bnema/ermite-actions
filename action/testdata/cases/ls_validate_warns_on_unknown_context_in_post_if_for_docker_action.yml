@@ -1,0 +1,7 @@
+name: My Action
+description: Unknown context in post-if
+runs:
+  using: docker
+  image: Dockerfile
+  post-entrypoint: /cleanup.sh
+  post-if: foo == bar

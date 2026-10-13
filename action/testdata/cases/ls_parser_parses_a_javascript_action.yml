@@ -1,0 +1,7 @@
+name: JS Action
+description: A JavaScript action
+runs:
+  using: node20
+  main: dist/index.js
+  pre: dist/setup.js
+  post: dist/cleanup.js

@@ -1,0 +1,8 @@
+name: My Action
+description: If without markers
+runs:
+  using: composite
+  steps:
+    - if: github.event_name == 'push'
+      run: echo hi
+      shell: bash

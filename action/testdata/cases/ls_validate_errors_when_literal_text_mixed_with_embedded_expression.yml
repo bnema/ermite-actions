@@ -1,0 +1,8 @@
+name: My Action
+description: Literal text in if
+runs:
+  using: composite
+  steps:
+    - if: push == ${{ github.event_name }}
+      run: echo hi
+      shell: bash

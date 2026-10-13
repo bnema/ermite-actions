@@ -1,0 +1,11 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - uses: a/b@c
+      with:
+        n: 1
+        b: true
+        z:
+        l: [1]

@@ -1,0 +1,6 @@
+name: My Action
+description: Missing version
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout

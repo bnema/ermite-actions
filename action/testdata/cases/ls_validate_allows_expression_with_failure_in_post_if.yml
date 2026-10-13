@@ -1,0 +1,7 @@
+name: My Action
+description: Valid post-if
+runs:
+  using: node20
+  main: index.js
+  post: cleanup.js
+  post-if: failure()

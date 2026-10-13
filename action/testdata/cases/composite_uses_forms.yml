@@ -1,0 +1,17 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/aws/ec2@main
+    - uses: ./local/action
+    - uses: docker://alpine:3
+    - uses: '.\\win\\action'
+    - uses: $/self
+    - uses: owner/repo/a/b/c@v1.2
+    - uses: actions/checkout@v4
+    - run: echo
+      shell: sh
+    - run: echo
+      shell: sh

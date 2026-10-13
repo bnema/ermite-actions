@@ -1,0 +1,4 @@
+name: My Action
+description: Invalid - docker without image
+runs:
+  using: docker

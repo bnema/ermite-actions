@@ -1,0 +1,8 @@
+name: My Action
+description: Bad color
+branding:
+  icon: activity
+  color: pink
+runs:
+  using: node20
+  main: index.js

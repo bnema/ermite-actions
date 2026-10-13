@@ -1,0 +1,10 @@
+name: Bad Icon
+description: Action with invalid branding icon
+branding:
+  icon: invalid-icon-name
+  color: blue
+runs:
+  using: composite
+  steps:
+    - run: echo Hello
+      shell: bash

@@ -1,0 +1,7 @@
+name: My Action
+description: If in uses step
+runs:
+  using: composite
+  steps:
+    - if: push == ${{ github.event_name }}
+      uses: actions/checkout@v4

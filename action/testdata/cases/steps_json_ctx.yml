@@ -1,0 +1,7 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - run: echo ${{ toJSON(steps) }} ${{ job.status }} ${{ runner.os }} ${{ matrix.a }} ${{ strategy.job-index }} ${{ env.A }} ${{ github.action_path }}
+      shell: bash

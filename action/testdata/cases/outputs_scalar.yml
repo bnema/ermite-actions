@@ -1,0 +1,6 @@
+name: A
+description: D
+outputs: x
+runs:
+  using: node20
+  main: m.js

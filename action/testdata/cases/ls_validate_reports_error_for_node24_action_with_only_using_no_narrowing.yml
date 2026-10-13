@@ -1,0 +1,4 @@
+name: My Action
+description: Invalid - node24 without main
+runs:
+  using: node24

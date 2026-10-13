@@ -1,0 +1,9 @@
+name: A
+description: D
+runs:
+  using: node12
+  main: index.js
+  pre: setup.js
+  pre-if: runner.os == 'Linux'
+  post: cleanup.js
+  post-if: failure()

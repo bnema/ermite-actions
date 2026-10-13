@@ -1,0 +1,4 @@
+name: A
+description: D
+runs:
+  main: index.js

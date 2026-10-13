@@ -1,0 +1,6 @@
+action-v1.0.min.json is dist/action-v1.0.min.json of the npm package
+@actions/workflow-parser 0.3.61 (https://github.com/actions/languageservices,
+MIT, Copyright GitHub, Inc.), copied unmodified. It is the same JSON as
+workflow-parser/src/action-v1.0.json at commit
+4043eda158e16579cc5fb1b0b07a4bce2a76f0b5 (same content, different spacing).
+Package action reads its "action-root" definition. See ../../THIRD_PARTY.md.

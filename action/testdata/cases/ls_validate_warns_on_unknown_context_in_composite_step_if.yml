@@ -1,0 +1,8 @@
+name: My Action
+description: Unknown context in if
+runs:
+  using: composite
+  steps:
+    - if: foo == bar
+      run: echo hi
+      shell: bash

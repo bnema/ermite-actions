@@ -1,0 +1,7 @@
+name: My Action
+description: Valid format in pre-if
+runs:
+  using: node20
+  main: index.js
+  pre: setup.js
+  pre-if: format('{0}', runner.os) == 'Linux'

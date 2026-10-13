@@ -1,0 +1,8 @@
+name: My Action
+description: Valid format
+runs:
+  using: composite
+  steps:
+    - if: format('{0} {1}', 'a', 'b') == 'a b'
+      run: echo hi
+      shell: bash

@@ -1,0 +1,6 @@
+name: My Action
+description: Missing shell
+runs:
+  using: composite
+  steps:
+    - run: echo "Hi"

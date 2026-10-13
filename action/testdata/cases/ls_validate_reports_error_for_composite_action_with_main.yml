@@ -1,0 +1,8 @@
+name: My Action
+description: Invalid - composite with main
+runs:
+  using: composite
+  steps:
+    - run: echo "hello"
+      shell: bash
+  main: index.js

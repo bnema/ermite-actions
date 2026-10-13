@@ -1,0 +1,4 @@
+name: My Action
+description: Invalid - composite without steps
+runs:
+  using: composite

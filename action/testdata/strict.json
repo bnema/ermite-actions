@@ -1,0 +1,3542 @@
+{
+ "branding_bad_icon.yml": {
+  "errors": [
+   "branding_bad_icon.yml (Line: 4, Col: 9): Unexpected value 'not-an-icon'",
+   "branding_bad_icon.yml (Line: 5, Col: 10): Unexpected value 'pink'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_all_keys.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "who",
+    "default": "world"
+   }
+  ],
+  "outputs": [
+   {
+    "id": "out",
+    "value": "${{ steps.a.outputs.r }}"
+   }
+  ],
+  "runs": {
+   "using": "composite",
+   "steps": 2
+  }
+ },
+ "composite_basic.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_continue_expr.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 2
+  }
+ },
+ "composite_continue_str.yml": {
+  "errors": [
+   "composite_continue_str.yml (Line: 8, Col: 26): Unexpected value 'yes'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_continue_true_str.yml": {
+  "errors": [
+   "composite_continue_true_str.yml (Line: 8, Col: 26): Unexpected value 'true'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_env_expr_mapping.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_env_scalar.yml": {
+  "errors": [
+   "composite_env_scalar.yml (Line: 8, Col: 12): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_bad_function.yml": {
+  "errors": [
+   "composite_expr_bad_function.yml (Line: 6, Col: 12): Unrecognized function: 'nope'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_empty.yml": {
+  "errors": [
+   "composite_expr_empty.yml (Line: 6, Col: 12): An expression was expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_hashfiles.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_expr_insert.yml": {
+  "errors": [
+   "composite_expr_insert.yml (Line: 6, Col: 12): Unexpected value '${{ insert }}'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_needs_in_run.yml": {
+  "errors": [
+   "composite_expr_needs_in_run.yml (Line: 6, Col: 12): Unrecognized named-value: 'needs'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_secrets.yml": {
+  "errors": [
+   "composite_expr_secrets.yml (Line: 6, Col: 12): Unrecognized named-value: 'secrets'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_status_in_run.yml": {
+  "errors": [
+   "composite_expr_status_in_run.yml (Line: 6, Col: 12): Unrecognized function: 'success'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_unclosed.yml": {
+  "errors": [
+   "composite_expr_unclosed.yml (Line: 6, Col: 12): The expression is not closed. An unescaped ${{ sequence was found, but the closing }} sequence was not found."
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_expr_vars_in_run.yml": {
+  "errors": [
+   "composite_expr_vars_in_run.yml (Line: 6, Col: 12): Unrecognized named-value: 'vars'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_id_dup.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 2
+  }
+ },
+ "composite_id_empty.yml": {
+  "errors": [
+   "composite_id_empty.yml (Line: 8, Col: 11): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_id_hyphen_first.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_id_invalid.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_id_long.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_id_reserved.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_if_bad.yml": {
+  "errors": [
+   "composite_if_bad.yml (Line: 8, Col: 11): Unrecognized named-value: 'foo'"
+  ],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_if_bool.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_if_empty.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_if_literal_text.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_if_marker_vars.yml": {
+  "errors": [
+   "composite_if_marker_vars.yml (Line: 8, Col: 11): Unrecognized named-value: 'vars'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_if_needs.yml": {
+  "errors": [
+   "composite_if_needs.yml (Line: 8, Col: 11): Unrecognized named-value: 'needs'"
+  ],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_if_syntax.yml": {
+  "errors": [
+   "composite_if_syntax.yml (Line: 8, Col: 11): Unexpected end of expression: '=='"
+  ],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_if_vars.yml": {
+  "errors": [
+   "composite_if_vars.yml (Line: 8, Col: 11): Unrecognized named-value: 'vars'"
+  ],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_name_only.yml": {
+  "errors": [
+   "composite_name_only.yml (Line: 6, Col: 7): There's not enough info to determine what you meant. Add one of these properties: run, shell, uses, with, working-directory"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_no_steps.yml": {
+  "errors": [
+   "composite_no_steps.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_outputs_bad_context.yml": {
+  "errors": [
+   "composite_outputs_bad_context.yml (Line: 5, Col: 12): Unrecognized named-value: 'secrets'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_outputs_needs.yml": {
+  "errors": [
+   "composite_outputs_needs.yml (Line: 5, Col: 12): Unrecognized named-value: 'needs'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_outputs_value.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [
+   {
+    "id": "a",
+    "value": "${{ steps.x.outputs.y }}"
+   },
+   {
+    "id": "b"
+   },
+   {
+    "id": "c",
+    "value": "plain"
+   }
+  ],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_run_and_uses.yml": {
+  "errors": [
+   "composite_run_and_uses.yml (Line: 8, Col: 7): Unexpected value 'uses'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_run_no_shell.yml": {
+  "errors": [
+   "composite_run_no_shell.yml (Line: 6, Col: 7): Required property is missing: shell"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_shell_only.yml": {
+  "errors": [
+   "composite_shell_only.yml (Line: 6, Col: 7): Required property is missing: run"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_step_background.yml": {
+  "errors": [
+   "composite_step_background.yml (Line: 8, Col: 7): Unexpected value 'background'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_step_ids_generated.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 7
+  }
+ },
+ "composite_step_not_mapping.yml": {
+  "errors": [
+   "composite_step_not_mapping.yml (Line: 6, Col: 7): Unexpected value 'echo'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_step_null.yml": {
+  "errors": [
+   "composite_step_null.yml (Line: 6, Col: 6): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_step_shell_on_uses.yml": {
+  "errors": [
+   "composite_step_shell_on_uses.yml (Line: 7, Col: 7): Unexpected value 'shell'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_step_unknown_key.yml": {
+  "errors": [
+   "composite_step_unknown_key.yml (Line: 8, Col: 7): Unexpected value 'timeout-minutes'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_step_with_on_run.yml": {
+  "errors": [
+   "composite_step_with_on_run.yml (Line: 8, Col: 7): Unexpected value 'with'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_steps_empty.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 0
+  }
+ },
+ "composite_steps_scalar.yml": {
+  "errors": [
+   "composite_steps_scalar.yml (Line: 5, Col: 10): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_upper.yml": {
+  "errors": [
+   "composite_upper.yml (Line: 4, Col: 10): Unexpected value 'Composite'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_uses_bad_emptyref.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_uses_bad_noat.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_uses_bad_noat_noid.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_uses_bad_norepo.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_uses_bad_two_at.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_uses_empty.yml": {
+  "errors": [
+   "composite_uses_empty.yml (Line: 6, Col: 13): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_uses_forms.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 10
+  }
+ },
+ "composite_uses_self_ref.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_uses_self_ref_id.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "composite_with_nonstring.yml": {
+  "errors": [
+   "composite_with_nonstring.yml (Line: 11, Col: 12): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "composite_with_scalar.yml": {
+  "errors": [
+   "composite_with_scalar.yml (Line: 7, Col: 13): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "depth_exceeded.yml": {
+  "errors": [
+   "depth_exceeded.yml (Line: 3, Col: 1): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "depth_exceeded_in_skipped.yml": {
+  "errors": [
+   "depth_exceeded_in_skipped.yml (Line: 6, Col: 3): Unexpected value 'weird'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "depth_ok.yml": {
+  "errors": [
+   "depth_ok.yml (Line: 3, Col: 1): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "depth_seq_100.yml": {
+  "errors": [
+   "depth_seq_100.yml (Line: 1, Col: 1): Unexpected value 'x'",
+   "depth_seq_100.yml (Line: 1, Col: 1): Required property is missing: name",
+   "depth_seq_100.yml (Line: 1, Col: 1): Required property is missing: description"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "depth_seq_98.yml": {
+  "errors": [
+   "depth_seq_98.yml (Line: 1, Col: 1): Unexpected value 'x'",
+   "depth_seq_98.yml (Line: 1, Col: 1): Required property is missing: name",
+   "depth_seq_98.yml (Line: 1, Col: 1): Required property is missing: description"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "depth_seq_99.yml": {
+  "errors": [
+   "depth_seq_99.yml (Line: 1, Col: 1): Unexpected value 'x'",
+   "depth_seq_99.yml (Line: 1, Col: 1): Required property is missing: name",
+   "depth_seq_99.yml (Line: 1, Col: 1): Required property is missing: description"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "description_expr.yml": {
+  "errors": [
+   "description_expr.yml (Line: 2, Col: 14): Unrecognized named-value: 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "docker_args_context_github.yml": {
+  "errors": [
+   "docker_args_context_github.yml (Line: 7, Col: 7): Unrecognized named-value: 'github'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "docker_args_scalar.yml": {
+  "errors": [
+   "docker_args_scalar.yml (Line: 6, Col: 9): Unexpected value 'abc'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "docker_dockerfile.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "x",
+    "default": "y"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "preIf": "success()",
+   "postIf": "failure()",
+   "steps": 0
+  }
+ },
+ "docker_env_context_github.yml": {
+  "errors": [
+   "docker_env_context_github.yml (Line: 7, Col: 8): Unrecognized named-value: 'github'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "docker_env_list.yml": {
+  "errors": [
+   "docker_env_list.yml (Line: 7, Col: 5): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "docker_env_number.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "docker_image.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "docker://alpine:3.19",
+   "steps": 0
+  }
+ },
+ "docker_no_image.yml": {
+  "errors": [
+   "docker_no_image.yml (Line: 4, Col: 3): Required property is missing: image"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "docker_upper.yml": {
+  "errors": [
+   "docker_upper.yml (Line: 4, Col: 10): Unexpected value 'DOCKER'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "docker_with_main.yml": {
+  "errors": [
+   "docker_with_main.yml (Line: 6, Col: 3): Unexpected value 'main'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "emoji_uses.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "empty_file.yml": {
+  "errors": [
+   "empty_file.yml: Expected a scalar value, a sequence, or a mapping"
+  ]
+ },
+ "inputs_default_bad_context.yml": {
+  "errors": [
+   "inputs_default_bad_context.yml (Line: 5, Col: 14): Unrecognized named-value: 'inputs'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_default_hashfiles.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "${{ hashFiles('x') }}"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "inputs_default_list.yml": {
+  "errors": [
+   "inputs_default_list.yml (Line: 5, Col: 14): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_default_secrets.yml": {
+  "errors": [
+   "inputs_default_secrets.yml (Line: 5, Col: 14): Unrecognized named-value: 'secrets'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_deprecation_nonstring.yml": {
+  "errors": [
+   "inputs_deprecation_nonstring.yml (Line: 5, Col: 25): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_dup_deprecated_case.yml": {
+  "errors": [
+   "inputs_dup_deprecated_case.yml (Line: 6, Col: 5): 'DeprecationMessage' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_dup_names_case.yml": {
+  "errors": [
+   "inputs_dup_names_case.yml (Line: 6, Col: 3): 'A' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_empty_key.yml": {
+  "errors": [
+   "inputs_empty_key.yml (Line: 4, Col: 3): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_list.yml": {
+  "errors": [
+   "inputs_list.yml (Line: 4, Col: 3): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_scalar_value.yml": {
+  "errors": [
+   "inputs_scalar_value.yml (Line: 4, Col: 6): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_variants.yml": {
+  "errors": [
+   "inputs_variants.yml (Line: 4, Col: 9): Unexpected value ''",
+   "inputs_variants.yml (Line: 13, Col: 15): Unexpected value 'true'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "inputs_variants_ok.yml": {
+  "errors": [
+   "inputs_variants_ok.yml (Line: 12, Col: 15): Unexpected value 'true'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_parser_accepts_valid_context_in_pre_if.yml": {
+  "errors": [],
+  "name": "Node Action",
+  "description": "A node action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "dist/index.js",
+   "preIf": "runner.os == 'Linux'",
+   "steps": 0
+  }
+ },
+ "ls_parser_converts_a_composite_action.yml": {
+  "errors": [],
+  "name": "Composite Action",
+  "description": "A composite action",
+  "author": "Test Author",
+  "inputs": [
+   {
+    "id": "name",
+    "required": true,
+    "default": "World"
+   }
+  ],
+  "outputs": [
+   {
+    "id": "result",
+    "value": "${{ steps.main.outputs.result }}"
+   }
+  ],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_parser_converts_a_docker_action.yml": {
+  "errors": [],
+  "name": "Docker Action",
+  "description": "A docker action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_parser_converts_a_node_action.yml": {
+  "errors": [],
+  "name": "Node Action",
+  "description": "A node action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "dist/index.js",
+   "preIf": "runner.os == 'Linux'",
+   "postIf": "always()",
+   "steps": 0
+  }
+ },
+ "ls_parser_converts_uses_steps_in_composite_action.yml": {
+  "errors": [],
+  "name": "Composite with Uses",
+  "description": "Composite action with uses steps",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_parser_parses_a_docker_action.yml": {
+  "errors": [],
+  "name": "Docker Action",
+  "description": "A Docker action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_parser_parses_a_javascript_action.yml": {
+  "errors": [],
+  "name": "JS Action",
+  "description": "A JavaScript action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "dist/index.js",
+   "steps": 0
+  }
+ },
+ "ls_parser_parses_a_minimal_action_yml.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "A simple action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_parser_parses_action_with_branding.yml": {
+  "errors": [],
+  "name": "Branded Action",
+  "description": "Action with branding",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_parser_parses_action_with_inputs_and_outputs.yml": {
+  "errors": [],
+  "name": "Action with I/O",
+  "description": "Action with inputs and outputs",
+  "inputs": [
+   {
+    "id": "name",
+    "required": true,
+    "default": "World"
+   },
+   {
+    "id": "verbose",
+    "required": false
+   }
+  ],
+  "outputs": [
+   {
+    "id": "greeting",
+    "value": "${{ steps.greet.outputs.message }}"
+   }
+  ],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_parser_reports_error_for_invalid_context_in_pre_if.yml": {
+  "errors": [
+   "ls_parser_reports_error_for_invalid_context_in_pre_if.yml (Line: 7, Col: 11): Unrecognized named-value: 'foo'"
+  ],
+  "name": "Node Action",
+  "description": "A node action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "dist/index.js",
+   "steps": 0
+  }
+ },
+ "ls_parser_reports_error_for_invalid_yaml.yml": {
+  "errors": [
+   "ls_parser_reports_error_for_invalid_yaml.yml: Unexpected scalar at node end at line 6, column 34:\n\n    - name: 'Hello ${{ fromJSON('test') }}'\n                                 ^^^^^^^^^^\n"
+  ]
+ },
+ "ls_parser_validates_branding_color_values.yml": {
+  "errors": [
+   "ls_parser_validates_branding_color_values.yml (Line: 5, Col: 10): Unexpected value 'pink'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_parser_validates_branding_icon_values.yml": {
+  "errors": [
+   "ls_parser_validates_branding_icon_values.yml (Line: 4, Col: 9): Unexpected value 'invalid-icon-name'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_parser_validates_required_fields.yml": {
+  "errors": [
+   "ls_parser_validates_required_fields.yml (Line: 1, Col: 1): Required property is missing: name",
+   "ls_parser_validates_required_fields.yml (Line: 1, Col: 1): Required property is missing: description"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_parser_validates_shell_is_required_for_run_steps.yml": {
+  "errors": [
+   "ls_parser_validates_shell_is_required_for_run_steps.yml (Line: 6, Col: 7): Required property is missing: shell"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_expression_with_cancelled_in_post_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "postIf": "cancelled()",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_expression_with_failure_in_post_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "postIf": "failure()",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_format_with_only_replacement_tokens.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Format with only tokens",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_full_sha.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Full SHA",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_hashfiles_function_in_composite_step_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "hashFiles in if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_hashfiles_function_in_pre_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "hashFiles in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "preIf": "hashFiles('**/package-lock.json') != ''",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_if_without_expression_markers_auto_wrapped.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "If without markers",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_status_functions_in_post_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Status functions in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "postIf": "always() || failure()",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_success_failure_always_cancelled_functions_in_composi.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Status functions in if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 3
+  }
+ },
+ "ls_validate_allows_success_function.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Success function",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_valid_contexts_in_composite_step_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid context in if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_valid_contexts_in_post_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid context in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "postIf": "runner.os == 'Linux'",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_valid_contexts_in_pre_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid context in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "preIf": "runner.os == 'Linux'",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_valid_expression_in_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid if expression",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_valid_expression_in_post_if_for_node_action.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "postIf": "always()",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_valid_expression_in_pre_if_for_node_action.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "preIf": "success()",
+   "steps": 0
+  }
+ },
+ "ls_validate_allows_valid_format_call_in_composite_step_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid format",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_allows_valid_format_call_in_pre_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Valid format in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "preIf": "format('{0}', runner.os) == 'Linux'",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_explicit_expression_syntax_in_post_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Explicit expression in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_explicit_expression_syntax_in_pre_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Explicit expression in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Literal text in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f_2.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Literal text in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Literal text in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo_2.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Literal text in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_format_with_literal_text_in_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Format with literal text",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_format_with_too_few_arguments_in_composite_step_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Format mismatch",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_format_with_too_few_arguments_in_input_default.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Format mismatch in input default",
+  "inputs": [
+   {
+    "id": "greeting",
+    "default": "${{ format('{0} {1}', 'hello') }}"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_format_with_too_few_arguments_in_post_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Format mismatch in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "postIf": "format('{0} {1} {2}', 'a', 'b')",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_format_with_too_few_arguments_in_pre_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Format mismatch in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "preIf": "format('{0} {1}', 'only-one')",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_format_with_too_few_arguments_in_run_expression.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Format mismatch in run",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_invalid_format.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Invalid format",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_invalid_format_string_in_composite_step_if.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Invalid format",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_missing_ref.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Missing version",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_reusable_workflow_in_step_uses.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Wrong workflow reference",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_unknown_function_in_composite_step_if.yml": {
+  "errors": [
+   "ls_validate_errors_on_unknown_function_in_composite_step_if.yml (Line: 6, Col: 11): Unrecognized function: 'unknownFunc'"
+  ],
+  "name": "My Action",
+  "description": "Unknown function in if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_errors_on_unknown_function_in_post_if_for_docker_action.yml": {
+  "errors": [
+   "ls_validate_errors_on_unknown_function_in_post_if_for_docker_action.yml (Line: 7, Col: 12): Unrecognized function: 'unknownFunc'"
+  ],
+  "name": "My Action",
+  "description": "Unknown function in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_unknown_function_in_post_if_for_node_action.yml": {
+  "errors": [
+   "ls_validate_errors_on_unknown_function_in_post_if_for_node_action.yml (Line: 7, Col: 12): Unrecognized function: 'unknownFunc'"
+  ],
+  "name": "My Action",
+  "description": "Unknown function in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_unknown_function_in_pre_if_for_docker_action.yml": {
+  "errors": [
+   "ls_validate_errors_on_unknown_function_in_pre_if_for_docker_action.yml (Line: 7, Col: 11): Unrecognized function: 'unknownFunc'"
+  ],
+  "name": "My Action",
+  "description": "Unknown function in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_on_unknown_function_in_pre_if_for_node_action.yml": {
+  "errors": [
+   "ls_validate_errors_on_unknown_function_in_pre_if_for_node_action.yml (Line: 7, Col: 11): Unrecognized function: 'unknownFunc'"
+  ],
+  "name": "My Action",
+  "description": "Unknown function in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_errors_when_literal_text_mixed_with_embedded_expression.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Literal text in if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_lets_schema_handle_invalid_using_value.yml": {
+  "errors": [
+   "ls_validate_lets_schema_handle_invalid_using_value.yml (Line: 4, Col: 10): Unexpected value 'not-supported'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_lets_schema_handle_missing_using.yml": {
+  "errors": [
+   "ls_validate_lets_schema_handle_missing_using.yml (Line: 4, Col: 3): Required property is missing: using"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_passes_validation_for_valid_composite_action_uses_steps.yml": {
+  "errors": [],
+  "name": "My Composite Action",
+  "description": "A composite action with uses steps",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_reports_error_for_composite_action_missing_steps.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_composite_action_missing_steps.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_composite_action_with_main.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_composite_action_with_main.yml (Line: 8, Col: 3): Unexpected value 'main'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_composite_step_missing_shell.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_composite_step_missing_shell.yml (Line: 6, Col: 7): Required property is missing: shell"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_docker_action_missing_image.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_docker_action_missing_image.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_docker_action_with_entrypoint_but_missing_.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_docker_action_with_entrypoint_but_missing_.yml (Line: 4, Col: 3): Required property is missing: image"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_docker_action_with_main.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_docker_action_with_main.yml (Line: 6, Col: 3): Unexpected value 'main'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_docker_action_with_steps.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_docker_action_with_steps.yml (Line: 6, Col: 3): Unexpected value 'steps'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_invalid_branding_color.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_invalid_branding_color.yml (Line: 5, Col: 10): Unexpected value 'pink'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_invalid_branding_icon.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_invalid_branding_icon.yml (Line: 4, Col: 9): Unexpected value 'not-a-real-icon'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_invalid_yaml_syntax.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_invalid_yaml_syntax.yml: Implicit keys need to be on a single line at line 7, column 7:\n\n    - run: |\n      echo \"Bad indentation\"\n      ^\n"
+  ]
+ },
+ "ls_validate_reports_error_for_missing_required_description.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_missing_required_description.yml (Line: 1, Col: 1): Required property is missing: description"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_missing_required_name.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_missing_required_name.yml (Line: 1, Col: 1): Required property is missing: name"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_missing_runs.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_missing_runs.yml (Line: 1, Col: 1): Required property is missing: runs"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_missing_using_in_runs.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_missing_using_in_runs.yml (Line: 4, Col: 3): Required property is missing: using"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_node20_action_missing_main.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_node20_action_missing_main.yml (Line: 4, Col: 3): Required property is missing: main"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_node20_action_with_steps.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_node20_action_with_steps.yml (Line: 6, Col: 3): Unexpected value 'steps'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_node24_action_missing_main.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_node24_action_missing_main.yml (Line: 4, Col: 3): Required property is missing: main"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_error_for_node24_action_with_only_using_no_narrowing.yml": {
+  "errors": [
+   "ls_validate_reports_error_for_node24_action_with_only_using_no_narrowing.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "ls_validate_reports_unresolved_action_in_composite_action_uses_steps.yml": {
+  "errors": [],
+  "name": "My Composite Action",
+  "description": "A composite action with uses steps",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_a_composite_action_with_a_self_repository_step.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Does something",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_a_docker_action.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "A Docker action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_validate_validates_a_minimal_composite_action.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Does something",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_a_node20_action.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "A JavaScript action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_validates_action_inputs_in_composite_action_uses_steps.yml": {
+  "errors": [],
+  "name": "My Composite Action",
+  "description": "A composite action with uses steps",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_an_action_with_branding.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Branded action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_validates_an_action_with_inputs_and_outputs.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Action with I/O",
+  "inputs": [
+   {
+    "id": "name",
+    "required": true
+   },
+   {
+    "id": "greeting",
+    "default": "Hello"
+   }
+  ],
+  "outputs": [
+   {
+    "id": "result"
+   }
+  ],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_docker_uses_format.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Uses docker image",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_if_in_uses_step.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "If in uses step",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_local_uses_format.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Uses local action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_required_inputs_in_composite_action_uses_steps.yml": {
+  "errors": [],
+  "name": "My Composite Action",
+  "description": "A composite action with uses steps",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_validates_valid_uses_format_with_version.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Uses another action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_warns_on_short_sha.yml": {
+  "errors": [],
+  "name": "My Action",
+  "description": "Short SHA",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_warns_on_unknown_context_in_composite_step_if.yml": {
+  "errors": [
+   "ls_validate_warns_on_unknown_context_in_composite_step_if.yml (Line: 6, Col: 11): Unrecognized named-value: 'foo'"
+  ],
+  "name": "My Action",
+  "description": "Unknown context in if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "ls_validate_warns_on_unknown_context_in_post_if_for_docker_action.yml": {
+  "errors": [
+   "ls_validate_warns_on_unknown_context_in_post_if_for_docker_action.yml (Line: 7, Col: 12): Unrecognized named-value: 'foo'"
+  ],
+  "name": "My Action",
+  "description": "Unknown context in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_validate_warns_on_unknown_context_in_post_if_for_node_action.yml": {
+  "errors": [
+   "ls_validate_warns_on_unknown_context_in_post_if_for_node_action.yml (Line: 7, Col: 12): Unrecognized named-value: 'foo'"
+  ],
+  "name": "My Action",
+  "description": "Unknown context in post-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "ls_validate_warns_on_unknown_context_in_pre_if_for_docker_action.yml": {
+  "errors": [
+   "ls_validate_warns_on_unknown_context_in_pre_if_for_docker_action.yml (Line: 7, Col: 11): Unrecognized named-value: 'foo'"
+  ],
+  "name": "My Action",
+  "description": "Unknown context in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "docker",
+   "image": "Dockerfile",
+   "steps": 0
+  }
+ },
+ "ls_validate_warns_on_unknown_context_in_pre_if_for_node_action.yml": {
+  "errors": [
+   "ls_validate_warns_on_unknown_context_in_pre_if_for_node_action.yml (Line: 7, Col: 11): Unrecognized named-value: 'foo'"
+  ],
+  "name": "My Action",
+  "description": "Unknown context in pre-if",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "many_errors.yml": {
+  "errors": [
+   "many_errors.yml (Line: 6, Col: 3): Unexpected value 'k0'",
+   "many_errors.yml (Line: 7, Col: 3): Unexpected value 'k1'",
+   "many_errors.yml (Line: 8, Col: 3): Unexpected value 'k2'",
+   "many_errors.yml (Line: 9, Col: 3): Unexpected value 'k3'",
+   "many_errors.yml (Line: 10, Col: 3): Unexpected value 'k4'",
+   "many_errors.yml (Line: 11, Col: 3): Unexpected value 'k5'",
+   "many_errors.yml (Line: 12, Col: 3): Unexpected value 'k6'",
+   "many_errors.yml (Line: 13, Col: 3): Unexpected value 'k7'",
+   "many_errors.yml (Line: 14, Col: 3): Unexpected value 'k8'",
+   "many_errors.yml (Line: 15, Col: 3): Unexpected value 'k9'",
+   "many_errors.yml (Line: 16, Col: 3): Unexpected value 'k10'",
+   "many_errors.yml (Line: 17, Col: 3): Unexpected value 'k11'",
+   "many_errors.yml (Line: 18, Col: 3): Unexpected value 'k12'",
+   "many_errors.yml (Line: 19, Col: 3): Unexpected value 'k13'",
+   "many_errors.yml (Line: 20, Col: 3): Unexpected value 'k14'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "many_errors_composite.yml": {
+  "errors": [
+   "many_errors_composite.yml (Line: 8, Col: 7): Unexpected value 'k0'",
+   "many_errors_composite.yml (Line: 11, Col: 7): Unexpected value 'k1'",
+   "many_errors_composite.yml (Line: 14, Col: 7): Unexpected value 'k2'",
+   "many_errors_composite.yml (Line: 17, Col: 7): Unexpected value 'k3'",
+   "many_errors_composite.yml (Line: 20, Col: 7): Unexpected value 'k4'",
+   "many_errors_composite.yml (Line: 23, Col: 7): Unexpected value 'k5'",
+   "many_errors_composite.yml (Line: 26, Col: 7): Unexpected value 'k6'",
+   "many_errors_composite.yml (Line: 29, Col: 7): Unexpected value 'k7'",
+   "many_errors_composite.yml (Line: 32, Col: 7): Unexpected value 'k8'",
+   "many_errors_composite.yml (Line: 35, Col: 7): Unexpected value 'k9'",
+   "many_errors_composite.yml (Line: 38, Col: 7): Unexpected value 'k10'",
+   "many_errors_composite.yml (Line: 41, Col: 7): Unexpected value 'k11'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "name_empty.yml": {
+  "errors": [
+   "name_empty.yml (Line: 1, Col: 7): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "name_expr.yml": {
+  "errors": [
+   "name_expr.yml (Line: 1, Col: 7): Unrecognized named-value: 'github'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "name_list.yml": {
+  "errors": [
+   "name_list.yml (Line: 1, Col: 7): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "name_number.yml": {
+  "errors": [],
+  "name": "123",
+  "description": "true",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "nested_steps_if_status.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 3
+  }
+ },
+ "no_description.yml": {
+  "errors": [
+   "no_description.yml (Line: 1, Col: 1): Required property is missing: description"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "no_name.yml": {
+  "errors": [
+   "no_name.yml (Line: 1, Col: 1): Required property is missing: name"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "node12.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node12",
+   "main": "index.js",
+   "preIf": "runner.os == 'Linux'",
+   "postIf": "failure()",
+   "steps": 0
+  }
+ },
+ "node16.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node16",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "node20_min.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "dist/index.js",
+   "steps": 0
+  }
+ },
+ "node24.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node24",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "node_empty_main.yml": {
+  "errors": [
+   "node_empty_main.yml (Line: 5, Col: 9): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "node_pre_if_bad_context.yml": {
+  "errors": [
+   "node_pre_if_bad_context.yml (Line: 7, Col: 11): Unrecognized named-value: 'foo'"
+  ],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "node_pre_if_expr_marker.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "index.js",
+   "steps": 0
+  }
+ },
+ "node_upper.yml": {
+  "errors": [
+   "node_upper.yml (Line: 4, Col: 10): Unexpected value 'Node20'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "node_with_steps.yml": {
+  "errors": [
+   "node_with_steps.yml (Line: 6, Col: 3): Unexpected value 'steps'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "node_without_main.yml": {
+  "errors": [
+   "node_without_main.yml (Line: 4, Col: 3): Required property is missing: main"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "num_00.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "1"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_01.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "1000"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_02.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "31"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_03.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "15"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_04.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "17"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_05.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "1e+21"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_06.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "123456789012345680"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_07.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "1.2345678901234569e+23"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_08.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "0.1"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_09.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "0.30000000000000004"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_10.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "0.5"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_11.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "1_000"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_12.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "5"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_13.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "0"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_14.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "-5"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_15.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "1.5e-7"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_16.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "100000"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_17.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "68719476735"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_18.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "549755813887"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_19.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "Infinity"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_20.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "Infinity"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_21.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "-Infinity"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_22.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "NaN"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_23.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": ""
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_24.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": ""
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_25.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "true"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_26.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "yes"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_27.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "0.000001"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "num_28.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "100000000000000000000"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "only_comment.yml": {
+  "errors": [
+   "only_comment.yml: Expected a scalar value, a sequence, or a mapping"
+  ]
+ },
+ "only_runs.yml": {
+  "errors": [
+   "only_runs.yml (Line: 1, Col: 1): Required property is missing: name",
+   "only_runs.yml (Line: 1, Col: 1): Required property is missing: description"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "outputs_scalar.yml": {
+  "errors": [
+   "outputs_scalar.yml (Line: 3, Col: 10): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "outputs_unknown_key.yml": {
+  "errors": [
+   "outputs_unknown_key.yml (Line: 6, Col: 5): Unexpected value 'other'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "outputs_value_scalar.yml": {
+  "errors": [
+   "outputs_value_scalar.yml (Line: 4, Col: 6): Unexpected value 'x'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "plugin.yml": {
+  "errors": [
+   "plugin.yml (Line: 4, Col: 3): Unexpected value 'plugin'",
+   "plugin.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "plugin_with_using.yml": {
+  "errors": [
+   "plugin_with_using.yml (Line: 6, Col: 3): Unexpected value 'plugin'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "root_list.yml": {
+  "errors": [
+   "root_list.yml (Line: 1, Col: 1): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "root_null.yml": {
+  "errors": [
+   "root_null.yml (Line: 1, Col: 1): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "root_scalar.yml": {
+  "errors": [
+   "root_scalar.yml (Line: 1, Col: 1): Unexpected value 'hello'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_composite_action_without_using_token.yml": {
+  "errors": [
+   "runner_composite_action_without_using_token.yml (Line: 5, Col: 3): Required property is missing: using"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_conditional_composite_action.yml": {
+  "errors": [],
+  "name": "Conditional Composite",
+  "description": "Test composite run step conditionals",
+  "inputs": [
+   {
+    "id": "exit-code",
+    "default": "0"
+   }
+  ],
+  "outputs": [
+   {
+    "id": "default",
+    "value": "${{ steps.default-conditional.outputs.default }}"
+   },
+   {
+    "id": "success",
+    "value": "${{ steps.success-conditional.outputs.success }}"
+   },
+   {
+    "id": "failure",
+    "value": "${{ steps.failure-conditional.outputs.failure }}"
+   },
+   {
+    "id": "always",
+    "value": "${{ steps.always-conditional.outputs.always }}"
+   }
+  ],
+  "runs": {
+   "using": "composite",
+   "steps": 6
+  }
+ },
+ "runner_dockerfileaction.yml": {
+  "errors": [
+   "runner_dockerfileaction.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfileaction.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfileaction_arg_env_expression.yml": {
+  "errors": [
+   "runner_dockerfileaction_arg_env_expression.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfileaction_arg_env_expression.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfileaction_cleanup.yml": {
+  "errors": [
+   "runner_dockerfileaction_cleanup.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfileaction_cleanup.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfileaction_cleanup_default.yml": {
+  "errors": [
+   "runner_dockerfileaction_cleanup_default.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfileaction_cleanup_default.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfileaction_env_invalid_context.yml": {
+  "errors": [
+   "runner_dockerfileaction_env_invalid_context.yml (Line: 13, Col: 14): Unrecognized named-value: 'github'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfileaction_init.yml": {
+  "errors": [
+   "runner_dockerfileaction_init.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfileaction_init.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfileaction_init_default.yml": {
+  "errors": [
+   "runner_dockerfileaction_init_default.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfileaction_init_default.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfileaction_noargs_noenv_noentrypoint.yml": {
+  "errors": [
+   "runner_dockerfileaction_noargs_noenv_noentrypoint.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfileaction_noargs_noenv_noentrypoint.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerfilerelativeaction.yml": {
+  "errors": [
+   "runner_dockerfilerelativeaction.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerfilerelativeaction.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_dockerhubaction.yml": {
+  "errors": [
+   "runner_dockerhubaction.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_dockerhubaction.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_node16action.yml": {
+  "errors": [
+   "runner_node16action.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_node16action.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_node20action.yml": {
+  "errors": [
+   "runner_node20action.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_node20action.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_node24action.yml": {
+  "errors": [
+   "runner_node24action.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_node24action.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_nodeaction.yml": {
+  "errors": [
+   "runner_nodeaction.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_nodeaction.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_nodeaction_cleanup.yml": {
+  "errors": [
+   "runner_nodeaction_cleanup.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_nodeaction_cleanup.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_nodeaction_cleanup_default.yml": {
+  "errors": [
+   "runner_nodeaction_cleanup_default.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_nodeaction_cleanup_default.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_nodeaction_init.yml": {
+  "errors": [
+   "runner_nodeaction_init.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_nodeaction_init.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_nodeaction_init_default.yml": {
+  "errors": [
+   "runner_nodeaction_init_default.yml (Line: 16, Col: 1): Unexpected value 'icon'",
+   "runner_nodeaction_init_default.yml (Line: 17, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_noderelativeaction.yml": {
+  "errors": [
+   "runner_noderelativeaction.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_noderelativeaction.yml (Line: 16, Col: 1): Unexpected value 'color'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_pluginaction.yml": {
+  "errors": [
+   "runner_pluginaction.yml (Line: 15, Col: 1): Unexpected value 'icon'",
+   "runner_pluginaction.yml (Line: 16, Col: 1): Unexpected value 'color'",
+   "runner_pluginaction.yml (Line: 18, Col: 3): Unexpected value 'plugin'",
+   "runner_pluginaction.yml (Line: 18, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runner_self_repository_composite_action.yml": {
+  "errors": [],
+  "name": "Self Repository Composite",
+  "description": "Test composite action referencing actions in the same repository via $/",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 7
+  }
+ },
+ "runner_self_repository_ref_composite_action.yml": {
+  "errors": [],
+  "name": "Invalid Self Repository Ref",
+  "description": "Test rejection of a ref on a self-repository action",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "runs_empty_mapping.yml": {
+  "errors": [
+   "runs_empty_mapping.yml (Line: 3, Col: 7): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runs_list.yml": {
+  "errors": [
+   "runs_list.yml (Line: 4, Col: 3): A sequence was not expected"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runs_missing.yml": {
+  "errors": [
+   "runs_missing.yml (Line: 1, Col: 1): Required property is missing: runs"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runs_string.yml": {
+  "errors": [
+   "runs_string.yml (Line: 3, Col: 7): Unexpected value 'node20'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "runs_unknown_key.yml": {
+  "errors": [
+   "runs_unknown_key.yml (Line: 6, Col: 3): Unexpected value 'weird'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "steps_json_ctx.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "top_unknown_expr.yml": {
+  "errors": [
+   "top_unknown_expr.yml (Line: 3, Col: 1): Unexpected value 'extra'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "top_unknown_keys.yml": {
+  "errors": [
+   "top_unknown_keys.yml (Line: 3, Col: 1): Unexpected value 'icon'",
+   "top_unknown_keys.yml (Line: 4, Col: 1): Unexpected value 'color'",
+   "top_unknown_keys.yml (Line: 9, Col: 1): Unexpected value 'extra'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "unicode_ids.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 2
+  }
+ },
+ "using_empty.yml": {
+  "errors": [
+   "using_empty.yml (Line: 4, Col: 10): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "using_missing.yml": {
+  "errors": [
+   "using_missing.yml (Line: 4, Col: 3): Required property is missing: using"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "using_missing_only_steps.yml": {
+  "errors": [
+   "using_missing_only_steps.yml (Line: 4, Col: 3): Required property is missing: using"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "using_null.yml": {
+  "errors": [
+   "using_null.yml (Line: 4, Col: 9): Unexpected value ''"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "using_number.yml": {
+  "errors": [
+   "using_number.yml (Line: 4, Col: 10): Unexpected value '20'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "using_unknown.yml": {
+  "errors": [
+   "using_unknown.yml (Line: 4, Col: 10): Unexpected value 'node99'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "windows_uses.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "yaml_anchor.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "yaml_anchor_alias.yml": {
+  "errors": [
+   "yaml_anchor_alias.yml (Line: 1, Col: 1): Unexpected value 'base'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "yaml_block_scalar.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "line1\nline2\n",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 1
+  }
+ },
+ "yaml_bom.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "yaml_crlf.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "yaml_dup_in_runs.yml": {
+  "errors": [
+   "yaml_dup_in_runs.yml (Line: 6, Col: 3): 'main' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "yaml_dup_key.yml": {
+  "errors": [
+   "yaml_dup_key.yml (Line: 2, Col: 1): 'name' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "yaml_dup_key_case.yml": {
+  "errors": [
+   "yaml_dup_key_case.yml (Line: 2, Col: 1): 'NAME' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "yaml_key_collection.yml": {
+  "errors": [
+   "yaml_key_collection.yml (Line: 3, Col: 3): Unexpected value 'undefined'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "yaml_merge_key.yml": {
+  "errors": [
+   "yaml_merge_key.yml (Line: 4, Col: 3): Unexpected value '<<'",
+   "yaml_merge_key.yml (Line: 4, Col: 3): Required property is missing: using"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "yaml_syntax.yml": {
+  "errors": [
+   "yaml_syntax.yml: Flow sequence in block collection must be sufficiently indented and end with a ] at line 3, column 1:\n\nruns: [\n\n^\n"
+  ]
+ },
+ "yaml_tab.yml": {
+  "errors": [
+   "yaml_tab.yml: Tabs are not allowed as indentation at line 3, column 1:\n\nruns:\n\tusing: node20\n^\n"
+  ]
+ },
+ "yaml_tag_str.yml": {
+  "errors": [],
+  "name": "123",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "yaml_two_docs.yml": {
+  "errors": [
+   "yaml_two_docs.yml: Source contains multiple documents; please use YAML.parseAllDocuments() at line 2, column 1:\n\nname: A\n---\n^\n"
+  ]
+ }
+}

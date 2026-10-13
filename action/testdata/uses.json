@@ -1,0 +1,1373 @@
+{
+  "actions/checkout@v4": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "actions/checkout@main": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "main",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "8e5e7e5ab8b370d6c329ec480221332ada57f0ab",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "actions/aws/ec2@main": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/aws",
+            "ref": "main",
+            "path": "ec2"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "actions/aws/nested/deep/path@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/aws",
+            "ref": "v1",
+            "path": "nested/deep/path"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "owner/repo/a/b/c@v1.2": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "owner/repo",
+            "ref": "v1.2",
+            "path": "a/b/c"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "./local/action": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./local/action"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "./": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  ".\\win\\action": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": ".\\win\\action"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  ".\\": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": ".\\"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "docker://alpine:3.8": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "docker",
+            "image": "alpine:3.8"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "docker://gcr.io/my-project/my-image:latest": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "docker",
+            "image": "gcr.io/my-project/my-image:latest"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "docker://": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "docker",
+            "image": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "Docker://alpine": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'Docker://alpine'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'Docker://alpine'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "$/": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "$/path": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": "path"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "$/.github/actions/x": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": ".github/actions/x"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "$//a/b": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": "a/b"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "$/foo@v1": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "$/@v1": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/@v1'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/@v1'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "$/a@": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/a@'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/a@'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "actions/checkout": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "actions/checkout@": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout@'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout@'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "checkout@v4": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'checkout@v4'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'checkout@v4'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "/repo@v4": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '/repo@v4'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '/repo@v4'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "owner/@v4": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'owner/@v4'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'owner/@v4'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "@v4": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '@v4'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '@v4'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "a@b@c": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a@b@c'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a@b@c'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "a/b@c@d": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@c@d'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@c@d'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "a/b@": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "a/b@@": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@@'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@@'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "a//b@c": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "//a/b@c": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "/a/b@c": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a\\b@c": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a\\b\\c@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "v1",
+            "path": "c"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/\\b@c": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  " actions/checkout@v4": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": " actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "actions/checkout@v4 ": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4 ",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "actions /checkout@v4": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions /checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b @c": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b ",
+            "ref": "c",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b@c d": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c d",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b/../c@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "v1",
+            "path": "../c"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b/./c@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "v1",
+            "path": "./c"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b/@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b//@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "..": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '..'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '..'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "../x": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '../x'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '../x'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  ".": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '.'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '.'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "x": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'x'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'x'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "a": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "a/b": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "é/è@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "é/è",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b@é": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "é",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "😀/b@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "😀/b",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b@c/d": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c/d",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b@refs/heads/main": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "refs/heads/main",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a/b@refs/tags/v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "refs/tags/v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "actions/checkout@v4.1.0": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4.1.0",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "a-b/c_d@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a-b/c_d",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "A/B@V1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "A/B",
+            "ref": "V1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "owner/repo/.github/workflows/ci.yml@main": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "owner/repo",
+            "ref": "main",
+            "path": ".github/workflows/ci.yml"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "./.github/actions/x": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./.github/actions/x"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "./a b": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./a b"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "~/x": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '~/x'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual '~/x'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "file:///x": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'file:///x'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'file:///x'"
+    ],
+    "failed": "Failed to load u.yml"
+  },
+  "https://github.com/a/b@v1": {
+    "name": "a",
+    "description": "d",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "https:/github.com",
+            "ref": "v1",
+            "path": "a/b"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "git@github.com:a/b.git": {
+    "name": "a",
+    "description": "d",
+    "errors": [
+      "u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'git@github.com:a/b.git'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. u.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'git@github.com:a/b.git'"
+    ],
+    "failed": "Failed to load u.yml"
+  }
+}

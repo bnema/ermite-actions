@@ -1,0 +1,7 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - uses: checkout@v4
+      id: x
