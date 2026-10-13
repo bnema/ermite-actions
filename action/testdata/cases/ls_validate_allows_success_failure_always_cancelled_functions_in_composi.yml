@@ -1,0 +1,14 @@
+name: My Action
+description: Status functions in if
+runs:
+  using: composite
+  steps:
+    - if: success() && !cancelled()
+      run: echo success
+      shell: bash
+    - if: failure()
+      run: echo failure
+      shell: bash
+    - if: always()
+      run: echo always
+      shell: bash

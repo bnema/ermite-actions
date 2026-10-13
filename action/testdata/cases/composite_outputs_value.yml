@@ -1,0 +1,15 @@
+name: A
+description: D
+outputs:
+  a:
+    value: ${{ steps.x.outputs.y }}
+  b:
+    description: only desc
+  c:
+    value: plain
+runs:
+  using: composite
+  steps:
+    - run: echo
+      shell: bash
+      id: x

@@ -1,0 +1,5 @@
+name: A
+description: &d D
+runs:
+  using: node20
+  main: m.js

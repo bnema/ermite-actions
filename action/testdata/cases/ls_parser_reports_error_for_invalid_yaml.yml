@@ -1,0 +1,8 @@
+name: Invalid Action
+description: Action with bad YAML
+runs:
+  using: composite
+  steps:
+    - name: 'Hello ${{ fromJSON('test') }}'
+      run: echo test
+      shell: bash

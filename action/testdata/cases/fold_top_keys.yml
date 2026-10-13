@@ -1,0 +1,8 @@
+name: A
+NAME: B
+é: 1
+É: 2
+description: D
+runs:
+  using: node20
+  main: m.js

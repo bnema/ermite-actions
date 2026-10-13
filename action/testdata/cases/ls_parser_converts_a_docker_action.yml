@@ -1,0 +1,11 @@
+name: Docker Action
+description: A docker action
+runs:
+  using: docker
+  image: Dockerfile
+  entrypoint: /entrypoint.sh
+  args:
+    - --name
+    - ${{ inputs.name }}
+  env:
+    DEBUG: "true"

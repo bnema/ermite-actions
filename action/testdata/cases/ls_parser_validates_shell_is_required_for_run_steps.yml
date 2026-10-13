@@ -1,0 +1,6 @@
+name: Missing Shell
+description: Action without shell in run step
+runs:
+  using: composite
+  steps:
+    - run: echo Hello

@@ -1,0 +1,7 @@
+name: My Action
+description: Format mismatch in run
+runs:
+  using: composite
+  steps:
+    - run: echo ${{ format('{0} {1}', 'only-one') }}
+      shell: bash

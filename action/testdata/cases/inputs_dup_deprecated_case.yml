@@ -1,0 +1,9 @@
+name: A
+description: D
+inputs:
+  a:
+    deprecationMessage: x
+    DeprecationMessage: y
+runs:
+  using: node20
+  main: m.js

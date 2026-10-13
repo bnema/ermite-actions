@@ -1,0 +1,6 @@
+name: A
+description: D
+extra: ${{ github.ref }}
+runs:
+  using: node20
+  main: m.js

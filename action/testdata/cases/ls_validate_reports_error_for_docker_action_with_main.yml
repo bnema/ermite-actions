@@ -1,0 +1,6 @@
+name: My Action
+description: Invalid - docker with main
+runs:
+  using: docker
+  image: Dockerfile
+  main: index.js

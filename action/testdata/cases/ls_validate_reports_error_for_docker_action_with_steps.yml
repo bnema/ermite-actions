@@ -1,0 +1,8 @@
+name: My Action
+description: Invalid - docker with steps
+runs:
+  using: docker
+  image: Dockerfile
+  steps:
+    - run: echo "hello"
+      shell: bash

@@ -1,0 +1,6 @@
+base: &b
+  using: node20
+  main: m.js
+name: A
+description: D
+runs: *b

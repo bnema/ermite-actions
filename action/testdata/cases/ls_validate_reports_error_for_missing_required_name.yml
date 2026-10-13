@@ -1,0 +1,6 @@
+description: An action without a name
+runs:
+  using: composite
+  steps:
+    - run: echo "Hi"
+      shell: bash

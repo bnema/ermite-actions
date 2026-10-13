@@ -1,0 +1,7 @@
+name: My Action
+description: Unknown function in pre-if
+runs:
+  using: docker
+  image: Dockerfile
+  pre-entrypoint: /setup.sh
+  pre-if: unknownFunc()

@@ -1,0 +1,14 @@
+name: A
+description: D
+icon: hello.svg
+color: green
+author: me
+branding:
+  icon: award
+  color: blue
+extra:
+  - 1
+  - k: v
+runs:
+  using: node20
+  main: m.js

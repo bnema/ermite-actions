@@ -1,0 +1,8 @@
+name: My Action
+description: Unknown function in if
+runs:
+  using: composite
+  steps:
+    - if: unknownFunc()
+      run: echo hi
+      shell: bash

@@ -1,0 +1,8 @@
+name: My Action
+description: Format with literal text
+runs:
+  using: composite
+  steps:
+    - if: ${{ format('event is {0}', github.event_name) }}
+      run: echo hi
+      shell: bash

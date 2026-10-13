@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"bnema.dev/ermite-actions/expr"
 )
 
 // ReadYAML parses a YAML document and reads it as a template of the schema
@@ -23,7 +25,7 @@ func ReadYAML(ctx *Context, rootType, file string, content []byte) (root Token) 
 		ctx.add(e)
 		return nil
 	}
-	res := readYAMLDocument(file, content)
+	res := readYAMLDocument(file, content, ctx.RunnerYAML)
 	for _, e := range res.errs {
 		ctx.add(e)
 	}
@@ -41,10 +43,18 @@ func ReadYAML(ctx *Context, rootType, file string, content []byte) (root Token) 
 	}()
 	rd := &reader{ctx: ctx, schema: ctx.schema, file: file}
 	if res.root == nil {
+		if ctx.RunnerYAML {
+			// YamlDotNet produces no DocumentStart event for an empty stream.
+			fatalf("Expected document start parse event")
+		}
 		fatalf("Expected a scalar value, a sequence, or a mapping")
 	}
 	def := newDefinitionInfo(ctx.schema, nil, ctx.schema.get(rootType))
-	return rd.readValue(res.root, def)
+	root = rd.readValue(res.root, def)
+	for _, e := range res.after {
+		ctx.add(e)
+	}
+	return root
 }
 
 type reader struct {
@@ -54,16 +64,91 @@ type reader struct {
 	// noExpressions is set when reading the result of an evaluation, whose
 	// strings are text even if they contain ${{.
 	noExpressions bool
+	// depth is the nesting of the collections being read, see Context.MaxDepth.
+	depth int
+}
+
+// enter counts one more level of nesting. Like TemplateMemory.IncrementDepth
+// it fails when the levels already entered reach the limit, so a limit of 100
+// allows 100 nested collections.
+func (r *reader) enter() {
+	if r.ctx.MaxDepth <= 0 {
+		return
+	}
+	if r.depth >= r.ctx.MaxDepth {
+		fatalf("Maximum object depth exceeded")
+	}
+	r.depth++
+}
+
+// text is the string a literal becomes when the schema wants a string, and
+// the text of a key that is not a string: Token.String, except that a number
+// is shown as the runner's NumberToken shows it in runner mode.
+func (r *reader) text(t Token) string {
+	if n, ok := t.(*Number); ok && r.ctx.RunnerYAML {
+		return DotNetNumberString(n.Value)
+	}
+	return t.String()
+}
+
+// foldKey is the form of a key under which duplicates are detected: the
+// reference upper-cases like JavaScript, the runner compares keys with
+// .NET's OrdinalIgnoreCase.
+func (r *reader) foldKey(s string) string {
+	if r.ctx.RunnerYAML {
+		return expr.OrdinalFold(s)
+	}
+	return strings.ToUpper(s)
+}
+
+func (r *reader) leave() {
+	if r.ctx.MaxDepth > 0 {
+		r.depth--
+	}
+}
+
+// skip walks a value that is not kept (the value of an unexpected key, the
+// items of a collection the schema does not allow) and counts its nesting,
+// as the reference's SkipValue does.
+func (r *reader) skip(n *rnode) {
+	if n == nil {
+		return
+	}
+	if n.fault != "" {
+		fatalf("%s", n.fault)
+	}
+	if r.ctx.MaxDepth <= 0 {
+		return
+	}
+	switch n.kind {
+	case rSeq:
+		r.enter()
+		for _, it := range n.items {
+			r.skip(it)
+		}
+		r.leave()
+	case rMap:
+		r.enter()
+		for i := range n.keys {
+			r.skip(n.keys[i])
+			r.skip(n.vals[i])
+		}
+		r.leave()
+	}
 }
 
 func (r *reader) origin(n *rnode) Origin { return Origin{File: r.file, Pos: n.pos} }
 
 func (r *reader) readValue(n *rnode, def *DefinitionInfo) Token {
+	if n.fault != "" {
+		fatalf("%s", n.fault)
+	}
 	switch n.kind {
 	case rLiteral:
 		scalar := r.parseScalar(n, n.lit, def)
 		return r.validate(scalar, def)
 	case rSeq:
+		r.enter()
 		seq := NewSequence(r.origin(n))
 		defs := def.schema.definitionsOfType(def.Definition, DefSequence)
 		if len(defs) > 0 {
@@ -73,10 +158,15 @@ func (r *reader) readValue(n *rnode, def *DefinitionInfo) Token {
 			}
 		} else {
 			r.ctx.ErrorAt(seq, "A sequence was not expected")
+			for _, it := range n.items {
+				r.skip(it)
+			}
 		}
 		seq.def = def
+		r.leave()
 		return seq
 	}
+	r.enter()
 	m := NewMapping(r.origin(n))
 	defs := def.schema.definitionsOfType(def.Definition, DefMapping)
 	if len(defs) > 0 {
@@ -89,10 +179,15 @@ func (r *reader) readValue(n *rnode, def *DefinitionInfo) Token {
 		}
 	} else {
 		r.ctx.ErrorAt(m, "A mapping was not expected")
+		for i := range n.keys {
+			r.skip(n.keys[i])
+			r.skip(n.vals[i])
+		}
 	}
 	if m.def == nil {
 		m.def = def
 	}
+	r.leave()
 	return m
 }
 
@@ -100,7 +195,15 @@ func (r *reader) readValue(n *rnode, def *DefinitionInfo) Token {
 // error and reads as an empty string.
 func (r *reader) key(n *rnode, i int, def *DefinitionInfo) Token {
 	k := n.keys[i]
+	if k.fault != "" {
+		fatalf("%s", k.fault)
+	}
 	if k.badKey {
+		if r.ctx.RunnerYAML {
+			// The runner's loop over the keys ends at the first one that is not
+			// a literal, and then expects the end of the mapping.
+			fatalf("Expected mapping end")
+		}
 		r.ctx.ErrorAt(NewString(r.origin(k), ""), "Unexpected value ''")
 	}
 	return r.parseScalar(k, k.lit, def)
@@ -123,17 +226,19 @@ func (r *reader) mappingWithProperties(n *rnode, m *Mapping, def *DefinitionInfo
 				m.Add(keyScalar, r.readValue(val, def.child("any")))
 			} else {
 				r.ctx.ErrorAt(keyScalar, "A template expression is not allowed in this context")
+				r.skip(val)
 			}
 			continue
 		}
 		nextKey, ok := keyScalar.(*String)
 		if !ok {
-			nextKey = &String{tokenBase: *keyScalar.base(), Value: keyScalar.String()}
+			nextKey = &String{tokenBase: *keyScalar.base(), Value: r.text(keyScalar)}
 		}
 		if nextKey.Value != "" {
-			up := strings.ToUpper(nextKey.Value)
+			up := r.foldKey(nextKey.Value)
 			if upperKeys[up] {
 				r.ctx.Errorf(nextKey, "'%s' is already defined", nextKey.Value)
+				r.skip(val)
 				continue
 			}
 			upperKeys[up] = true
@@ -143,6 +248,7 @@ func (r *reader) mappingWithProperties(n *rnode, m *Mapping, def *DefinitionInfo
 		if prop != nil {
 			if backgroundStepProperties[nextKey.Value] {
 				r.ctx.Errorf(nextKey, "Unexpected value '%s'", nextKey.Value)
+				r.skip(val)
 				continue
 			}
 			nd := def.child(prop.Type)
@@ -161,6 +267,7 @@ func (r *reader) mappingWithProperties(n *rnode, m *Mapping, def *DefinitionInfo
 			continue
 		}
 		r.ctx.Errorf(nextKey, "Unexpected value '%s'", nextKey.Value)
+		r.skip(val)
 	}
 	if len(defs) == 1 {
 		m.def = newDefinitionInfo(def.schema, def, defs[0])
@@ -183,7 +290,7 @@ func (r *reader) mappingWithProperties(n *rnode, m *Mapping, def *DefinitionInfo
 		r.ctx.Errorf(m, "There's not enough info to determine what you meant. Add one of these properties: %s", strings.Join(props, ", "))
 	case len(defs) == 1 && !hasExpressionKey:
 		for _, name := range defs[0].PropertyNames {
-			if defs[0].Properties[name].Required && !upperKeys[strings.ToUpper(name)] {
+			if defs[0].Properties[name].Required && !upperKeys[r.foldKey(name)] {
 				r.ctx.Errorf(m, "Required property is missing: %s", name)
 			}
 		}
@@ -206,17 +313,19 @@ func (r *reader) mappingAllLoose(n *rnode, m *Mapping, def, keyDef, valDef *Defi
 				m.Add(keyScalar, r.readValue(val, valDef))
 			} else {
 				r.ctx.ErrorAt(keyScalar, "A template expression is not allowed in this context")
+				r.skip(val)
 			}
 			continue
 		}
 		nextKey, ok := keyScalar.(*String)
 		if !ok {
-			nextKey = &String{tokenBase: *keyScalar.base(), Value: keyScalar.String()}
+			nextKey = &String{tokenBase: *keyScalar.base(), Value: r.text(keyScalar)}
 		}
 		if nextKey.Value != "" {
-			up := strings.ToUpper(nextKey.Value)
+			up := r.foldKey(nextKey.Value)
 			if upperKeys[up] {
 				r.ctx.Errorf(nextKey, "'%s' is already defined", nextKey.Value)
+				r.skip(val)
 				continue
 			}
 			upperKeys[up] = true
@@ -239,7 +348,7 @@ func (r *reader) validate(scalar Token, def *DefinitionInfo) Token {
 			}
 		}
 		if scalar.Kind() != KindString {
-			sl := &String{tokenBase: *scalar.base(), Value: scalar.String()}
+			sl := &String{tokenBase: *scalar.base(), Value: r.text(scalar)}
 			for _, d := range def.schema.scalarDefinitions(def.Definition) {
 				if d.isMatch(sl) {
 					sl.def = newDefinitionInfo(def.schema, def, d)
@@ -247,7 +356,7 @@ func (r *reader) validate(scalar Token, def *DefinitionInfo) Token {
 				}
 			}
 		}
-		r.ctx.ErrorAt(scalar, fmt.Sprintf("Unexpected value '%s'", scalar.String()))
+		r.ctx.ErrorAt(scalar, fmt.Sprintf("Unexpected value '%s'", r.text(scalar)))
 	case KindBasicExpression:
 		if len(def.allowed) == 0 {
 			r.ctx.ErrorAt(scalar, "A template expression is not allowed in this context")

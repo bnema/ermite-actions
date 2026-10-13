@@ -1,0 +1,9 @@
+name: My Action
+description: Format mismatch in input default
+inputs:
+  greeting:
+    description: Greeting message
+    default: ${{ format('{0} {1}', 'hello') }}
+runs:
+  using: node20
+  main: index.js

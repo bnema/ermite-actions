@@ -1,0 +1,8 @@
+name: My Action
+description: Bad icon
+branding:
+  icon: not-a-real-icon
+  color: blue
+runs:
+  using: node20
+  main: index.js

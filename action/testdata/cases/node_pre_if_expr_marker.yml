@@ -1,0 +1,7 @@
+name: A
+description: D
+runs:
+  using: node20
+  main: index.js
+  pre: p.js
+  pre-if: ${{ always() }}

@@ -1,0 +1,8 @@
+name: Composite with Uses
+description: Composite action with uses steps
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0

@@ -23,7 +23,7 @@ func TestPlainScalarsAgainstReference(t *testing.T) {
 		t.Fatal(err)
 	}
 	for src, w := range want {
-		res := readYAMLDocument("f.yml", []byte("k: "+src+"\n"))
+		res := readYAMLDocument("f.yml", []byte("k: "+src+"\n"), false)
 		if w == "ERR" {
 			continue
 		}

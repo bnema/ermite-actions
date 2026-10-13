@@ -1,0 +1,14 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - run: x
+      shell: bash
+      if: contains(format('{0}', success()), 'x')
+    - run: y
+      shell: bash
+      if: failure() || cancelled()
+    - run: z
+      shell: bash
+      if: github.event_name == 'push'

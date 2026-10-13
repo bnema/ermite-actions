@@ -1,0 +1,4 @@
+name: My Action
+description: Invalid - no using
+runs:
+  main: index.js

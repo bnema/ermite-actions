@@ -204,9 +204,10 @@ func TestEvaluateContextCancellation(t *testing.T) {
 	if _, err = Evaluate(ctx, mustParse(t, "contains(big, 'nope')", []string{"big"}, nil), EvalContext{Contexts: map[string]Value{"big": arr}}); !errors.Is(err, context.DeadlineExceeded) {
 		t.Errorf("deadline: err = %v", err)
 	}
-	// A nil context behaves as Background.
-	//nolint:staticcheck // deliberately passing nil
-	if v, err := Evaluate(nil, n, EvalContext{}); err != nil || v != Boolean(true) {
+	// A nil context behaves as Background. (Through a variable: passing a nil
+	// literal is what staticcheck SA1012 flags.)
+	var nilCtx context.Context
+	if v, err := Evaluate(nilCtx, n, EvalContext{}); err != nil || v != Boolean(true) {
 		t.Errorf("nil context: %v, %v", v, err)
 	}
 }

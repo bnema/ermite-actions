@@ -1,0 +1,41 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - run: x
+      shell: bash
+      k0: 1
+    - run: x
+      shell: bash
+      k1: 1
+    - run: x
+      shell: bash
+      k2: 1
+    - run: x
+      shell: bash
+      k3: 1
+    - run: x
+      shell: bash
+      k4: 1
+    - run: x
+      shell: bash
+      k5: 1
+    - run: x
+      shell: bash
+      k6: 1
+    - run: x
+      shell: bash
+      k7: 1
+    - run: x
+      shell: bash
+      k8: 1
+    - run: x
+      shell: bash
+      k9: 1
+    - run: x
+      shell: bash
+      k10: 1
+    - run: x
+      shell: bash
+      k11: 1

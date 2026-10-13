@@ -1,0 +1,22 @@
+name: Composite Action
+description: A composite action
+author: Test Author
+inputs:
+  name:
+    description: The name
+    required: true
+    default: World
+outputs:
+  result:
+    description: The result
+    value: ${{ steps.main.outputs.result }}
+runs:
+  using: composite
+  steps:
+    - id: main
+      name: Main step
+      run: echo Hello ${{ inputs.name }}
+      shell: bash
+branding:
+  icon: star
+  color: green

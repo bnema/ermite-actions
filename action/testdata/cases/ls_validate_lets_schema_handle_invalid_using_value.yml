@@ -1,0 +1,5 @@
+name: My Action
+description: Invalid - bad using value
+runs:
+  using: not-supported
+  main: index.js

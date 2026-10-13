@@ -1,0 +1,5 @@
+name: A
+description: ${{ x }}
+runs:
+  using: node20
+  main: m.js

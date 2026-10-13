@@ -1,0 +1,8 @@
+name: A
+description: D
+outputs:
+  a:
+    value: ${{ needs.x }}
+runs:
+  using: composite
+  steps: []

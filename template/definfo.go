@@ -51,6 +51,16 @@ func (di *DefinitionInfo) child(name string) *DefinitionInfo {
 	return newDefinitionInfo(di.schema, di, di.schema.get(name))
 }
 
+// WithContexts returns a copy of di that also allows the named contexts and
+// functions ("vars", "hashFiles(1,255)"). The runner checks the "if" of a
+// composite step against a longer list than the manifest schema declares.
+func (di *DefinitionInfo) WithContexts(entries ...string) *DefinitionInfo {
+	cp := *di
+	cp.allowed = append(append([]string(nil), di.allowed...), entries...)
+	cp.named, cp.funcs = splitAllowedContext(cp.allowed)
+	return &cp
+}
+
 // AllowedContext returns the raw entries: context names and function
 // signatures such as "hashFiles(1,255)".
 func (di *DefinitionInfo) AllowedContext() []string { return di.allowed }

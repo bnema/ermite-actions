@@ -1,0 +1,7 @@
+name: My Action
+description: A simple action
+runs:
+  using: composite
+  steps:
+    - run: echo Hello
+      shell: bash

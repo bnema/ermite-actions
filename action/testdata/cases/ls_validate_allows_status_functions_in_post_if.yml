@@ -1,0 +1,7 @@
+name: My Action
+description: Status functions in post-if
+runs:
+  using: node20
+  main: index.js
+  post: cleanup.js
+  post-if: always() || failure()

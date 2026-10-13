@@ -1,0 +1,6 @@
+name: My Action
+description: Wrong workflow reference
+runs:
+  using: composite
+  steps:
+    - uses: owner/repo/.github/workflows/build.yml@main

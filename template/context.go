@@ -21,6 +21,14 @@ type Error struct {
 	// Raw is the message without the "file (Line: l, Col: c): " prefix.
 	Raw string
 
+	// Exception is the name of the .NET exception class when the error is an
+	// exception that the C# runner reports without a position, such as
+	// "System.ArgumentException"; Raw is then the message the exception was
+	// built with. The runner prints Exception.ToString(), which starts with the
+	// class and the message formatted by .NET (see [Error.Error]) and goes on
+	// with a stack trace that is not reproduced.
+	Exception string
+
 	// fileOnly makes the prefix the file name alone, for errors of the YAML
 	// parser, which the reference reports without a position.
 	fileOnly bool
@@ -34,6 +42,15 @@ func (e *Error) Unwrap() error { return e.cause }
 // Error returns the message with its prefix, as the reference does:
 // "file.yml (Line: 3, Col: 5): message".
 func (e *Error) Error() string {
+	if e.Exception != "" {
+		switch e.Exception {
+		case "System.ArgumentNullException":
+			return e.Exception + ": Value cannot be null. (Parameter '" + e.Raw + "')"
+		case "System.ArgumentOutOfRangeException":
+			return e.Exception + ": Specified argument was out of the range of valid values. (Parameter '" + e.Raw + "')"
+		}
+		return e.Exception + ": " + e.Raw
+	}
 	pos := e.Pos
 	if e.fileOnly {
 		pos = Pos{}
@@ -64,9 +81,29 @@ func (m message) Error() string { return string(m) }
 
 // Context collects the errors of a read and carries its schema.
 type Context struct {
+	// MaxDepth bounds the nesting of sequences and mappings that [ReadYAML]
+	// accepts. A deeper document ends the read with "Maximum object depth
+	// exceeded", as the runner's TemplateMemory does. Zero means no limit.
+	MaxDepth int
+	// ErrorLimit is the number of errors kept; later ones are dropped. Zero
+	// means [MaxErrors]. The runner keeps ten when it loads an action.yml.
+	ErrorLimit int
+	// RunnerYAML makes the YAML reader as strict as the C# runner's when it
+	// loads an action.yml: an anchor is an error ("Anchors are not currently
+	// supported. Remove the anchor 'x'", and so is the alias that needs it),
+	// and so is every explicit tag but !!bool, !!float, !!int and !!null
+	// ("Unexpected tag 'tag:yaml.org,2002:str'": the runner knows no !!str).
+	// Such an error is reported alone, without the schema errors that the
+	// runner would have found in the part of the document before it.
+	// Mapping keys are resolved like values (~ is a null key, 0x10 is the key
+	// 16, TRUE is true), 0x and 0o integers wrap as int32 (0xFFFFFFFF is -1),
+	// and duplicate keys compare with .NET's OrdinalIgnoreCase
+	// (expr.OrdinalFold) instead of JavaScript's toUpperCase.
+	RunnerYAML bool
+
 	schema *Schema
 	errors []*Error
-	// Dropped counts the errors beyond [MaxErrors].
+	// Dropped counts the errors beyond the limit.
 	dropped int
 }
 
@@ -96,6 +133,13 @@ func (c *Context) ErrorAt(tok Token, msg string) {
 	c.add(e)
 }
 
+// ErrorException records an exception the C# runner reports without a
+// position: class is the .NET class name ("System.ArgumentException") and msg
+// the message the exception was built with.
+func (c *Context) ErrorException(class, msg string) {
+	c.add(&Error{Raw: msg, Exception: class})
+}
+
 // ErrorInFile records an error that is about a whole file.
 func (c *Context) ErrorInFile(file, msg string) { c.add(&Error{File: file, Raw: msg}) }
 
@@ -105,7 +149,11 @@ func (c *Context) ErrorAtPos(file string, p Pos, msg string) {
 }
 
 func (c *Context) add(e *Error) {
-	if len(c.errors) >= MaxErrors {
+	limit := c.ErrorLimit
+	if limit <= 0 {
+		limit = MaxErrors
+	}
+	if len(c.errors) >= limit {
 		c.dropped++
 		return
 	}

@@ -62,6 +62,14 @@ func ordinalFold(s string) string {
 	return b.String()
 }
 
+// OrdinalFold returns s folded the way .NET's OrdinalIgnoreCase compares
+// strings (the runner's HashSet and Dictionary keys): every code point is
+// replaced by its simple upper-case form from a table generated from the
+// runner's own behaviour. Non-ASCII characters never fold into ASCII ones
+// ("ſ" and the Kelvin sign stay themselves), unlike JavaScript's toUpperCase.
+// Two strings are equal under OrdinalIgnoreCase iff their folds are equal.
+func OrdinalFold(s string) string { return ordinalFold(s) }
+
 // ordinalEqual is String.Equals(a, b, OrdinalIgnoreCase).
 func ordinalEqual(a, b string) bool { return ordinalFold(a) == ordinalFold(b) }
 

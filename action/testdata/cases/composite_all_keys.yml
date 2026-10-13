@@ -1,0 +1,29 @@
+name: A
+description: D
+inputs:
+  who:
+    default: world
+outputs:
+  out:
+    description: the out
+    value: ${{ steps.a.outputs.r }}
+runs:
+  using: composite
+  steps:
+    - id: a
+      name: Say ${{ inputs.who }}
+      if: always() && inputs.who != ''
+      run: echo "r=1" >> $GITHUB_OUTPUT
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        X: ${{ inputs.who }}
+      continue-on-error: true
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.sha }}
+      env:
+        E: 1
+      continue-on-error: ${{ inputs.who == 'x' }}
+      if: ${{ failure() }}

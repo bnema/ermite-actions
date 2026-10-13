@@ -1,0 +1,8 @@
+name: A
+description: D
+runs:
+  using: docker
+  image: Dockerfile
+  env:
+    A: 1
+    B: true

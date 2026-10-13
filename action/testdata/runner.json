@@ -1,0 +1,5625 @@
+{
+  "branding_bad_icon.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "composite_all_keys.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "who",
+        "default": "world"
+      }
+    ],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "a",
+          "if": "always() && inputs.who != ''",
+          "name": "${{ format('Say {0}', inputs.who) }}",
+          "continueOnError": "true",
+          "timeout": null,
+          "env": [
+            [
+              "X",
+              "${{ inputs.who }}"
+            ]
+          ],
+          "kind": "run",
+          "script": "echo \"r=1\" >> $GITHUB_OUTPUT",
+          "workingDirectory": "${{ github.workspace }}",
+          "shell": "bash"
+        },
+        {
+          "id": "__actions_checkout",
+          "if": "failure()",
+          "name": null,
+          "continueOnError": "${{ inputs.who == 'x' }}",
+          "timeout": null,
+          "env": [
+            [
+              "E",
+              "1"
+            ]
+          ],
+          "kind": "uses",
+          "with": [
+            [
+              "fetch-depth",
+              "0"
+            ],
+            [
+              "ref",
+              "${{ github.sha }}"
+            ]
+          ],
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": [
+        [
+          "out",
+          "${{ steps.a.outputs.r }}"
+        ]
+      ]
+    }
+  },
+  "composite_basic.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_continue_expr.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": "${{ inputs.x == 'y' }}",
+          "timeout": null,
+          "envExpr": "${{ fromJSON(inputs.env) }}",
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        },
+        {
+          "id": "__a_b",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "withExpr": "${{ fromJSON(inputs.with) }}",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "c",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_continue_str.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_continue_str.yml (Line: 8, Col: 26): Unexpected value 'yes'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'step continue-on-error'. The type 'BooleanToken' was expected."
+    ],
+    "failed": "Failed to load composite_continue_str.yml"
+  },
+  "composite_continue_true_str.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_continue_true_str.yml (Line: 8, Col: 26): Unexpected value 'true'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'step continue-on-error'. The type 'BooleanToken' was expected."
+    ],
+    "failed": "Failed to load composite_continue_true_str.yml"
+  },
+  "composite_env_expr_mapping.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "envExpr": "${{ fromJSON('{}') }}",
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_env_scalar.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_env_scalar.yml (Line: 8, Col: 12): Unexpected value 'x'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'environment'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load composite_env_scalar.yml"
+  },
+  "composite_expr_bad_function.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_bad_function.yml (Line: 6, Col: 12): Unrecognized function: 'nope'. Located at position 1 within expression: nope(1)",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_bad_function.yml (Line: 6, Col: 12): Unrecognized function: 'nope'. Located at position 1 within expression: nope(1)"
+    ],
+    "failed": "Failed to load composite_expr_bad_function.yml"
+  },
+  "composite_expr_empty.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_empty.yml (Line: 6, Col: 12): An expression was expected",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_empty.yml (Line: 6, Col: 12): An expression was expected"
+    ],
+    "failed": "Failed to load composite_expr_empty.yml"
+  },
+  "composite_expr_hashfiles.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "${{ format('echo {0}', hashFiles('**/go.sum')) }}",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_expr_insert.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_insert.yml (Line: 6, Col: 12): Unexpected value '${{ insert }}'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_insert.yml (Line: 6, Col: 12): Unexpected value '${{ insert }}'"
+    ],
+    "failed": "Failed to load composite_expr_insert.yml"
+  },
+  "composite_expr_needs_in_run.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_needs_in_run.yml (Line: 6, Col: 12): Unrecognized named-value: 'needs'. Located at position 1 within expression: needs.a.result",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_needs_in_run.yml (Line: 6, Col: 12): Unrecognized named-value: 'needs'. Located at position 1 within expression: needs.a.result"
+    ],
+    "failed": "Failed to load composite_expr_needs_in_run.yml"
+  },
+  "composite_expr_secrets.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_secrets.yml (Line: 6, Col: 12): Unrecognized named-value: 'secrets'. Located at position 1 within expression: secrets.X",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_secrets.yml (Line: 6, Col: 12): Unrecognized named-value: 'secrets'. Located at position 1 within expression: secrets.X"
+    ],
+    "failed": "Failed to load composite_expr_secrets.yml"
+  },
+  "composite_expr_status_in_run.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_status_in_run.yml (Line: 6, Col: 12): Unrecognized function: 'success'. Located at position 1 within expression: success()",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_status_in_run.yml (Line: 6, Col: 12): Unrecognized function: 'success'. Located at position 1 within expression: success()"
+    ],
+    "failed": "Failed to load composite_expr_status_in_run.yml"
+  },
+  "composite_expr_unclosed.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_unclosed.yml (Line: 6, Col: 12): The expression is not closed. An unescaped ${{ sequence was found, but the closing }} sequence was not found.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_unclosed.yml (Line: 6, Col: 12): The expression is not closed. An unescaped ${{ sequence was found, but the closing }} sequence was not found."
+    ],
+    "failed": "Failed to load composite_expr_unclosed.yml"
+  },
+  "composite_expr_vars_in_run.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_expr_vars_in_run.yml (Line: 6, Col: 12): Unrecognized named-value: 'vars'. Located at position 1 within expression: vars.A",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_expr_vars_in_run.yml (Line: 6, Col: 12): Unrecognized named-value: 'vars'. Located at position 1 within expression: vars.A"
+    ],
+    "failed": "Failed to load composite_expr_vars_in_run.yml"
+  },
+  "composite_id_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_id_dup.yml (Line: 11, Col: 11): The identifier 'A' may not be used more than once within the same scope.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_id_dup.yml (Line: 11, Col: 11): The identifier 'A' may not be used more than once within the same scope."
+    ],
+    "failed": "Failed to load composite_id_dup.yml"
+  },
+  "composite_id_empty.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_id_empty.yml (Line: 8, Col: 11): Unexpected value ''",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_id_empty.yml (Line: 8, Col: 11): Unexpected value ''"
+    ],
+    "failed": "Failed to load composite_id_empty.yml"
+  },
+  "composite_id_hyphen_first.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_id_hyphen_first.yml (Line: 8, Col: 11): The identifier '-a' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and must be less than 100 characters.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_id_hyphen_first.yml (Line: 8, Col: 11): The identifier '-a' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and must be less than 100 characters."
+    ],
+    "failed": "Failed to load composite_id_hyphen_first.yml"
+  },
+  "composite_id_invalid.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_id_invalid.yml (Line: 8, Col: 11): The identifier '1a' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and must be less than 100 characters.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_id_invalid.yml (Line: 8, Col: 11): The identifier '1a' is invalid. IDs may only contain alphanumeric characters, '_', and '-'. IDs must start with a letter or '_' and must be less than 100 characters."
+    ],
+    "failed": "Failed to load composite_id_invalid.yml"
+  },
+  "composite_id_long.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_id_reserved.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_if_bad.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_if_bad.yml (Line: 8, Col: 11): Unrecognized named-value: 'foo'. Located at position 1 within expression: foo == 1",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_if_bad.yml (Line: 8, Col: 11): Unrecognized named-value: 'foo'. Located at position 1 within expression: foo == 1"
+    ],
+    "failed": "Failed to load composite_if_bad.yml"
+  },
+  "composite_if_bool.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (false)",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_if_empty.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_if_literal_text.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (format('foo {0}', github.ref))",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_if_marker_vars.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_if_marker_vars.yml (Line: 8, Col: 11): Unrecognized named-value: 'vars'. Located at position 1 within expression: vars.x == 'y'",
+      "composite_if_marker_vars.yml (Line: 8, Col: 11): Unexpected symbol: '${{'. Located at position 1 within expression: ${{ vars.x == 'y' }}",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_if_marker_vars.yml (Line: 8, Col: 11): Unrecognized named-value: 'vars'. Located at position 1 within expression: vars.x == 'y',composite_if_marker_vars.yml (Line: 8, Col: 11): Unexpected symbol: '${{'. Located at position 1 within expression: ${{ vars.x == 'y' }}"
+    ],
+    "failed": "Failed to load composite_if_marker_vars.yml"
+  },
+  "composite_if_needs.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (needs.a.result == 'success')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_if_syntax.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_if_syntax.yml (Line: 8, Col: 11): Unexpected end of expression: '=='. Located at position 3 within expression: 1 ==",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_if_syntax.yml (Line: 8, Col: 11): Unexpected end of expression: '=='. Located at position 3 within expression: 1 =="
+    ],
+    "failed": "Failed to load composite_if_syntax.yml"
+  },
+  "composite_if_vars.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (vars.x == 'y')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_name_only.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_name_only.yml (Line: 6, Col: 7): There's not enough info to determine what you meant. Add one of these properties: run, shell, uses, with, working-directory",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'steps item uses'. The type 'StringToken' was expected."
+    ],
+    "failed": "Failed to load composite_name_only.yml"
+  },
+  "composite_no_steps.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_no_steps.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps",
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a composite action but there are no steps provided in composite_no_steps.yml.')"
+    ],
+    "failed": "Failed to load composite_no_steps.yml"
+  },
+  "composite_outputs_bad_context.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_outputs_bad_context.yml (Line: 5, Col: 12): Unrecognized named-value: 'secrets'. Located at position 1 within expression: secrets.x",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_outputs_bad_context.yml (Line: 5, Col: 12): Unrecognized named-value: 'secrets'. Located at position 1 within expression: secrets.x"
+    ],
+    "failed": "Failed to load composite_outputs_bad_context.yml"
+  },
+  "composite_outputs_needs.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_outputs_needs.yml (Line: 5, Col: 12): Unrecognized named-value: 'needs'. Located at position 1 within expression: needs.x",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_outputs_needs.yml (Line: 5, Col: 12): Unrecognized named-value: 'needs'. Located at position 1 within expression: needs.x"
+    ],
+    "failed": "Failed to load composite_outputs_needs.yml"
+  },
+  "composite_outputs_value.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "x",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "bash"
+        }
+      ],
+      "outputs": [
+        [
+          "a",
+          "${{ steps.x.outputs.y }}"
+        ],
+        [
+          "b",
+          null
+        ],
+        [
+          "c",
+          "plain"
+        ]
+      ]
+    }
+  },
+  "composite_run_and_uses.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_run_and_uses.yml (Line: 8, Col: 7): Unexpected value 'uses'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_run_and_uses.yml (Line: 8, Col: 7): Unexpected value 'uses'"
+    ],
+    "failed": "Failed to load composite_run_and_uses.yml"
+  },
+  "composite_run_no_shell.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_run_no_shell.yml (Line: 6, Col: 7): Required property is missing: shell",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_run_no_shell.yml (Line: 6, Col: 7): Required property is missing: shell"
+    ],
+    "failed": "Failed to load composite_run_no_shell.yml"
+  },
+  "composite_shell_only.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_shell_only.yml (Line: 6, Col: 7): Required property is missing: run",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'steps item uses'. The type 'StringToken' was expected."
+    ],
+    "failed": "Failed to load composite_shell_only.yml"
+  },
+  "composite_step_background.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_step_background.yml (Line: 8, Col: 7): Unexpected value 'background'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_step_background.yml (Line: 8, Col: 7): Unexpected value 'background'"
+    ],
+    "failed": "Failed to load composite_step_background.yml"
+  },
+  "composite_step_ids_generated.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "a",
+          "shell": "bash"
+        },
+        {
+          "id": "__run_3",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "b",
+          "shell": "bash"
+        },
+        {
+          "id": "__actions_setup-go",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/setup-go",
+            "ref": "v5",
+            "path": ""
+          }
+        },
+        {
+          "id": "__ghcr_io_a_b_1",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "docker",
+            "image": "ghcr.io/a/b:1"
+          }
+        },
+        {
+          "id": "__self",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./x"
+          }
+        },
+        {
+          "id": "__actions_setup-go_2",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/setup-go",
+            "ref": "v5",
+            "path": ""
+          }
+        },
+        {
+          "id": "__run_2",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "c",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_step_not_mapping.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_step_not_mapping.yml (Line: 6, Col: 7): Unexpected value 'echo'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'steps item'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load composite_step_not_mapping.yml"
+  },
+  "composite_step_null.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_step_null.yml (Line: 6, Col: 6): Unexpected value ''",
+      "System.ArgumentException: Unexpected type 'NullToken' encountered while reading 'steps item'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load composite_step_null.yml"
+  },
+  "composite_step_shell_on_uses.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_step_shell_on_uses.yml (Line: 7, Col: 7): Unexpected value 'shell'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_step_shell_on_uses.yml (Line: 7, Col: 7): Unexpected value 'shell'"
+    ],
+    "failed": "Failed to load composite_step_shell_on_uses.yml"
+  },
+  "composite_step_unknown_key.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_step_unknown_key.yml (Line: 8, Col: 7): Unexpected value 'timeout-minutes'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_step_unknown_key.yml (Line: 8, Col: 7): Unexpected value 'timeout-minutes'"
+    ],
+    "failed": "Failed to load composite_step_unknown_key.yml"
+  },
+  "composite_step_with_on_run.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_step_with_on_run.yml (Line: 8, Col: 7): Unexpected value 'with'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_step_with_on_run.yml (Line: 8, Col: 7): Unexpected value 'with'"
+    ],
+    "failed": "Failed to load composite_step_with_on_run.yml"
+  },
+  "composite_steps_empty.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [],
+      "outputs": null
+    }
+  },
+  "composite_steps_scalar.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_steps_scalar.yml (Line: 5, Col: 10): Unexpected value 'x'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'steps'. The type 'SequenceToken' was expected."
+    ],
+    "failed": "Failed to load composite_steps_scalar.yml"
+  },
+  "composite_upper.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "Composite",
+      "steps": [],
+      "outputs": null
+    }
+  },
+  "composite_uses_bad_emptyref.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_bad_emptyref.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout@'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_uses_bad_emptyref.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout@'"
+    ],
+    "failed": "Failed to load composite_uses_bad_emptyref.yml"
+  },
+  "composite_uses_bad_noat.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_bad_noat.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_uses_bad_noat.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout'"
+    ],
+    "failed": "Failed to load composite_uses_bad_noat.yml"
+  },
+  "composite_uses_bad_noat_noid.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_bad_noat_noid.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout'",
+      "System.NullReferenceException: Object reference not set to an instance of an object."
+    ],
+    "failed": "Failed to load composite_uses_bad_noat_noid.yml"
+  },
+  "composite_uses_bad_norepo.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_bad_norepo.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'checkout@v4'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_uses_bad_norepo.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'checkout@v4'"
+    ],
+    "failed": "Failed to load composite_uses_bad_norepo.yml"
+  },
+  "composite_uses_bad_two_at.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_bad_two_at.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@c@d'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_uses_bad_two_at.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'a/b@c@d'"
+    ],
+    "failed": "Failed to load composite_uses_bad_two_at.yml"
+  },
+  "composite_uses_empty.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_empty.yml (Line: 6, Col: 13): Unexpected value ''",
+      "composite_uses_empty.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual ''",
+      "System.NullReferenceException: Object reference not set to an instance of an object."
+    ],
+    "failed": "Failed to load composite_uses_empty.yml"
+  },
+  "composite_uses_forms.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        },
+        {
+          "id": "__actions_aws",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/aws",
+            "ref": "main",
+            "path": "ec2"
+          }
+        },
+        {
+          "id": "__self",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./local/action"
+          }
+        },
+        {
+          "id": "__alpine_3",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "docker",
+            "image": "alpine:3"
+          }
+        },
+        {
+          "id": "__self_2",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": ".\\\\win\\\\action"
+          }
+        },
+        {
+          "id": "__selfRepository",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": "self"
+          }
+        },
+        {
+          "id": "__owner_repo",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "owner/repo",
+            "ref": "v1.2",
+            "path": "a/b/c"
+          }
+        },
+        {
+          "id": "__actions_checkout_2",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        },
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "sh"
+        },
+        {
+          "id": "__run_2",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo",
+          "shell": "sh"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "composite_uses_self_ref.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_self_ref.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_uses_self_ref.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'"
+    ],
+    "failed": "Failed to load composite_uses_self_ref.yml"
+  },
+  "composite_uses_self_ref_id.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_uses_self_ref_id.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. composite_uses_self_ref_id.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'"
+    ],
+    "failed": "Failed to load composite_uses_self_ref_id.yml"
+  },
+  "composite_with_nonstring.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_with_nonstring.yml (Line: 11, Col: 12): A sequence was not expected",
+      "System.ArgumentException: Unexpected type 'SequenceToken' encountered while reading 'inputs value'. The type 'StringToken' was expected."
+    ],
+    "failed": "Failed to load composite_with_nonstring.yml"
+  },
+  "composite_with_scalar.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "composite_with_scalar.yml (Line: 7, Col: 13): Unexpected value 'x'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'inputs'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load composite_with_scalar.yml"
+  },
+  "depth_exceeded.yml": {
+    "errors": [
+      "depth_exceeded.yml: Maximum object depth exceeded",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load depth_exceeded.yml"
+  },
+  "depth_exceeded_in_skipped.yml": {
+    "errors": [
+      "depth_exceeded_in_skipped.yml (Line: 6, Col: 3): Unexpected value 'weird'",
+      "depth_exceeded_in_skipped.yml: Maximum object depth exceeded",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load depth_exceeded_in_skipped.yml"
+  },
+  "depth_ok.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "depth_seq_100.yml": {
+    "errors": [
+      "depth_seq_100.yml: Maximum object depth exceeded",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load depth_seq_100.yml"
+  },
+  "depth_seq_98.yml": {
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "depth_seq_99.yml": {
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "description_expr.yml": {
+    "name": "A",
+    "description": "${{ x }}",
+    "errors": [
+      "description_expr.yml (Line: 2, Col: 14): Unrecognized named-value: 'x'. Located at position 1 within expression: x"
+    ],
+    "failed": "Failed to load description_expr.yml"
+  },
+  "docker_args_context_github.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "docker_args_context_github.yml (Line: 7, Col: 7): Unrecognized named-value: 'github'. Located at position 1 within expression: github.ref"
+    ],
+    "failed": "Failed to load docker_args_context_github.yml"
+  },
+  "docker_args_scalar.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "docker_args_scalar.yml (Line: 6, Col: 9): Unexpected value 'abc'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'args'. The type 'SequenceToken' was expected."
+    ],
+    "failed": "Failed to load docker_args_scalar.yml"
+  },
+  "docker_dockerfile.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "x",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "a",
+        "${{ inputs.x }}"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "A",
+          "b"
+        ],
+        [
+          "C",
+          "${{ inputs.x }}"
+        ]
+      ],
+      "pre": "pre.sh",
+      "preIf": "success()",
+      "post": "post.sh",
+      "postIf": "failure()"
+    }
+  },
+  "docker_env_context_github.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "docker_env_context_github.yml (Line: 7, Col: 8): Unrecognized named-value: 'github'. Located at position 1 within expression: github.ref"
+    ],
+    "failed": "Failed to load docker_env_context_github.yml"
+  },
+  "docker_env_list.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "docker_env_list.yml (Line: 7, Col: 5): A sequence was not expected",
+      "System.ArgumentException: Unexpected type 'SequenceToken' encountered while reading 'env'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load docker_env_list.yml"
+  },
+  "docker_env_number.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": [
+        [
+          "A",
+          "1"
+        ],
+        [
+          "B",
+          "true"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "docker_image.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "docker://alpine:3.19",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "docker_no_image.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a Container Action but an image is not provided in docker_no_image.yml.')"
+    ],
+    "failed": "Failed to load docker_no_image.yml"
+  },
+  "docker_upper.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "DOCKER",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "docker_with_main.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "docker_with_main.yml (Line: 6, Col: 3): Unexpected value 'main'"
+    ],
+    "failed": "Failed to load docker_with_main.yml"
+  },
+  "emoji_uses.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "_____b",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "😀/b",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "empty_file.yml": {
+    "errors": [
+      "empty_file.yml: Expected document start parse event",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load empty_file.yml"
+  },
+  "fold_inputs_accent.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_inputs_accent.yml (Line: 6, Col: 3): 'É' is already defined"
+    ],
+    "failed": "Failed to load fold_inputs_accent.yml"
+  },
+  "fold_inputs_dotless.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_inputs_dotless.yml (Line: 8, Col: 3): 'i' is already defined"
+    ],
+    "failed": "Failed to load fold_inputs_dotless.yml"
+  },
+  "fold_inputs_greek.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_inputs_greek.yml (Line: 6, Col: 3): 'ς' is already defined",
+      "fold_inputs_greek.yml (Line: 8, Col: 3): 'Σ' is already defined"
+    ],
+    "failed": "Failed to load fold_inputs_greek.yml"
+  },
+  "fold_inputs_kelvin.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "k",
+        "default": "x"
+      },
+      {
+        "name": "K",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_inputs_s.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "s",
+        "default": "x"
+      },
+      {
+        "name": "ſ",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_inputs_sharp.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "ß",
+        "default": "x"
+      },
+      {
+        "name": "SS",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_runs_keys.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_runs_keys.yml (Line: 6, Col: 3): Unexpected value 'é'",
+      "fold_runs_keys.yml (Line: 7, Col: 3): 'É' is already defined"
+    ],
+    "failed": "Failed to load fold_runs_keys.yml"
+  },
+  "fold_step_ids_ascii_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_step_ids_ascii_dup.yml (Line: 11, Col: 11): The identifier 'ABC' may not be used more than once within the same scope.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. fold_step_ids_ascii_dup.yml (Line: 11, Col: 11): The identifier 'ABC' may not be used more than once within the same scope."
+    ],
+    "failed": "Failed to load fold_step_ids_ascii_dup.yml"
+  },
+  "fold_step_ids_long.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_step_ids_long.yml (Line: 11, Col: 11): The identifier 'ÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ' may not be used more than once within the same scope.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. fold_step_ids_long.yml (Line: 11, Col: 11): The identifier 'ÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ' may not be used more than once within the same scope."
+    ],
+    "failed": "Failed to load fold_step_ids_long.yml"
+  },
+  "fold_step_ids_long_s.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "x",
+          "shell": "sh"
+        },
+        {
+          "id": "ſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſ",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "x",
+          "shell": "sh"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "fold_top_keys.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_top_keys.yml (Line: 2, Col: 1): 'NAME' is already defined",
+      "fold_top_keys.yml (Line: 4, Col: 1): 'É' is already defined"
+    ],
+    "failed": "Failed to load fold_top_keys.yml"
+  },
+  "fold_using_dotless.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "DOCKER",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_using_kelvin.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter ''using: Komposite' is not supported, use 'docker', 'node12', 'node16', 'node20' or 'node24' instead.')"
+    ],
+    "failed": "Failed to load fold_using_kelvin.yml"
+  },
+  "inputs_default_bad_context.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_default_bad_context.yml (Line: 5, Col: 14): Unrecognized named-value: 'inputs'. Located at position 1 within expression: inputs.b"
+    ],
+    "failed": "Failed to load inputs_default_bad_context.yml"
+  },
+  "inputs_default_hashfiles.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "${{ hashFiles('x') }}"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "inputs_default_list.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_default_list.yml (Line: 5, Col: 14): A sequence was not expected"
+    ],
+    "failed": "Failed to load inputs_default_list.yml"
+  },
+  "inputs_default_secrets.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_default_secrets.yml (Line: 5, Col: 14): Unrecognized named-value: 'secrets'. Located at position 1 within expression: secrets.b"
+    ],
+    "failed": "Failed to load inputs_default_secrets.yml"
+  },
+  "inputs_deprecation_nonstring.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.ArgumentException: Unexpected type 'SequenceToken' encountered while reading 'input deprecationMessage'. The type 'StringToken' was expected."
+    ],
+    "failed": "Failed to load inputs_deprecation_nonstring.yml"
+  },
+  "inputs_dup_deprecated_case.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_dup_deprecated_case.yml (Line: 6, Col: 5): 'DeprecationMessage' is already defined"
+    ],
+    "failed": "Failed to load inputs_dup_deprecated_case.yml"
+  },
+  "inputs_dup_names_case.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_dup_names_case.yml (Line: 6, Col: 3): 'A' is already defined"
+    ],
+    "failed": "Failed to load inputs_dup_names_case.yml"
+  },
+  "inputs_empty_key.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_empty_key.yml (Line: 4, Col: 3): Unexpected value ''"
+    ],
+    "failed": "Failed to load inputs_empty_key.yml"
+  },
+  "inputs_list.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_list.yml (Line: 4, Col: 3): A sequence was not expected",
+      "System.ArgumentException: Unexpected type 'SequenceToken' encountered while reading 'inputs'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load inputs_list.yml"
+  },
+  "inputs_scalar_value.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_scalar_value.yml (Line: 4, Col: 6): Unexpected value 'x'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'input metadata'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load inputs_scalar_value.yml"
+  },
+  "inputs_variants.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "inputs_variants.yml (Line: 4, Col: 9): Unexpected value ''",
+      "System.ArgumentException: Unexpected type 'NullToken' encountered while reading 'input metadata'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load inputs_variants.yml"
+  },
+  "inputs_variants_ok.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "with-default",
+        "default": "x"
+      },
+      {
+        "name": "expr-default",
+        "default": "${{ github.ref }}"
+      },
+      {
+        "name": "required-bool",
+        "default": ""
+      },
+      {
+        "name": "required-str",
+        "default": ""
+      },
+      {
+        "name": "deprecated",
+        "default": ""
+      },
+      {
+        "name": "Cap",
+        "default": "y"
+      },
+      {
+        "name": "upper-key",
+        "default": "z"
+      },
+      {
+        "name": "number-default",
+        "default": "5"
+      },
+      {
+        "name": "bool-default",
+        "default": "false"
+      },
+      {
+        "name": "null-default",
+        "default": ""
+      },
+      {
+        "name": "unknown",
+        "default": ""
+      },
+      {
+        "name": "empty-mapping",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "deprecated": "use other"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_00.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "2147483647"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_01.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_02.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_03.yml": {
+    "errors": [
+      "int32_03.yml: The value '0x100000000' on line 5 and column 14 is invalid for the type ''",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_03.yml"
+  },
+  "int32_04.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "2147483647"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_05.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_06.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_07.yml": {
+    "errors": [
+      "int32_07.yml: The value '0o40000000000' on line 5 and column 14 is invalid for the type ''",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_07.yml"
+  },
+  "int32_08.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_09.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_10.yml": {
+    "errors": [
+      "int32_10.yml: The value '0x100000000' on line 5 and column 14 is invalid for the type 'tag:yaml.org,2002:int'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_10.yml"
+  },
+  "int32_11.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_12.yml": {
+    "errors": [
+      "int32_12.yml: The value '0o40000000000' on line 5 and column 14 is invalid for the type 'tag:yaml.org,2002:int'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_12.yml"
+  },
+  "int32_13.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "12"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_14.yml": {
+    "errors": [
+      "int32_14.yml: The value '0x10' on line 5 and column 14 is invalid for the type 'tag:yaml.org,2002:float'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_14.yml"
+  },
+  "int32_15.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "0"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_16.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-559038737"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_key.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "-1",
+        "default": "x"
+      },
+      {
+        "name": "-2147483648",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "key_bool_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_bool_dup.yml (Line: 6, Col: 3): 'true' is already defined"
+    ],
+    "failed": "Failed to load key_bool_dup.yml"
+  },
+  "key_float_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_float_dup.yml (Line: 6, Col: 3): '1' is already defined"
+    ],
+    "failed": "Failed to load key_float_dup.yml"
+  },
+  "key_hex_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_hex_dup.yml (Line: 6, Col: 3): '16' is already defined"
+    ],
+    "failed": "Failed to load key_hex_dup.yml"
+  },
+  "key_hex_input.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "16",
+        "default": "x"
+      },
+      {
+        "name": "1",
+        "default": "y"
+      },
+      {
+        "name": "true",
+        "default": "z"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "key_null_env.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_null_env.yml (Line: 7, Col: 5): Unexpected value ''"
+    ],
+    "failed": "Failed to load key_null_env.yml"
+  },
+  "key_null_inputs.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_null_inputs.yml (Line: 4, Col: 3): Unexpected value ''"
+    ],
+    "failed": "Failed to load key_null_inputs.yml"
+  },
+  "key_null_top.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_null_top.yml (Line: 1, Col: 1): Unexpected value ''"
+    ],
+    "failed": "Failed to load key_null_top.yml"
+  },
+  "key_number_runs.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_number_runs.yml (Line: 6, Col: 3): Unexpected value '1000'"
+    ],
+    "failed": "Failed to load key_number_runs.yml"
+  },
+  "ls_parser_accepts_valid_context_in_pre_if.yml": {
+    "name": "Node Action",
+    "description": "A node action",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "dist/index.js",
+      "pre": "dist/setup.js",
+      "preIf": "runner.os == 'Linux'",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_parser_converts_a_composite_action.yml": {
+    "name": "Composite Action",
+    "description": "A composite action",
+    "inputs": [
+      {
+        "name": "name",
+        "default": "World"
+      }
+    ],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "main",
+          "if": "success()",
+          "name": "Main step",
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "${{ format('echo Hello {0}', inputs.name) }}",
+          "shell": "bash"
+        }
+      ],
+      "outputs": [
+        [
+          "result",
+          "${{ steps.main.outputs.result }}"
+        ]
+      ]
+    }
+  },
+  "ls_parser_converts_a_docker_action.yml": {
+    "name": "Docker Action",
+    "description": "A docker action",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "--name",
+        "${{ inputs.name }}"
+      ],
+      "entrypoint": "/entrypoint.sh",
+      "env": [
+        [
+          "DEBUG",
+          "true"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_parser_converts_a_node_action.yml": {
+    "name": "Node Action",
+    "description": "A node action",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "dist/index.js",
+      "pre": "dist/setup.js",
+      "preIf": "runner.os == 'Linux'",
+      "post": "dist/cleanup.js",
+      "postIf": "always()"
+    }
+  },
+  "ls_parser_converts_uses_steps_in_composite_action.yml": {
+    "name": "Composite with Uses",
+    "description": "Composite action with uses steps",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "with": [
+            [
+              "fetch-depth",
+              "0"
+            ]
+          ],
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_parser_parses_a_docker_action.yml": {
+    "name": "Docker Action",
+    "description": "A Docker action",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "${{ inputs.name }}"
+      ],
+      "entrypoint": null,
+      "env": [
+        [
+          "DEBUG",
+          "true"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_parser_parses_a_javascript_action.yml": {
+    "name": "JS Action",
+    "description": "A JavaScript action",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "dist/index.js",
+      "pre": "dist/setup.js",
+      "preIf": "always()",
+      "post": "dist/cleanup.js",
+      "postIf": "always()"
+    }
+  },
+  "ls_parser_parses_a_minimal_action_yml.yml": {
+    "name": "My Action",
+    "description": "A simple action",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo Hello",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_parser_parses_action_with_branding.yml": {
+    "name": "Branded Action",
+    "description": "Action with branding",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo Hello",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_parser_parses_action_with_inputs_and_outputs.yml": {
+    "name": "Action with I/O",
+    "description": "Action with inputs and outputs",
+    "inputs": [
+      {
+        "name": "name",
+        "default": "World"
+      },
+      {
+        "name": "verbose",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "greet",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "${{ format('echo \"::set-output name=message::Hello {0}\"', inputs.name) }}",
+          "shell": "bash"
+        }
+      ],
+      "outputs": [
+        [
+          "greeting",
+          "${{ steps.greet.outputs.message }}"
+        ]
+      ]
+    }
+  },
+  "ls_parser_reports_error_for_invalid_context_in_pre_if.yml": {
+    "name": "Node Action",
+    "description": "A node action",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "dist/index.js",
+      "pre": "dist/setup.js",
+      "preIf": "foo == bar",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_parser_reports_error_for_invalid_yaml.yml": {
+    "errors": [
+      "ls_parser_reports_error_for_invalid_yaml.yml: (Line: 6, Col: 34, Idx: 122) - (Line: 6, Col: 44, Idx: 132): While parsing a block mapping, did not find expected key.",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load ls_parser_reports_error_for_invalid_yaml.yml"
+  },
+  "ls_parser_validates_branding_color_values.yml": {
+    "name": "Bad Color",
+    "description": "Action with invalid branding color",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo Hello",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_parser_validates_branding_icon_values.yml": {
+    "name": "Bad Icon",
+    "description": "Action with invalid branding icon",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo Hello",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_parser_validates_required_fields.yml": {
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo Hello",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_parser_validates_shell_is_required_for_run_steps.yml": {
+    "name": "Missing Shell",
+    "description": "Action without shell in run step",
+    "errors": [
+      "ls_parser_validates_shell_is_required_for_run_steps.yml (Line: 6, Col: 7): Required property is missing: shell",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. ls_parser_validates_shell_is_required_for_run_steps.yml (Line: 6, Col: 7): Required property is missing: shell"
+    ],
+    "failed": "Failed to load ls_parser_validates_shell_is_required_for_run_steps.yml"
+  },
+  "ls_validate_allows_expression_with_cancelled_in_post_if.yml": {
+    "name": "My Action",
+    "description": "Valid post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "cancelled()"
+    }
+  },
+  "ls_validate_allows_expression_with_failure_in_post_if.yml": {
+    "name": "My Action",
+    "description": "Valid post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "failure()"
+    }
+  },
+  "ls_validate_allows_format_with_only_replacement_tokens.yml": {
+    "name": "My Action",
+    "description": "Format with only tokens",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (format('{0}', github.event_name))",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_full_sha.yml": {
+    "name": "My Action",
+    "description": "Full SHA",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_hashfiles_function_in_composite_step_if.yml": {
+    "name": "My Action",
+    "description": "hashFiles in if",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (hashFiles('**/package-lock.json') != '')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_hashfiles_function_in_pre_if.yml": {
+    "name": "My Action",
+    "description": "hashFiles in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "hashFiles('**/package-lock.json') != ''",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_allows_if_without_expression_markers_auto_wrapped.yml": {
+    "name": "My Action",
+    "description": "If without markers",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (github.event_name == 'push')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_status_functions_in_post_if.yml": {
+    "name": "My Action",
+    "description": "Status functions in post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "always() || failure()"
+    }
+  },
+  "ls_validate_allows_success_failure_always_cancelled_functions_in_composi.yml": {
+    "name": "My Action",
+    "description": "Status functions in if",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && !cancelled()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo success",
+          "shell": "bash"
+        },
+        {
+          "id": "__run_2",
+          "if": "failure()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo failure",
+          "shell": "bash"
+        },
+        {
+          "id": "__run_3",
+          "if": "always()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo always",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_success_function.yml": {
+    "name": "My Action",
+    "description": "Success function",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_valid_contexts_in_composite_step_if.yml": {
+    "name": "My Action",
+    "description": "Valid context in if",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (github.event_name == 'push')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_valid_contexts_in_post_if.yml": {
+    "name": "My Action",
+    "description": "Valid context in post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "runner.os == 'Linux'"
+    }
+  },
+  "ls_validate_allows_valid_contexts_in_pre_if.yml": {
+    "name": "My Action",
+    "description": "Valid context in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "runner.os == 'Linux'",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_allows_valid_expression_in_if.yml": {
+    "name": "My Action",
+    "description": "Valid if expression",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (github.event_name == 'push')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_valid_expression_in_post_if_for_node_action.yml": {
+    "name": "My Action",
+    "description": "Valid post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_allows_valid_expression_in_pre_if_for_node_action.yml": {
+    "name": "My Action",
+    "description": "Valid pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "success()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_allows_valid_format_call_in_composite_step_if.yml": {
+    "name": "My Action",
+    "description": "Valid format",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (format('{0} {1}', 'a', 'b') == 'a b')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_allows_valid_format_call_in_pre_if.yml": {
+    "name": "My Action",
+    "description": "Valid format in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "format('{0}', runner.os) == 'Linux'",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_errors_on_explicit_expression_syntax_in_post_if.yml": {
+    "name": "My Action",
+    "description": "Explicit expression in post-if",
+    "errors": [
+      "ls_validate_errors_on_explicit_expression_syntax_in_post_if.yml (Line: 7, Col: 12): Unrecognized function: 'always'. Located at position 1 within expression: always()"
+    ],
+    "failed": "Failed to load ls_validate_errors_on_explicit_expression_syntax_in_post_if.yml"
+  },
+  "ls_validate_errors_on_explicit_expression_syntax_in_pre_if.yml": {
+    "name": "My Action",
+    "description": "Explicit expression in pre-if",
+    "errors": [
+      "ls_validate_errors_on_explicit_expression_syntax_in_pre_if.yml (Line: 7, Col: 11): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.os == 'Windows'"
+    ],
+    "failed": "Failed to load ls_validate_errors_on_explicit_expression_syntax_in_pre_if.yml"
+  },
+  "ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f.yml": {
+    "name": "My Action",
+    "description": "Literal text in post-if",
+    "errors": [
+      "ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f.yml (Line: 7, Col: 12): Unrecognized named-value: 'github'. Located at position 1 within expression: github.event_name"
+    ],
+    "failed": "Failed to load ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f.yml"
+  },
+  "ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f_2.yml": {
+    "name": "My Action",
+    "description": "Literal text in post-if",
+    "errors": [
+      "ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f_2.yml (Line: 7, Col: 12): Unrecognized named-value: 'github'. Located at position 1 within expression: github.event_name"
+    ],
+    "failed": "Failed to load ls_validate_errors_on_explicit_expression_with_literal_text_in_post_if_f_2.yml"
+  },
+  "ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo.yml": {
+    "name": "My Action",
+    "description": "Literal text in pre-if",
+    "errors": [
+      "ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo.yml (Line: 7, Col: 11): Unrecognized named-value: 'github'. Located at position 1 within expression: github.event_name"
+    ],
+    "failed": "Failed to load ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo.yml"
+  },
+  "ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo_2.yml": {
+    "name": "My Action",
+    "description": "Literal text in pre-if",
+    "errors": [
+      "ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo_2.yml (Line: 7, Col: 11): Unrecognized named-value: 'github'. Located at position 1 within expression: github.event_name"
+    ],
+    "failed": "Failed to load ls_validate_errors_on_explicit_expression_with_literal_text_in_pre_if_fo_2.yml"
+  },
+  "ls_validate_errors_on_format_with_literal_text_in_if.yml": {
+    "name": "My Action",
+    "description": "Format with literal text",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (format('event is {0}', github.event_name))",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_errors_on_format_with_too_few_arguments_in_composite_step_if.yml": {
+    "name": "My Action",
+    "description": "Format mismatch",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (format('{0} {1}', 'only-one'))",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_errors_on_format_with_too_few_arguments_in_input_default.yml": {
+    "name": "My Action",
+    "description": "Format mismatch in input default",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "${{ format('{0} {1}', 'hello') }}"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_errors_on_format_with_too_few_arguments_in_post_if.yml": {
+    "name": "My Action",
+    "description": "Format mismatch in post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "format('{0} {1} {2}', 'a', 'b')"
+    }
+  },
+  "ls_validate_errors_on_format_with_too_few_arguments_in_pre_if.yml": {
+    "name": "My Action",
+    "description": "Format mismatch in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "format('{0} {1}', 'only-one')",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_errors_on_format_with_too_few_arguments_in_run_expression.yml": {
+    "name": "My Action",
+    "description": "Format mismatch in run",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "${{ format('echo {0}', format('{0} {1}', 'only-one')) }}",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_errors_on_invalid_format.yml": {
+    "name": "My Action",
+    "description": "Invalid format",
+    "errors": [
+      "ls_validate_errors_on_invalid_format.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'invalid-format'",
+      "System.NullReferenceException: Object reference not set to an instance of an object."
+    ],
+    "failed": "Failed to load ls_validate_errors_on_invalid_format.yml"
+  },
+  "ls_validate_errors_on_invalid_format_string_in_composite_step_if.yml": {
+    "name": "My Action",
+    "description": "Invalid format",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (format('{', 'arg'))",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_errors_on_missing_ref.yml": {
+    "name": "My Action",
+    "description": "Missing version",
+    "errors": [
+      "ls_validate_errors_on_missing_ref.yml (Line: 6, Col: 13): Expected format {org}/{repo}[/path]@ref. Actual 'actions/checkout'",
+      "System.NullReferenceException: Object reference not set to an instance of an object."
+    ],
+    "failed": "Failed to load ls_validate_errors_on_missing_ref.yml"
+  },
+  "ls_validate_errors_on_reusable_workflow_in_step_uses.yml": {
+    "name": "My Action",
+    "description": "Wrong workflow reference",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__owner_repo",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "owner/repo",
+            "ref": "main",
+            "path": ".github/workflows/build.yml"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_errors_on_unknown_function_in_composite_step_if.yml": {
+    "name": "My Action",
+    "description": "Unknown function in if",
+    "errors": [
+      "ls_validate_errors_on_unknown_function_in_composite_step_if.yml (Line: 6, Col: 11): Unrecognized function: 'unknownFunc'. Located at position 1 within expression: unknownFunc()",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. ls_validate_errors_on_unknown_function_in_composite_step_if.yml (Line: 6, Col: 11): Unrecognized function: 'unknownFunc'. Located at position 1 within expression: unknownFunc()"
+    ],
+    "failed": "Failed to load ls_validate_errors_on_unknown_function_in_composite_step_if.yml"
+  },
+  "ls_validate_errors_on_unknown_function_in_post_if_for_docker_action.yml": {
+    "name": "My Action",
+    "description": "Unknown function in post-if",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": "/cleanup.sh",
+      "postIf": "unknownFunc()"
+    }
+  },
+  "ls_validate_errors_on_unknown_function_in_post_if_for_node_action.yml": {
+    "name": "My Action",
+    "description": "Unknown function in post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "unknownFunc()"
+    }
+  },
+  "ls_validate_errors_on_unknown_function_in_pre_if_for_docker_action.yml": {
+    "name": "My Action",
+    "description": "Unknown function in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": "/setup.sh",
+      "preIf": "unknownFunc()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_errors_on_unknown_function_in_pre_if_for_node_action.yml": {
+    "name": "My Action",
+    "description": "Unknown function in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "unknownFunc()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_errors_when_literal_text_mixed_with_embedded_expression.yml": {
+    "name": "My Action",
+    "description": "Literal text in if",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success() && (format('push == {0}', github.event_name))",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo hi",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_lets_schema_handle_invalid_using_value.yml": {
+    "name": "My Action",
+    "description": "Invalid - bad using value",
+    "errors": [
+      "System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter ''using: not-supported' is not supported, use 'docker', 'node12', 'node16', 'node20' or 'node24' instead.')"
+    ],
+    "failed": "Failed to load ls_validate_lets_schema_handle_invalid_using_value.yml"
+  },
+  "ls_validate_lets_schema_handle_missing_using.yml": {
+    "name": "My Action",
+    "description": "Invalid - no using",
+    "errors": [
+      "System.NotSupportedException: Missing 'using' value. 'using' requires 'composite', 'docker', 'node12', 'node16', 'node20' or 'node24'."
+    ],
+    "failed": "Failed to load ls_validate_lets_schema_handle_missing_using.yml"
+  },
+  "ls_validate_passes_validation_for_valid_composite_action_uses_steps.yml": {
+    "name": "My Composite Action",
+    "description": "A composite action with uses steps",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "with": [
+            [
+              "repository",
+              "owner/repo"
+            ]
+          ],
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_reports_error_for_composite_action_missing_steps.yml": {
+    "name": "My Action",
+    "description": "Invalid - composite without steps",
+    "errors": [
+      "ls_validate_reports_error_for_composite_action_missing_steps.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps",
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a composite action but there are no steps provided in ls_validate_reports_error_for_composite_action_missing_steps.yml.')"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_composite_action_missing_steps.yml"
+  },
+  "ls_validate_reports_error_for_composite_action_with_main.yml": {
+    "name": "My Action",
+    "description": "Invalid - composite with main",
+    "errors": [
+      "ls_validate_reports_error_for_composite_action_with_main.yml (Line: 8, Col: 3): Unexpected value 'main'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. ls_validate_reports_error_for_composite_action_with_main.yml (Line: 8, Col: 3): Unexpected value 'main'"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_composite_action_with_main.yml"
+  },
+  "ls_validate_reports_error_for_composite_step_missing_shell.yml": {
+    "name": "My Action",
+    "description": "Missing shell",
+    "errors": [
+      "ls_validate_reports_error_for_composite_step_missing_shell.yml (Line: 6, Col: 7): Required property is missing: shell",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. ls_validate_reports_error_for_composite_step_missing_shell.yml (Line: 6, Col: 7): Required property is missing: shell"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_composite_step_missing_shell.yml"
+  },
+  "ls_validate_reports_error_for_docker_action_missing_image.yml": {
+    "name": "My Action",
+    "description": "Invalid - docker without image",
+    "errors": [
+      "ls_validate_reports_error_for_docker_action_missing_image.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps",
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a Container Action but an image is not provided in ls_validate_reports_error_for_docker_action_missing_image.yml.')"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_docker_action_missing_image.yml"
+  },
+  "ls_validate_reports_error_for_docker_action_with_entrypoint_but_missing_.yml": {
+    "name": "My Action",
+    "description": "Invalid - docker without image",
+    "errors": [
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a Container Action but an image is not provided in ls_validate_reports_error_for_docker_action_with_entrypoint_but_missing_.yml.')"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_docker_action_with_entrypoint_but_missing_.yml"
+  },
+  "ls_validate_reports_error_for_docker_action_with_main.yml": {
+    "name": "My Action",
+    "description": "Invalid - docker with main",
+    "errors": [
+      "ls_validate_reports_error_for_docker_action_with_main.yml (Line: 6, Col: 3): Unexpected value 'main'"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_docker_action_with_main.yml"
+  },
+  "ls_validate_reports_error_for_docker_action_with_steps.yml": {
+    "name": "My Action",
+    "description": "Invalid - docker with steps",
+    "errors": [
+      "ls_validate_reports_error_for_docker_action_with_steps.yml (Line: 6, Col: 3): Unexpected value 'steps'"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_docker_action_with_steps.yml"
+  },
+  "ls_validate_reports_error_for_invalid_branding_color.yml": {
+    "name": "My Action",
+    "description": "Bad color",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_reports_error_for_invalid_branding_icon.yml": {
+    "name": "My Action",
+    "description": "Bad icon",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_reports_error_for_invalid_yaml_syntax.yml": {
+    "errors": [
+      "ls_validate_reports_error_for_invalid_yaml_syntax.yml: (Line: 8, Col: 7, Idx: 120) - (Line: 8, Col: 7, Idx: 120): While scanning a simple key, could not find expected ':'.",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_invalid_yaml_syntax.yml"
+  },
+  "ls_validate_reports_error_for_missing_required_description.yml": {
+    "name": "My Action",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"Hi\"",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_reports_error_for_missing_required_name.yml": {
+    "description": "An action without a name",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"Hi\"",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_reports_error_for_missing_runs.yml": {
+    "name": "My Action",
+    "description": "An action without runs",
+    "errors": [
+      "Top level 'runs:' section is required for ls_validate_reports_error_for_missing_runs.yml"
+    ]
+  },
+  "ls_validate_reports_error_for_missing_using_in_runs.yml": {
+    "name": "My Action",
+    "description": "Missing using",
+    "errors": [
+      "System.NotSupportedException: Missing 'using' value. 'using' requires 'composite', 'docker', 'node12', 'node16', 'node20' or 'node24'."
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_missing_using_in_runs.yml"
+  },
+  "ls_validate_reports_error_for_node20_action_missing_main.yml": {
+    "name": "My Action",
+    "description": "Invalid - node20 without main",
+    "errors": [
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a JavaScript Action but there is not an entry JavaScript file provided in ls_validate_reports_error_for_node20_action_missing_main.yml.')"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_node20_action_missing_main.yml"
+  },
+  "ls_validate_reports_error_for_node20_action_with_steps.yml": {
+    "name": "My Action",
+    "description": "Invalid - node20 with steps",
+    "errors": [
+      "ls_validate_reports_error_for_node20_action_with_steps.yml (Line: 6, Col: 3): Unexpected value 'steps'"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_node20_action_with_steps.yml"
+  },
+  "ls_validate_reports_error_for_node24_action_missing_main.yml": {
+    "name": "My Action",
+    "description": "Invalid - node24 without main",
+    "errors": [
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a JavaScript Action but there is not an entry JavaScript file provided in ls_validate_reports_error_for_node24_action_missing_main.yml.')"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_node24_action_missing_main.yml"
+  },
+  "ls_validate_reports_error_for_node24_action_with_only_using_no_narrowing.yml": {
+    "name": "My Action",
+    "description": "Invalid - node24 without main",
+    "errors": [
+      "ls_validate_reports_error_for_node24_action_with_only_using_no_narrowing.yml (Line: 4, Col: 3): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, post, post-entrypoint, pre, pre-entrypoint, steps",
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a JavaScript Action but there is not an entry JavaScript file provided in ls_validate_reports_error_for_node24_action_with_only_using_no_narrowing.yml.')"
+    ],
+    "failed": "Failed to load ls_validate_reports_error_for_node24_action_with_only_using_no_narrowing.yml"
+  },
+  "ls_validate_reports_unresolved_action_in_composite_action_uses_steps.yml": {
+    "name": "My Composite Action",
+    "description": "A composite action with uses steps",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_nonexistent",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/nonexistent",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_a_composite_action_with_a_self_repository_step.yml": {
+    "name": "My Action",
+    "description": "Does something",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__selfRepository",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": "actions/nested"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_a_docker_action.yml": {
+    "name": "My Action",
+    "description": "A Docker action",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_validates_a_minimal_composite_action.yml": {
+    "name": "My Action",
+    "description": "Does something",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"Hello\"",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_a_node20_action.yml": {
+    "name": "My Action",
+    "description": "A JavaScript action",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_validates_action_inputs_in_composite_action_uses_steps.yml": {
+    "name": "My Composite Action",
+    "description": "A composite action with uses steps",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "with": [
+            [
+              "invalid-input",
+              "value"
+            ]
+          ],
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_an_action_with_branding.yml": {
+    "name": "My Action",
+    "description": "Branded action",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_validates_an_action_with_inputs_and_outputs.yml": {
+    "name": "My Action",
+    "description": "Action with I/O",
+    "inputs": [
+      {
+        "name": "name",
+        "default": ""
+      },
+      {
+        "name": "greeting",
+        "default": "Hello"
+      }
+    ],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"$\\{{ inputs.greeting }} $\\{{ inputs.name }}\"",
+          "shell": "bash"
+        }
+      ],
+      "outputs": [
+        [
+          "result",
+          null
+        ]
+      ]
+    }
+  },
+  "ls_validate_validates_docker_uses_format.yml": {
+    "name": "My Action",
+    "description": "Uses docker image",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__alpine_3_14",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "docker",
+            "image": "alpine:3.14"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_if_in_uses_step.yml": {
+    "name": "My Action",
+    "description": "If in uses step",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success() && (format('push == {0}', github.event_name))",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_local_uses_format.yml": {
+    "name": "My Action",
+    "description": "Uses local action",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__self",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./local-action"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_required_inputs_in_composite_action_uses_steps.yml": {
+    "name": "My Composite Action",
+    "description": "A composite action with uses steps",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_some-action",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/some-action",
+            "ref": "v1",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_validates_valid_uses_format_with_version.yml": {
+    "name": "My Action",
+    "description": "Uses another action",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_warns_on_short_sha.yml": {
+    "name": "My Action",
+    "description": "Short SHA",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__actions_checkout",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "a1b2c3d",
+            "path": ""
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "ls_validate_warns_on_unknown_context_in_composite_step_if.yml": {
+    "name": "My Action",
+    "description": "Unknown context in if",
+    "errors": [
+      "ls_validate_warns_on_unknown_context_in_composite_step_if.yml (Line: 6, Col: 11): Unrecognized named-value: 'foo'. Located at position 1 within expression: foo == bar",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. ls_validate_warns_on_unknown_context_in_composite_step_if.yml (Line: 6, Col: 11): Unrecognized named-value: 'foo'. Located at position 1 within expression: foo == bar"
+    ],
+    "failed": "Failed to load ls_validate_warns_on_unknown_context_in_composite_step_if.yml"
+  },
+  "ls_validate_warns_on_unknown_context_in_post_if_for_docker_action.yml": {
+    "name": "My Action",
+    "description": "Unknown context in post-if",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": "/cleanup.sh",
+      "postIf": "foo == bar"
+    }
+  },
+  "ls_validate_warns_on_unknown_context_in_post_if_for_node_action.yml": {
+    "name": "My Action",
+    "description": "Unknown context in post-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "foo == bar"
+    }
+  },
+  "ls_validate_warns_on_unknown_context_in_pre_if_for_docker_action.yml": {
+    "name": "My Action",
+    "description": "Unknown context in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": "/setup.sh",
+      "preIf": "foo == bar",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "ls_validate_warns_on_unknown_context_in_pre_if_for_node_action.yml": {
+    "name": "My Action",
+    "description": "Unknown context in pre-if",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "foo == bar",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "many_errors.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "many_errors.yml (Line: 6, Col: 3): Unexpected value 'k0'",
+      "many_errors.yml (Line: 7, Col: 3): Unexpected value 'k1'",
+      "many_errors.yml (Line: 8, Col: 3): Unexpected value 'k2'",
+      "many_errors.yml (Line: 9, Col: 3): Unexpected value 'k3'",
+      "many_errors.yml (Line: 10, Col: 3): Unexpected value 'k4'",
+      "many_errors.yml (Line: 11, Col: 3): Unexpected value 'k5'",
+      "many_errors.yml (Line: 12, Col: 3): Unexpected value 'k6'",
+      "many_errors.yml (Line: 13, Col: 3): Unexpected value 'k7'",
+      "many_errors.yml (Line: 14, Col: 3): Unexpected value 'k8'",
+      "many_errors.yml (Line: 15, Col: 3): Unexpected value 'k9'"
+    ],
+    "failed": "Failed to load many_errors.yml"
+  },
+  "many_errors_composite.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "many_errors_composite.yml (Line: 8, Col: 7): Unexpected value 'k0'",
+      "many_errors_composite.yml (Line: 11, Col: 7): Unexpected value 'k1'",
+      "many_errors_composite.yml (Line: 14, Col: 7): Unexpected value 'k2'",
+      "many_errors_composite.yml (Line: 17, Col: 7): Unexpected value 'k3'",
+      "many_errors_composite.yml (Line: 20, Col: 7): Unexpected value 'k4'",
+      "many_errors_composite.yml (Line: 23, Col: 7): Unexpected value 'k5'",
+      "many_errors_composite.yml (Line: 26, Col: 7): Unexpected value 'k6'",
+      "many_errors_composite.yml (Line: 29, Col: 7): Unexpected value 'k7'",
+      "many_errors_composite.yml (Line: 32, Col: 7): Unexpected value 'k8'",
+      "many_errors_composite.yml (Line: 35, Col: 7): Unexpected value 'k9'"
+    ],
+    "failed": "Failed to load many_errors_composite.yml"
+  },
+  "name_empty.yml": {
+    "name": "",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "name_expr.yml": {
+    "name": "${{ github.ref }}",
+    "description": "D",
+    "errors": [
+      "name_expr.yml (Line: 1, Col: 7): Unrecognized named-value: 'github'. Located at position 1 within expression: github.ref"
+    ],
+    "failed": "Failed to load name_expr.yml"
+  },
+  "name_list.yml": {
+    "errors": [
+      "name_list.yml (Line: 1, Col: 7): A sequence was not expected",
+      "System.ArgumentException: Unexpected type 'SequenceToken' encountered while reading 'name'. The type 'StringToken' was expected."
+    ],
+    "failed": "Failed to load name_list.yml"
+  },
+  "name_number.yml": {
+    "name": "123",
+    "description": "true",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "nested_steps_if_status.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "contains(format('{0}', success()), 'x')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "x",
+          "shell": "bash"
+        },
+        {
+          "id": "__run_2",
+          "if": "failure() || cancelled()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "y",
+          "shell": "bash"
+        },
+        {
+          "id": "__run_3",
+          "if": "success() && (github.event_name == 'push')",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "z",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "no_description.yml": {
+    "name": "A",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "no_name.yml": {
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "node12.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node12",
+      "main": "index.js",
+      "pre": "setup.js",
+      "preIf": "runner.os == 'Linux'",
+      "post": "cleanup.js",
+      "postIf": "failure()"
+    }
+  },
+  "node16.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node16",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "node20_min.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "dist/index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "node24.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node24",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "post.js",
+      "postIf": "always()"
+    }
+  },
+  "node_empty_main.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "node_empty_main.yml (Line: 5, Col: 9): Unexpected value ''",
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a JavaScript Action but there is not an entry JavaScript file provided in node_empty_main.yml.')"
+    ],
+    "failed": "Failed to load node_empty_main.yml"
+  },
+  "node_pre_if_bad_context.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "index.js",
+      "pre": "p.js",
+      "preIf": "foo == bar",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "node_pre_if_expr_marker.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "node_pre_if_expr_marker.yml (Line: 7, Col: 11): Unrecognized function: 'always'. Located at position 1 within expression: always()"
+    ],
+    "failed": "Failed to load node_pre_if_expr_marker.yml"
+  },
+  "node_upper.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "Node20",
+      "main": "index.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "node_with_steps.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "node_with_steps.yml (Line: 6, Col: 3): Unexpected value 'steps'"
+    ],
+    "failed": "Failed to load node_with_steps.yml"
+  },
+  "node_without_main.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.ArgumentNullException: Value cannot be null. (Parameter 'You are using a JavaScript Action but there is not an entry JavaScript file provided in node_without_main.yml.')"
+    ],
+    "failed": "Failed to load node_without_main.yml"
+  },
+  "num_00.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_01.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1000"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_02.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "31"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_03.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "15"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_04.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "17"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_05.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1E+21"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_06.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1.23456789012346E+17"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_07.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1.23456789012346E+23"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_08.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "0.1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_09.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "0.3"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_10.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "0.5"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_11.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1_000"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_12.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "5"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_13.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-0"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_14.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-5"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_15.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1.5E-07"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_16.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "100000"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_17.yml": {
+    "errors": [
+      "num_17.yml: The value '0xFFFFFFFFF' on line 5 and column 14 is invalid for the type ''",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load num_17.yml"
+  },
+  "num_18.yml": {
+    "errors": [
+      "num_18.yml: The value '0o7777777777777' on line 5 and column 14 is invalid for the type ''",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load num_18.yml"
+  },
+  "num_19.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "Infinity"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_20.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "Infinity"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_21.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-Infinity"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_22.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "NaN"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_23.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_24.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_25.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "true"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_26.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "yes"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_27.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1E-06"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "num_28.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "1E+20"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "only_comment.yml": {
+    "errors": [
+      "only_comment.yml: Expected document start parse event",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load only_comment.yml"
+  },
+  "only_runs.yml": {
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "outputs_scalar.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "outputs_scalar.yml (Line: 3, Col: 10): Unexpected value 'x'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'outputs'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load outputs_scalar.yml"
+  },
+  "outputs_unknown_key.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "outputs_unknown_key.yml (Line: 6, Col: 5): Unexpected value 'other'"
+    ],
+    "failed": "Failed to load outputs_unknown_key.yml"
+  },
+  "outputs_value_scalar.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "outputs_value_scalar.yml (Line: 4, Col: 6): Unexpected value 'x'"
+    ],
+    "failed": "Failed to load outputs_value_scalar.yml"
+  },
+  "plugin.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "plugin",
+      "plugin": "someplugin"
+    }
+  },
+  "plugin_with_using.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "plugin_with_using.yml (Line: 6, Col: 3): Unexpected value 'plugin'"
+    ],
+    "failed": "Failed to load plugin_with_using.yml"
+  },
+  "root_list.yml": {
+    "errors": [
+      "root_list.yml (Line: 1, Col: 1): A sequence was not expected",
+      "System.ArgumentException: Unexpected type 'SequenceToken' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load root_list.yml"
+  },
+  "root_null.yml": {
+    "errors": [
+      "root_null.yml (Line: 1, Col: 1): Unexpected value ''",
+      "System.ArgumentException: Unexpected type 'NullToken' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load root_null.yml"
+  },
+  "root_scalar.yml": {
+    "errors": [
+      "root_scalar.yml (Line: 1, Col: 1): Unexpected value 'hello'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load root_scalar.yml"
+  },
+  "runner_composite_action_without_using_token.yml": {
+    "name": "composite action",
+    "description": "test composite action without value for the 'using' token in 'runs'",
+    "errors": [
+      "System.NotSupportedException: Missing 'using' value. 'using' requires 'composite', 'docker', 'node12', 'node16', 'node20' or 'node24'."
+    ],
+    "failed": "Failed to load runner_composite_action_without_using_token.yml"
+  },
+  "runner_conditional_composite_action.yml": {
+    "name": "Conditional Composite",
+    "description": "Test composite run step conditionals",
+    "inputs": [
+      {
+        "name": "exit-code",
+        "default": "0"
+      }
+    ],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "${{ format('exit {0}', inputs.exit-code) }}",
+          "shell": "bash"
+        },
+        {
+          "id": "default-conditional",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"default=true\" >> $GITHUB_OUTPUT",
+          "shell": "bash"
+        },
+        {
+          "id": "success-conditional",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"success=true\" >> $GITHUB_OUTPUT",
+          "shell": "bash"
+        },
+        {
+          "id": "failure-conditional",
+          "if": "failure()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"failure=true\" >> $GITHUB_OUTPUT",
+          "shell": "bash"
+        },
+        {
+          "id": "always-conditional",
+          "if": "always()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"always=true\" >> $GITHUB_OUTPUT",
+          "shell": "bash"
+        },
+        {
+          "id": "__run_2",
+          "if": "inputs.exit-code == 1 && failure()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo \"failed\"",
+          "shell": "bash"
+        }
+      ],
+      "outputs": [
+        [
+          "default",
+          "${{ steps.default-conditional.outputs.default }}"
+        ],
+        [
+          "success",
+          "${{ steps.success-conditional.outputs.success }}"
+        ],
+        [
+          "failure",
+          "${{ steps.failure-conditional.outputs.failure }}"
+        ],
+        [
+          "always",
+          "${{ steps.always-conditional.outputs.always }}"
+        ]
+      ]
+    }
+  },
+  "runner_dockerfileaction.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "bzz"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "bar"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_dockerfileaction_arg_env_expression.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "${{ inputs.greeting }}"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "${{ inputs.entryPoint }}"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_dockerfileaction_cleanup.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "bzz"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "bar"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.sh",
+      "postIf": "failure()"
+    }
+  },
+  "runner_dockerfileaction_cleanup_default.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "bzz"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "bar"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.sh",
+      "postIf": "always()"
+    }
+  },
+  "runner_dockerfileaction_env_invalid_context.yml": {
+    "name": "Action With Invalid Context",
+    "description": "Docker action that uses github context in env (only inputs is allowed)",
+    "errors": [
+      "runner_dockerfileaction_env_invalid_context.yml (Line: 13, Col: 14): Unrecognized named-value: 'github'. Located at position 1 within expression: github.event.repository.private"
+    ],
+    "failed": "Failed to load runner_dockerfileaction_env_invalid_context.yml"
+  },
+  "runner_dockerfileaction_init.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "bzz"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "bar"
+        ]
+      ],
+      "pre": "init.sh",
+      "preIf": "success()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_dockerfileaction_init_default.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": [
+        "bzz"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "bar"
+        ]
+      ],
+      "pre": "init.sh",
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_dockerfileaction_noargs_noenv_noentrypoint.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_dockerfilerelativeaction.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "images/Dockerfile",
+      "args": [
+        "${{ inputs.greeting }}"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "bar"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_dockerhubaction.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "docker",
+      "using": "docker",
+      "image": "docker://ubuntu:18.04",
+      "args": [
+        "bzz"
+      ],
+      "entrypoint": "main.sh",
+      "env": [
+        [
+          "Token",
+          "foo"
+        ],
+        [
+          "Url",
+          "bar"
+        ]
+      ],
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_node16action.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node16",
+      "main": "main.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_node20action.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "main.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_node24action.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node24",
+      "main": "main.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_nodeaction.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node12",
+      "main": "main.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_nodeaction_cleanup.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node12",
+      "main": "main.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "cancelled()"
+    }
+  },
+  "runner_nodeaction_cleanup_default.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node12",
+      "main": "main.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": "cleanup.js",
+      "postIf": "always()"
+    }
+  },
+  "runner_nodeaction_init.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node12",
+      "main": "main.js",
+      "pre": "init.js",
+      "preIf": "cancelled()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_nodeaction_init_default.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "deprecated": {
+      "greeting": "This property has been deprecated"
+    },
+    "execution": {
+      "type": "node",
+      "using": "node12",
+      "main": "main.js",
+      "pre": "init.js",
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_noderelativeaction.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node12",
+      "main": "scripts/main.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "runner_pluginaction.yml": {
+    "name": "Hello World",
+    "description": "Greet the world and record the time",
+    "inputs": [
+      {
+        "name": "greeting",
+        "default": "Hello"
+      },
+      {
+        "name": "entryPoint",
+        "default": ""
+      }
+    ],
+    "execution": {
+      "type": "plugin",
+      "plugin": "someplugin"
+    }
+  },
+  "runner_self_repository_composite_action.yml": {
+    "name": "Self Repository Composite",
+    "description": "Test composite action referencing actions in the same repository via $/",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "root",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": ""
+          }
+        },
+        {
+          "id": "inventory",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": ".github/actions/inventory-client"
+          }
+        },
+        {
+          "id": "nested",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "selfRepository",
+            "name": null,
+            "ref": null,
+            "path": "actions/nested/composite"
+          }
+        },
+        {
+          "id": "external",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "actions/checkout",
+            "ref": "v4",
+            "path": ""
+          }
+        },
+        {
+          "id": "local",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "self",
+            "name": null,
+            "ref": null,
+            "path": "./local-action"
+          }
+        },
+        {
+          "id": "docker",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "docker",
+            "image": "alpine:3"
+          }
+        },
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "echo done",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "runner_self_repository_ref_composite_action.yml": {
+    "name": "Invalid Self Repository Ref",
+    "description": "Test rejection of a ref on a self-repository action",
+    "errors": [
+      "runner_self_repository_ref_composite_action.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. runner_self_repository_ref_composite_action.yml (Line: 6, Col: 13): Self-repository references do not support an '@ref' suffix. Actual '$/foo@v1'"
+    ],
+    "failed": "Failed to load runner_self_repository_ref_composite_action.yml"
+  },
+  "runs_empty_mapping.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "runs_empty_mapping.yml (Line: 3, Col: 7): There's not enough info to determine what you meant. Add one of these properties: args, entrypoint, env, image, main, plugin, post, post-entrypoint, pre, pre-entrypoint, steps",
+      "System.NotSupportedException: Missing 'using' value. 'using' requires 'composite', 'docker', 'node12', 'node16', 'node20' or 'node24'."
+    ],
+    "failed": "Failed to load runs_empty_mapping.yml"
+  },
+  "runs_list.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "runs_list.yml (Line: 4, Col: 3): A sequence was not expected",
+      "System.ArgumentException: Unexpected type 'SequenceToken' encountered while reading 'runs'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load runs_list.yml"
+  },
+  "runs_missing.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "Top level 'runs:' section is required for runs_missing.yml"
+    ]
+  },
+  "runs_string.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "runs_string.yml (Line: 3, Col: 7): Unexpected value 'node20'",
+      "System.ArgumentException: Unexpected type 'StringToken' encountered while reading 'runs'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load runs_string.yml"
+  },
+  "runs_unknown_key.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "runs_unknown_key.yml (Line: 6, Col: 3): Unexpected value 'weird'"
+    ],
+    "failed": "Failed to load runs_unknown_key.yml"
+  },
+  "steps_json_ctx.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "${{ format('echo {0} {1} {2} {3} {4} {5} {6}', toJSON(steps), job.status, runner.os, matrix.a, strategy.job-index, env.A, github.action_path) }}",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "top_unknown_expr.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "top_unknown_expr.yml (Line: 3, Col: 8): Unrecognized named-value: 'github'. Located at position 1 within expression: github.ref"
+    ],
+    "failed": "Failed to load top_unknown_expr.yml"
+  },
+  "top_unknown_keys.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "unicode_ids.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "_____",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "é/è",
+            "ref": "v1",
+            "path": ""
+          }
+        },
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "x",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "using_empty.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "using_empty.yml (Line: 4, Col: 10): Unexpected value ''",
+      "System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter ''using: ' is not supported, use 'docker', 'node12', 'node16', 'node20' or 'node24' instead.')"
+    ],
+    "failed": "Failed to load using_empty.yml"
+  },
+  "using_missing.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.NotSupportedException: Missing 'using' value. 'using' requires 'composite', 'docker', 'node12', 'node16', 'node20' or 'node24'."
+    ],
+    "failed": "Failed to load using_missing.yml"
+  },
+  "using_missing_only_steps.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.NotSupportedException: Missing 'using' value. 'using' requires 'composite', 'docker', 'node12', 'node16', 'node20' or 'node24'."
+    ],
+    "failed": "Failed to load using_missing_only_steps.yml"
+  },
+  "using_null.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "using_null.yml (Line: 4, Col: 9): Unexpected value ''",
+      "System.ArgumentException: Unexpected type 'NullToken' encountered while reading 'using'. The type 'StringToken' was expected."
+    ],
+    "failed": "Failed to load using_null.yml"
+  },
+  "using_number.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter ''using: 20' is not supported, use 'docker', 'node12', 'node16', 'node20' or 'node24' instead.')"
+    ],
+    "failed": "Failed to load using_number.yml"
+  },
+  "using_unknown.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter ''using: node99' is not supported, use 'docker', 'node12', 'node16', 'node20' or 'node24' instead.')"
+    ],
+    "failed": "Failed to load using_unknown.yml"
+  },
+  "windows_uses.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__a_b",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "uses",
+          "reference": {
+            "type": "GitHub",
+            "name": "a/b",
+            "ref": "v1",
+            "path": "c"
+          }
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "yaml_anchor.yml": {
+    "errors": [
+      "yaml_anchor.yml: Anchors are not currently supported. Remove the anchor 'd'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load yaml_anchor.yml"
+  },
+  "yaml_anchor_alias.yml": {
+    "errors": [
+      "yaml_anchor_alias.yml: Anchors are not currently supported. Remove the anchor 'b'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load yaml_anchor_alias.yml"
+  },
+  "yaml_block_scalar.yml": {
+    "name": "A",
+    "description": "line1\nline2\n",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "__run",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "${{ format('echo {0}\necho two\n', github.ref) }}",
+          "shell": "bash"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "yaml_bom.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "yaml_crlf.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "yaml_dup_in_runs.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "yaml_dup_in_runs.yml (Line: 6, Col: 3): 'main' is already defined"
+    ],
+    "failed": "Failed to load yaml_dup_in_runs.yml"
+  },
+  "yaml_dup_key.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "yaml_dup_key.yml (Line: 2, Col: 1): 'name' is already defined"
+    ],
+    "failed": "Failed to load yaml_dup_key.yml"
+  },
+  "yaml_dup_key_case.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "yaml_dup_key_case.yml (Line: 2, Col: 1): 'NAME' is already defined"
+    ],
+    "failed": "Failed to load yaml_dup_key_case.yml"
+  },
+  "yaml_key_collection.yml": {
+    "errors": [
+      "yaml_key_collection.yml: Expected mapping end",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load yaml_key_collection.yml"
+  },
+  "yaml_merge_key.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "yaml_merge_key.yml (Line: 4, Col: 3): Unexpected value '<<'",
+      "System.NotSupportedException: Missing 'using' value. 'using' requires 'composite', 'docker', 'node12', 'node16', 'node20' or 'node24'."
+    ],
+    "failed": "Failed to load yaml_merge_key.yml"
+  },
+  "yaml_syntax.yml": {
+    "errors": [
+      "yaml_syntax.yml: (Line: 3, Col: 1, Idx: 16) - (Line: 3, Col: 1, Idx: 16): While parsing a node, did not find expected node content.",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load yaml_syntax.yml"
+  },
+  "yaml_tab.yml": {
+    "errors": [
+      "yaml_tab.yml: (Line: 3, Col: 1, Idx: 14) - (Line: 3, Col: 2, Idx: 15): While scanning for the next token, find character that cannot start any token.",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load yaml_tab.yml"
+  },
+  "yaml_tag_str.yml": {
+    "errors": [
+      "yaml_tag_str.yml: Unexpected tag 'tag:yaml.org,2002:str'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load yaml_tag_str.yml"
+  },
+  "yaml_two_docs.yml": {
+    "name": "A",
+    "errors": [
+      "yaml_two_docs.yml: Expected stream end parse event"
+    ],
+    "failed": "Failed to load yaml_two_docs.yml"
+  }
+}

@@ -1,0 +1,10 @@
+name: A
+description: D
+inputs:
+  a:
+    default: 1
+  A:
+    default: 2
+runs:
+  using: node20
+  main: m.js

@@ -1,0 +1,7 @@
+name: My Action
+description: Literal text in post-if
+runs:
+  using: node20
+  main: index.js
+  post: cleanup.js
+  post-if: event == ${{ github.event_name }}

@@ -1,0 +1,7 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - run: echo ${{ vars.A }}
+      shell: bash

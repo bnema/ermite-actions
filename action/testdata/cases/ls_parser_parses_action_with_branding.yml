@@ -1,0 +1,10 @@
+name: Branded Action
+description: Action with branding
+branding:
+  icon: award
+  color: blue
+runs:
+  using: composite
+  steps:
+    - run: echo Hello
+      shell: bash

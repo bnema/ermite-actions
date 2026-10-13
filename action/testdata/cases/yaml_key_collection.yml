@@ -1,0 +1,7 @@
+name: A
+description: D
+? [a]
+: b
+runs:
+  using: node20
+  main: m.js

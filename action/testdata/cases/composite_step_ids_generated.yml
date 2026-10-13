@@ -1,0 +1,16 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - run: a
+      shell: bash
+    - run: b
+      shell: bash
+    - uses: actions/setup-go@v5
+    - uses: docker://ghcr.io/a/b:1
+    - uses: ./x
+    - uses: actions/setup-go@v5
+    - run: c
+      shell: bash
+      id: __run_2

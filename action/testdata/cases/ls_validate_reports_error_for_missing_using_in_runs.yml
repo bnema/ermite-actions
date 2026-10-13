@@ -1,0 +1,4 @@
+name: My Action
+description: Missing using
+runs:
+  main: index.js

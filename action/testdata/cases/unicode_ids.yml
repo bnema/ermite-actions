@@ -1,0 +1,8 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - uses: é/è@v1
+    - run: x
+      shell: bash

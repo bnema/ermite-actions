@@ -1,0 +1,6 @@
+name: My Action
+description: Invalid format
+runs:
+  using: composite
+  steps:
+    - uses: invalid-format

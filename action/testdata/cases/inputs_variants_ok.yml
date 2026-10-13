@@ -1,0 +1,31 @@
+name: A
+description: D
+inputs:
+  with-default:
+    default: x
+  expr-default:
+    default: ${{ github.ref }}
+  required-bool:
+    required: true
+    description: desc
+  required-str:
+    required: 'true'
+  deprecated:
+    deprecationMessage: use other
+    default: ''
+  Cap:
+    default: y
+  upper-key:
+    DEFAULT: z
+  number-default:
+    default: 5
+  bool-default:
+    default: false
+  null-default:
+    default:
+  unknown:
+    anything: [1, 2]
+  empty-mapping: {}
+runs:
+  using: node20
+  main: m.js

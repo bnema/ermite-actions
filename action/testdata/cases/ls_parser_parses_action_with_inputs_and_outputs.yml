@@ -1,0 +1,20 @@
+name: Action with I/O
+description: Action with inputs and outputs
+inputs:
+  name:
+    description: The name to greet
+    required: true
+    default: World
+  verbose:
+    description: Enable verbose mode
+    required: false
+outputs:
+  greeting:
+    description: The greeting message
+    value: ${{ steps.greet.outputs.message }}
+runs:
+  using: composite
+  steps:
+    - id: greet
+      run: echo "::set-output name=message::Hello ${{ inputs.name }}"
+      shell: bash

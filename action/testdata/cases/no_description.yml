@@ -1,0 +1,4 @@
+name: A
+runs:
+  using: node20
+  main: m.js

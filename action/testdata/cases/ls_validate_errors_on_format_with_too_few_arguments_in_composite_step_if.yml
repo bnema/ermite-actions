@@ -1,0 +1,8 @@
+name: My Action
+description: Format mismatch
+runs:
+  using: composite
+  steps:
+    - if: format('{0} {1}', 'only-one')
+      run: echo hi
+      shell: bash

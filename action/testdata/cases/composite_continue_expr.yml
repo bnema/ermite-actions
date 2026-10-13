@@ -1,0 +1,11 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - run: echo
+      shell: bash
+      continue-on-error: ${{ inputs.x == 'y' }}
+      env: ${{ fromJSON(inputs.env) }}
+    - uses: a/b@c
+      with: ${{ fromJSON(inputs.with) }}

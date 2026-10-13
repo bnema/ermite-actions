@@ -1,0 +1,8 @@
+name: My Action
+description: Valid context in if
+runs:
+  using: composite
+  steps:
+    - if: github.event_name == 'push'
+      run: echo hi
+      shell: bash
