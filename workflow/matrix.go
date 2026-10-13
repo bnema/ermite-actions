@@ -165,7 +165,9 @@ var errProductTooBig = fmt.Errorf("matrix too large: the cross product of the ve
 // ErrTooManyConfigurations is matched, with [errors.Is], by the error that
 // [ExpandMatrix], [ParseStrategy] and [Job.EvaluateStrategy] return when a
 // matrix produces more than [MaxMatrixJobs] configurations. The error itself
-// carries the job and the count in its text.
+// carries the job and the count in its text. It does not match the error for a
+// cross product over [MaxMatrixProduct], which is a work bound of this package
+// rather than a GitHub rule.
 var ErrTooManyConfigurations = errors.New("matrix produces too many configurations")
 
 // configurationLimitError is returned when a matrix produces more than
