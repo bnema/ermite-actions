@@ -28,10 +28,10 @@ type Action struct {
 }
 
 // Input returns the input called name, compared like the runner compares
-// input names (ASCII case-insensitively), or nil.
+// input names (OrdinalIgnoreCase), or nil.
 func (a *Action) Input(name string) *Input {
 	for i := range a.Inputs {
-		if asciiEqualFold(a.Inputs[i].Name, name) {
+		if ordinalEqual(a.Inputs[i].Name, name) {
 			return &a.Inputs[i]
 		}
 	}
@@ -150,7 +150,7 @@ func (r *Runs) HasPre() bool {
 }
 
 // HasPost reports whether the action has something to run after the job's
-// steps: a node "post", a docker "post-entrypoint" or a plugin.
+// steps: a node "post" or a docker "post-entrypoint".
 func (r *Runs) HasPost() bool {
 	switch r.Kind {
 	case RunsNode:

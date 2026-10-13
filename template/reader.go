@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"bnema.dev/ermite-actions/expr"
 )
 
 // ReadYAML parses a YAML document and reads it as a template of the schema
@@ -87,6 +89,16 @@ func (r *reader) text(t Token) string {
 		return DotNetNumberString(n.Value)
 	}
 	return t.String()
+}
+
+// foldKey is the form of a key under which duplicates are detected: the
+// reference upper-cases like JavaScript, the runner compares keys with
+// .NET's OrdinalIgnoreCase.
+func (r *reader) foldKey(s string) string {
+	if r.ctx.RunnerYAML {
+		return expr.OrdinalFold(s)
+	}
+	return strings.ToUpper(s)
 }
 
 func (r *reader) leave() {
@@ -223,7 +235,7 @@ func (r *reader) mappingWithProperties(n *rnode, m *Mapping, def *DefinitionInfo
 			nextKey = &String{tokenBase: *keyScalar.base(), Value: r.text(keyScalar)}
 		}
 		if nextKey.Value != "" {
-			up := strings.ToUpper(nextKey.Value)
+			up := r.foldKey(nextKey.Value)
 			if upperKeys[up] {
 				r.ctx.Errorf(nextKey, "'%s' is already defined", nextKey.Value)
 				r.skip(val)
@@ -278,7 +290,7 @@ func (r *reader) mappingWithProperties(n *rnode, m *Mapping, def *DefinitionInfo
 		r.ctx.Errorf(m, "There's not enough info to determine what you meant. Add one of these properties: %s", strings.Join(props, ", "))
 	case len(defs) == 1 && !hasExpressionKey:
 		for _, name := range defs[0].PropertyNames {
-			if defs[0].Properties[name].Required && !upperKeys[strings.ToUpper(name)] {
+			if defs[0].Properties[name].Required && !upperKeys[r.foldKey(name)] {
 				r.ctx.Errorf(m, "Required property is missing: %s", name)
 			}
 		}
@@ -310,7 +322,7 @@ func (r *reader) mappingAllLoose(n *rnode, m *Mapping, def, keyDef, valDef *Defi
 			nextKey = &String{tokenBase: *keyScalar.base(), Value: r.text(keyScalar)}
 		}
 		if nextKey.Value != "" {
-			up := strings.ToUpper(nextKey.Value)
+			up := r.foldKey(nextKey.Value)
 			if upperKeys[up] {
 				r.ctx.Errorf(nextKey, "'%s' is already defined", nextKey.Value)
 				r.skip(val)

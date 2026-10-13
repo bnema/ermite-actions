@@ -1,0 +1,12 @@
+name: A
+description: D
+inputs:
+  σ:
+    default: x
+  ς:
+    default: y
+  Σ:
+    default: z
+runs:
+  using: node20
+  main: m.js

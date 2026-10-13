@@ -204,11 +204,13 @@ func (b *yamlBuilder) build1(n *yaml.Node, asKey bool) *rnode {
 		return r
 	case yaml.ScalarNode:
 		r := &rnode{kind: rLiteral, pos: pos}
-		if asKey {
+		if asKey && !b.runnerYAML {
 			// Keys are always strings, whatever they look like.
 			r.lit = NewString(o, n.Value)
 		} else {
-			r.lit = resolveScalar(o, n)
+			// The runner's YAML reader resolves a key like a value: "~" is
+			// null, "0x10" is 16, "TRUE" is true.
+			r.lit = resolveScalar(o, n, b.runnerYAML)
 		}
 		r.quoted = n.Style&(yaml.DoubleQuotedStyle|yaml.SingleQuotedStyle) != 0
 		r.block = n.Style&(yaml.LiteralStyle|yaml.FoldedStyle) != 0
@@ -225,8 +227,8 @@ func runnerYAMLError(n *yaml.Node) string {
 		return fmt.Sprintf("Anchors are not currently supported. Remove the anchor '%s'", n.Anchor)
 	}
 	if n.Kind == yaml.ScalarNode && n.Style&(yaml.TaggedStyle|yaml.DoubleQuotedStyle|yaml.SingleQuotedStyle|yaml.LiteralStyle|yaml.FoldedStyle) == 0 {
-		if msg := runnerIntegerError(n); msg != "" {
-			return msg
+		if !fitsInt32(n.Value) {
+			return fmt.Sprintf("The value '%s' on line %d and column %d is invalid for the type ''", n.Value, n.Line, n.Column)
 		}
 	}
 	if n.Kind != yaml.ScalarNode || n.Style&yaml.TaggedStyle == 0 {
@@ -257,7 +259,7 @@ func runnerYAMLError(n *yaml.Node) string {
 	default:
 		return fmt.Sprintf("Unexpected tag '%s'", tag)
 	}
-	t := resolvePlain(Origin{}, n.Value)
+	t := resolvePlain(Origin{}, n.Value, true)
 	ok := false
 	switch tag {
 	case yamlTag + "bool":
@@ -265,9 +267,10 @@ func runnerYAMLError(n *yaml.Node) string {
 	case yamlTag + "null":
 		ok = t.Kind() == KindNull
 	case yamlTag + "float":
-		ok = t.Kind() == KindNumber
+		// MatchFloat knows no 0x or 0o form.
+		ok = t.Kind() == KindNumber && !reHex.MatchString(n.Value) && !reOct.MatchString(n.Value)
 	case yamlTag + "int":
-		ok = t.Kind() == KindNumber && (reInt.MatchString(n.Value) || reOct.MatchString(n.Value) || reHex.MatchString(n.Value))
+		ok = t.Kind() == KindNumber && (reInt.MatchString(n.Value) || reOct.MatchString(n.Value) || reHex.MatchString(n.Value)) && fitsInt32(n.Value)
 	}
 	if !ok {
 		return fmt.Sprintf("The value '%s' on line %d and column %d is invalid for the type '%s'", n.Value, n.Line, n.Column, tag)
@@ -275,46 +278,50 @@ func runnerYAMLError(n *yaml.Node) string {
 	return ""
 }
 
-// runnerIntegerError is the runner's refusal of a plain 0x or 0o integer that
-// does not fit 32 bits (Int32.TryParse with AllowHexSpecifier, which accepts up
-// to FFFFFFFF as a negative number, and Convert.ToInt32(s, 8)). The tag is
-// empty in the message, as the plain scalar has none.
-func runnerIntegerError(n *yaml.Node) string {
-	v := n.Value
-	var limit uint64 = 1<<32 - 1
-	var base int
+// fitsInt32 reports whether a plain 0x or 0o integer is accepted by the
+// runner's reader: Int32.TryParse with AllowHexSpecifier (up to FFFFFFFF, read
+// as a negative number above 7FFFFFFF) and Convert.ToInt32(s, 8) (up to
+// 37777777777). Other values always fit.
+func fitsInt32(v string) bool {
+	var base uint64
 	switch {
 	case reHex.MatchString(v):
 		base = 16
 	case reOct.MatchString(v):
 		base = 8
 	default:
-		return ""
+		return true
 	}
+	_, ok := parseUint32(v[2:], base)
+	return ok
+}
+
+// parseUint32 reads digits in base 8 or 16, reporting false past 32 bits.
+func parseUint32(digits string, base uint64) (uint32, bool) {
 	var acc uint64
-	for _, c := range strings.ToLower(v[2:]) {
+	for _, c := range strings.ToLower(digits) {
 		d := uint64(c - '0')
 		if c >= 'a' {
 			d = uint64(c-'a') + 10
 		}
-		acc = acc*uint64(base) + d
-		if acc > limit {
-			return fmt.Sprintf("The value '%s' on line %d and column %d is invalid for the type ''", v, n.Line, n.Column)
+		acc = acc*base + d
+		if acc > 1<<32-1 {
+			return 0, false
 		}
 	}
-	return ""
+	return uint32(acc), true
 }
 
 // resolveScalar gives a scalar its type the way the YAML 1.2 core schema of
 // the JavaScript yaml library does: only plain scalars are resolved, and an
 // explicit !!tag overrides the guess.
-func resolveScalar(o Origin, n *yaml.Node) Token {
+func resolveScalar(o Origin, n *yaml.Node, runner bool) Token {
 	if n.Style&yaml.TaggedStyle != 0 {
 		switch n.ShortTag() {
 		case "!!str":
 			return NewString(o, n.Value)
 		case "!!null", "!!bool", "!!int", "!!float":
-			if t := resolvePlain(o, n.Value); t.Kind() != KindString {
+			if t := resolvePlain(o, n.Value, runner); t.Kind() != KindString {
 				return t
 			}
 			if n.ShortTag() == "!!null" && n.Value == "" {
@@ -326,7 +333,7 @@ func resolveScalar(o Origin, n *yaml.Node) Token {
 	if n.Style&(yaml.DoubleQuotedStyle|yaml.SingleQuotedStyle|yaml.LiteralStyle|yaml.FoldedStyle) != 0 {
 		return NewString(o, n.Value)
 	}
-	return resolvePlain(o, n.Value)
+	return resolvePlain(o, n.Value, runner)
 }
 
 var (
@@ -338,7 +345,10 @@ var (
 	reNaN   = regexp.MustCompile(`^\.(?:nan|NaN|NAN)$`)
 )
 
-func resolvePlain(o Origin, s string) Token {
+// resolvePlain gives a plain scalar its type. In runner mode a 0x or 0o
+// integer is the 32-bit two's complement value the runner reads: 0xFFFFFFFF
+// is -1 and 0x80000000 is -2147483648.
+func resolvePlain(o Origin, s string, runner bool) Token {
 	switch s {
 	case "", "~", "null", "Null", "NULL":
 		return NewNull(o)
@@ -352,8 +362,14 @@ func resolvePlain(o Origin, s string) Token {
 		f, _ := strconv.ParseFloat(s, 64)
 		return NewNumber(o, f)
 	case reOct.MatchString(s):
+		if u, ok := parseUint32(s[2:], 8); runner && ok {
+			return NewNumber(o, float64(int32(u)))
+		}
 		return NewNumber(o, parseBase(s[2:], 8))
 	case reHex.MatchString(s):
+		if u, ok := parseUint32(s[2:], 16); runner && ok {
+			return NewNumber(o, float64(int32(u)))
+		}
 		return NewNumber(o, parseBase(s[2:], 16))
 	case reFloat.MatchString(s):
 		f, _ := strconv.ParseFloat(s, 64)

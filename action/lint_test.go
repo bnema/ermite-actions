@@ -53,7 +53,23 @@ var (
 // reproduced, with the reason.
 var knownLintDifferences = map[string]string{
 	"yaml_key_collection.yml": "a mapping key that is a collection: the reference reads it as undefined (\"Unexpected value 'undefined'\"), package template reports \"Unexpected value ''\" (twice); see template/PORTING.md",
+	"fold_inputs_sharp.yml":   "duplicate keys: the reference compares with JavaScript's toUpperCase (\u00df is SS), template with strings.ToUpper; Lint is not the runner's OrdinalIgnoreCase, Parse is",
+	"int32_key.yml":           jsKey,
+	"key_bool_dup.yml":        jsKey,
+	"key_float_dup.yml":       jsKey,
+	"key_hex_dup.yml":         jsKey,
+	"key_hex_input.yml":       jsKey,
+	"key_null_env.yml":        jsKey,
+	"key_null_inputs.yml":     jsKey,
+	"key_null_top.yml":        jsKey,
+	"key_number_runs.yml":     jsKey,
 }
+
+// jsKey: the reference resolves a plain key to a number, boolean or null (and
+// then crashes on it, "raw.indexOf is not a function", or words it
+// differently); template keeps keys of the workflow-style readers as strings.
+// The runner's reader resolves keys like values, which Parse reproduces.
+const jsKey = "the reference resolves non-string keys and fails on them with its own wording; Lint keeps keys as strings"
 
 func TestLintAgainstReference(t *testing.T) {
 	data, err := os.ReadFile("testdata/strict.json")

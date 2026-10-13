@@ -1,0 +1,8 @@
+name: A
+description: D
+inputs:
+  a:
+    default: 0x0
+runs:
+  using: node20
+  main: m.js

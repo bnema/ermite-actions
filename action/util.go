@@ -7,12 +7,15 @@ import (
 	"strings"
 	"unicode"
 
+	"bnema.dev/ermite-actions/expr"
 	"bnema.dev/ermite-actions/template"
 )
 
-// asciiEqualFold is String.Equals(a, b, OrdinalIgnoreCase) for the strings the
-// manifest compares: .NET's simple case mapping folds no non-ASCII character
-// into ASCII, so only A-Z and a-z fold.
+// asciiEqualFold is String.Equals(a, b, OrdinalIgnoreCase) when b is an ASCII
+// literal ("docker", "default"): .NET's simple case mapping folds no non-ASCII
+// character into an ASCII one, so only A-Z and a-z can match. It is wrong for
+// two arbitrary strings ("é" and "É" are equal under OrdinalIgnoreCase); use
+// ordinalEqual for those.
 func asciiEqualFold(a, b string) bool {
 	if len(a) != len(b) {
 		return false
@@ -125,3 +128,6 @@ func assertScalar(t template.Token, desc string) template.Token {
 func trimSpaceJS(s string) string {
 	return strings.TrimFunc(s, func(r rune) bool { return unicode.IsSpace(r) || r == '\ufeff' })
 }
+
+// ordinalEqual is String.Equals(a, b, StringComparison.OrdinalIgnoreCase).
+func ordinalEqual(a, b string) bool { return expr.OrdinalFold(a) == expr.OrdinalFold(b) }

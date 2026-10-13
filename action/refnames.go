@@ -5,6 +5,8 @@ package action
 import (
 	"fmt"
 	"unicode/utf16"
+
+	"bnema.dev/ermite-actions/expr"
 )
 
 // refNames is a port of the runner's ReferenceNameBuilder
@@ -16,29 +18,18 @@ import (
 // doubled "and".
 type refNames struct {
 	name     []uint16
-	distinct map[string]bool // upper-cased with ASCII rules
+	distinct map[string]bool // OrdinalIgnoreCase folds
 }
 
 const maxNodeNameLength = 100
 
 func newRefNames() *refNames { return &refNames{distinct: map[string]bool{}} }
 
-func asciiUpper(s string) string {
-	b := []byte(s)
-	for i, c := range b {
-		if c >= 'a' && c <= 'z' {
-			b[i] = c - 'a' + 'A'
-		}
-	}
-	return string(b)
-}
-
 // add records name and reports whether it was new (HashSet.Add with
-// OrdinalIgnoreCase; a name that is not ASCII is one that validName refused,
-// or one of 100 characters or more, which are compared by their ASCII upper
-// case here).
+// OrdinalIgnoreCase). A name with non-ASCII characters can get here when it has
+// 100 characters or more, and "é...é" then collides with "É...É".
 func (b *refNames) add(name string) bool {
-	k := asciiUpper(name)
+	k := expr.OrdinalFold(name)
 	if b.distinct[k] {
 		return false
 	}

@@ -1,0 +1,11 @@
+name: A
+description: D
+runs:
+  using: composite
+  steps:
+    - run: x
+      shell: sh
+      id: abc
+    - run: x
+      shell: sh
+      id: ABC

@@ -1261,6 +1261,193 @@
     ],
     "failed": "Failed to load empty_file.yml"
   },
+  "fold_inputs_accent.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_inputs_accent.yml (Line: 6, Col: 3): 'É' is already defined"
+    ],
+    "failed": "Failed to load fold_inputs_accent.yml"
+  },
+  "fold_inputs_dotless.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_inputs_dotless.yml (Line: 8, Col: 3): 'i' is already defined"
+    ],
+    "failed": "Failed to load fold_inputs_dotless.yml"
+  },
+  "fold_inputs_greek.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_inputs_greek.yml (Line: 6, Col: 3): 'ς' is already defined",
+      "fold_inputs_greek.yml (Line: 8, Col: 3): 'Σ' is already defined"
+    ],
+    "failed": "Failed to load fold_inputs_greek.yml"
+  },
+  "fold_inputs_kelvin.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "k",
+        "default": "x"
+      },
+      {
+        "name": "K",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_inputs_s.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "s",
+        "default": "x"
+      },
+      {
+        "name": "ſ",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_inputs_sharp.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "ß",
+        "default": "x"
+      },
+      {
+        "name": "SS",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_runs_keys.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_runs_keys.yml (Line: 6, Col: 3): Unexpected value 'é'",
+      "fold_runs_keys.yml (Line: 7, Col: 3): 'É' is already defined"
+    ],
+    "failed": "Failed to load fold_runs_keys.yml"
+  },
+  "fold_step_ids_ascii_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_step_ids_ascii_dup.yml (Line: 11, Col: 11): The identifier 'ABC' may not be used more than once within the same scope.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. fold_step_ids_ascii_dup.yml (Line: 11, Col: 11): The identifier 'ABC' may not be used more than once within the same scope."
+    ],
+    "failed": "Failed to load fold_step_ids_ascii_dup.yml"
+  },
+  "fold_step_ids_long.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_step_ids_long.yml (Line: 11, Col: 11): The identifier 'ÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ' may not be used more than once within the same scope.",
+      "GitHub.DistributedTask.ObjectTemplating.TemplateValidationException: The template is not valid. fold_step_ids_long.yml (Line: 11, Col: 11): The identifier 'ÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉÉ' may not be used more than once within the same scope."
+    ],
+    "failed": "Failed to load fold_step_ids_long.yml"
+  },
+  "fold_step_ids_long_s.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "composite",
+      "using": "composite",
+      "steps": [
+        {
+          "id": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "x",
+          "shell": "sh"
+        },
+        {
+          "id": "ſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſſ",
+          "if": "success()",
+          "name": null,
+          "continueOnError": null,
+          "timeout": null,
+          "kind": "run",
+          "script": "x",
+          "shell": "sh"
+        }
+      ],
+      "outputs": null
+    }
+  },
+  "fold_top_keys.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "fold_top_keys.yml (Line: 2, Col: 1): 'NAME' is already defined",
+      "fold_top_keys.yml (Line: 4, Col: 1): 'É' is already defined"
+    ],
+    "failed": "Failed to load fold_top_keys.yml"
+  },
+  "fold_using_dotless.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [],
+    "execution": {
+      "type": "docker",
+      "using": "DOCKER",
+      "image": "Dockerfile",
+      "args": null,
+      "entrypoint": null,
+      "env": null,
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "fold_using_kelvin.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter ''using: Komposite' is not supported, use 'docker', 'node12', 'node16', 'node20' or 'node24' instead.')"
+    ],
+    "failed": "Failed to load fold_using_kelvin.yml"
+  },
   "inputs_default_bad_context.yml": {
     "name": "A",
     "description": "D",
@@ -1428,6 +1615,375 @@
       "post": null,
       "postIf": "always()"
     }
+  },
+  "int32_00.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "2147483647"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_01.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_02.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_03.yml": {
+    "errors": [
+      "int32_03.yml: The value '0x100000000' on line 5 and column 14 is invalid for the type ''",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_03.yml"
+  },
+  "int32_04.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "2147483647"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_05.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_06.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_07.yml": {
+    "errors": [
+      "int32_07.yml: The value '0o40000000000' on line 5 and column 14 is invalid for the type ''",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_07.yml"
+  },
+  "int32_08.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-1"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_09.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_10.yml": {
+    "errors": [
+      "int32_10.yml: The value '0x100000000' on line 5 and column 14 is invalid for the type 'tag:yaml.org,2002:int'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_10.yml"
+  },
+  "int32_11.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-2147483648"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_12.yml": {
+    "errors": [
+      "int32_12.yml: The value '0o40000000000' on line 5 and column 14 is invalid for the type 'tag:yaml.org,2002:int'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_12.yml"
+  },
+  "int32_13.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "12"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_14.yml": {
+    "errors": [
+      "int32_14.yml: The value '0x10' on line 5 and column 14 is invalid for the type 'tag:yaml.org,2002:float'",
+      "System.ArgumentException: Unexpected type '' encountered while reading 'action manifest root'. The type 'MappingToken' was expected."
+    ],
+    "failed": "Failed to load int32_14.yml"
+  },
+  "int32_15.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "0"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_16.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "a",
+        "default": "-559038737"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "int32_key.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "-1",
+        "default": "x"
+      },
+      {
+        "name": "-2147483648",
+        "default": "y"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "key_bool_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_bool_dup.yml (Line: 6, Col: 3): 'true' is already defined"
+    ],
+    "failed": "Failed to load key_bool_dup.yml"
+  },
+  "key_float_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_float_dup.yml (Line: 6, Col: 3): '1' is already defined"
+    ],
+    "failed": "Failed to load key_float_dup.yml"
+  },
+  "key_hex_dup.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_hex_dup.yml (Line: 6, Col: 3): '16' is already defined"
+    ],
+    "failed": "Failed to load key_hex_dup.yml"
+  },
+  "key_hex_input.yml": {
+    "name": "A",
+    "description": "D",
+    "inputs": [
+      {
+        "name": "16",
+        "default": "x"
+      },
+      {
+        "name": "1",
+        "default": "y"
+      },
+      {
+        "name": "true",
+        "default": "z"
+      }
+    ],
+    "execution": {
+      "type": "node",
+      "using": "node20",
+      "main": "m.js",
+      "pre": null,
+      "preIf": "always()",
+      "post": null,
+      "postIf": "always()"
+    }
+  },
+  "key_null_env.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_null_env.yml (Line: 7, Col: 5): Unexpected value ''"
+    ],
+    "failed": "Failed to load key_null_env.yml"
+  },
+  "key_null_inputs.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_null_inputs.yml (Line: 4, Col: 3): Unexpected value ''"
+    ],
+    "failed": "Failed to load key_null_inputs.yml"
+  },
+  "key_null_top.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_null_top.yml (Line: 1, Col: 1): Unexpected value ''"
+    ],
+    "failed": "Failed to load key_null_top.yml"
+  },
+  "key_number_runs.yml": {
+    "name": "A",
+    "description": "D",
+    "errors": [
+      "key_number_runs.yml (Line: 6, Col: 3): Unexpected value '1000'"
+    ],
+    "failed": "Failed to load key_number_runs.yml"
   },
   "ls_parser_accepts_valid_context_in_pre_if.yml": {
     "name": "Node Action",

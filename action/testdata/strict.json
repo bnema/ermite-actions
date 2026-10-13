@@ -863,6 +863,155 @@
    "empty_file.yml: Expected a scalar value, a sequence, or a mapping"
   ]
  },
+ "fold_inputs_accent.yml": {
+  "errors": [
+   "fold_inputs_accent.yml (Line: 6, Col: 3): 'É' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_inputs_dotless.yml": {
+  "errors": [
+   "fold_inputs_dotless.yml (Line: 6, Col: 3): 'I' is already defined",
+   "fold_inputs_dotless.yml (Line: 8, Col: 3): 'i' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_inputs_greek.yml": {
+  "errors": [
+   "fold_inputs_greek.yml (Line: 6, Col: 3): 'ς' is already defined",
+   "fold_inputs_greek.yml (Line: 8, Col: 3): 'Σ' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_inputs_kelvin.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "k",
+    "default": "x"
+   },
+   {
+    "id": "K",
+    "default": "y"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "fold_inputs_s.yml": {
+  "errors": [
+   "fold_inputs_s.yml (Line: 6, Col: 3): 'ſ' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_inputs_sharp.yml": {
+  "errors": [
+   "fold_inputs_sharp.yml (Line: 6, Col: 3): 'SS' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_runs_keys.yml": {
+  "errors": [
+   "fold_runs_keys.yml (Line: 6, Col: 3): Unexpected value 'é'",
+   "fold_runs_keys.yml (Line: 7, Col: 3): 'É' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_step_ids_ascii_dup.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 2
+  }
+ },
+ "fold_step_ids_long.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 2
+  }
+ },
+ "fold_step_ids_long_s.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "using": "composite",
+   "steps": 2
+  }
+ },
+ "fold_top_keys.yml": {
+  "errors": [
+   "fold_top_keys.yml (Line: 2, Col: 1): 'NAME' is already defined",
+   "fold_top_keys.yml (Line: 3, Col: 1): Unexpected value 'é'",
+   "fold_top_keys.yml (Line: 4, Col: 1): 'É' is already defined"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_using_dotless.yml": {
+  "errors": [
+   "fold_using_dotless.yml (Line: 4, Col: 10): Unexpected value 'DOCKER'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "fold_using_kelvin.yml": {
+  "errors": [
+   "fold_using_kelvin.yml (Line: 4, Col: 10): Unexpected value 'Komposite'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
  "inputs_default_bad_context.yml": {
   "errors": [
    "inputs_default_bad_context.yml (Line: 5, Col: 14): Unrecognized named-value: 'inputs'"
@@ -990,6 +1139,355 @@
   "runs": {
    "steps": 0
   }
+ },
+ "int32_00.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "2147483647"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_01.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "2147483648"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_02.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "4294967295"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_03.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "4294967296"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_04.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "2147483647"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_05.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "2147483648"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_06.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "4294967295"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_07.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "4294967296"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_08.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "4294967295"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_09.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "2147483648"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_10.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "4294967296"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_11.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "2147483648"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_12.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "4294967296"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_13.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "12"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_14.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "0x10"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_15.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "0"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_16.yml": {
+  "errors": [],
+  "name": "A",
+  "description": "D",
+  "inputs": [
+   {
+    "id": "a",
+    "default": "3735928559"
+   }
+  ],
+  "outputs": [],
+  "runs": {
+   "using": "node20",
+   "main": "m.js",
+   "steps": 0
+  }
+ },
+ "int32_key.yml": {
+  "errors": [
+   "int32_key.yml: raw.indexOf is not a function"
+  ]
+ },
+ "key_bool_dup.yml": {
+  "errors": [
+   "key_bool_dup.yml: raw.indexOf is not a function"
+  ]
+ },
+ "key_float_dup.yml": {
+  "errors": [
+   "key_float_dup.yml: raw.indexOf is not a function"
+  ]
+ },
+ "key_hex_dup.yml": {
+  "errors": [
+   "key_hex_dup.yml: raw.indexOf is not a function"
+  ]
+ },
+ "key_hex_input.yml": {
+  "errors": [
+   "key_hex_input.yml: raw.indexOf is not a function"
+  ]
+ },
+ "key_null_env.yml": {
+  "errors": [
+   "key_null_env.yml (Line: 7, Col: 5): Unexpected value 'null'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "key_null_inputs.yml": {
+  "errors": [
+   "key_null_inputs.yml (Line: 4, Col: 3): Unexpected value 'null'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "key_null_top.yml": {
+  "errors": [
+   "key_null_top.yml (Line: 1, Col: 1): Unexpected value 'null'"
+  ],
+  "inputs": [],
+  "outputs": [],
+  "runs": {
+   "steps": 0
+  }
+ },
+ "key_number_runs.yml": {
+  "errors": [
+   "key_number_runs.yml: raw.indexOf is not a function"
+  ]
  },
  "ls_parser_accepts_valid_context_in_pre_if.yml": {
   "errors": [],

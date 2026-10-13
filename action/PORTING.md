@@ -120,7 +120,7 @@ All verified by `TestAgainstRunner`.
   ...`) instead of being recorded and skipped; an unknown key in a step is
   `Error while reading 'steps item key'. Unexpected value 'k'`; the id check
   (`ReferenceNameBuilder`) accepts ids that start with `__`, lets an id of 100
-  characters or more through, compares ids ASCII case-insensitively, and words its
+  characters or more through, compares ids with OrdinalIgnoreCase, and words its
   message `... IDs must start with a letter or '_' and must be less than 100
   characters.` (the language service has `and and`); generated ids are
   `__run`, `__owner_repo`, `__<image>`, `__self`, `__selfRepository`, made unique
