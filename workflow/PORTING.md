@@ -88,7 +88,8 @@ the recordings. The cases copied into the unit tests stay.
       line of spaces or tabs is not a blank line; more than two blank lines
       count like two.
 - [ ] **`ExpandMatrix`**: the unknown exclude key error (once per offending
-      entry) and the over-256 message (`configurationLimitError`) are the
+      entry) and the over-256 message (`configurationLimitError`, which matches
+      `ErrTooManyConfigurations` with `errors.Is`) are the
       texts observed on the github.com run page for matrix-edge-values and
       matrix-over-256, not in the recordings (a failed run with no job). To
       verify: order of the product (first key slowest), include

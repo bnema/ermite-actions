@@ -162,6 +162,14 @@ func (m message) Error() string { return string(m) }
 // the exclusions; this limit keeps the work bounded, see [MaxMatrixProduct].
 var errProductTooBig = fmt.Errorf("matrix too large: the cross product of the vectors exceeds %d combinations", MaxMatrixProduct)
 
+// ErrTooManyConfigurations is matched, with [errors.Is], by the error that
+// [ExpandMatrix], [ParseStrategy] and [Job.EvaluateStrategy] return when a
+// matrix produces more than [MaxMatrixJobs] configurations. The error itself
+// carries the job and the count in its text. It does not match the error for a
+// cross product over [MaxMatrixProduct], which is a work bound of this package
+// rather than a GitHub rule.
+var ErrTooManyConfigurations = errors.New("matrix produces too many configurations")
+
 // configurationLimitError is returned when a matrix produces more than
 // [MaxMatrixJobs] configurations. Its text is the one observed on the
 // github.com run page for matrix-over-256 (not in the recordings, which only
@@ -175,6 +183,9 @@ type configurationLimitError struct {
 	// Count is the number of configurations the matrix produces.
 	Count int
 }
+
+// Unwrap makes errors.Is(err, [ErrTooManyConfigurations]) hold.
+func (e *configurationLimitError) Unwrap() error { return ErrTooManyConfigurations }
 
 func (e *configurationLimitError) Error() string {
 	subject := "Strategy"
