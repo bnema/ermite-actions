@@ -47,6 +47,9 @@ func FromJSON(data []byte) (Value, error) {
 	}
 	p := &jsonParser{s: s}
 	p.skipSpace()
+	if p.i >= len(p.s) {
+		return nil, p.fail("Error reading JToken from JsonReader.")
+	}
 	return p.value(0)
 }
 
@@ -56,14 +59,163 @@ const jsonReaderMaxDepth = 64
 type jsonParser struct {
 	s string
 	i int
+	// started is false until the first token is read (Json.NET's Start state):
+	// an error at the first column of the text then reports line 0.
+	started bool
+	// stack is the open containers, for the path of an error.
+	stack []jsonFrame
 }
 
+// jsonFrame is an open array or object, as far as the path of an error needs.
+type jsonFrame struct {
+	obj  bool
+	n    int    // array: values read so far
+	name string // object: the current property name
+	has  bool
+}
+
+// JSONError is a failure of FromJSON. Its text is the message of the
+// Newtonsoft.Json.JsonReaderException the runner raises for the same input,
+// "<reason> Path '<path>', line <n>, position <n>.", which GitHub prints. The
+// reasons, paths and positions are reproduced for the failures seen in
+// practice (an unexpected character, a truncated text, a bad literal or number,
+// an unterminated string...); for the rarer ones the reason or the position may
+// differ from Json.NET's, but the text keeps the same form. See PORTING.md.
+type JSONError struct {
+	// Reason is the message without the position, e.g. "Unexpected character
+	// encountered while parsing value: n."
+	Reason string
+	// Path is the JSON path of the last token read ("a.b[0]"), "" at the root.
+	Path string
+	// Line and Position are Json.NET's JsonTextReader.LineNumber and
+	// LinePosition: 1-based lines (0 before the first token), 0-based
+	// positions, counted in UTF-16 units.
+	Line, Position int
+}
+
+func (e *JSONError) Error() string {
+	return fmt.Sprintf("%s Path '%s', line %d, position %d.", e.Reason, e.Path, e.Line, e.Position)
+}
+
+// ExceptionClass is the .NET class of the exception, which GitHub prints in
+// front of the message when it does not know where the expression is.
+func (e *JSONError) ExceptionClass() string { return "Newtonsoft.Json.JsonReaderException" }
+
+// fail builds the error for the current position.
+func (p *jsonParser) fail(reason string) error {
+	line, pos := 1, 0
+	units := 0
+	for i := 0; i < p.i && i < len(p.s); {
+		r, w := utf8.DecodeRuneInString(p.s[i:])
+		i += w
+		switch {
+		case r == '\n', r == '\r' && (i >= len(p.s) || p.s[i] != '\n'):
+			line++
+			units = 0
+		case r == '\r':
+			// the line break is counted with the following \n
+			units++
+		default:
+			units++
+			if r >= 0x10000 {
+				units++
+			}
+		}
+	}
+	pos = units
+	if !p.started && pos == 0 {
+		line = 0
+	}
+	return &JSONError{Reason: reason, Path: p.path(), Line: line, Position: pos}
+}
+
+// path is JsonReader.Path: the property names and indexes of the open
+// containers, the container being read only once it has a current element.
+func (p *jsonParser) path() string {
+	var sb strings.Builder
+	for _, f := range p.stack {
+		switch {
+		case f.obj && f.has:
+			if strings.ContainsAny(f.name, ".  '/\"[]()\t\n\r\f\b\\\u0085\u2028\u2029") {
+				sb.WriteString("['" + strings.NewReplacer("\\", "\\\\", "'", "\\'").Replace(f.name) + "']")
+			} else {
+				if sb.Len() > 0 {
+					sb.WriteByte('.')
+				}
+				sb.WriteString(f.name)
+			}
+		case !f.obj && f.n > 0:
+			fmt.Fprintf(&sb, "[%d]", f.n-1)
+		}
+	}
+	return sb.String()
+}
+
+func (p *jsonParser) top() *jsonFrame {
+	if len(p.stack) == 0 {
+		return nil
+	}
+	return &p.stack[len(p.stack)-1]
+}
+
+// valueRead counts a finished scalar in the open array.
+func (p *jsonParser) valueRead() {
+	p.started = true
+	if f := p.top(); f != nil && !f.obj {
+		f.n++
+	}
+}
+
+// unexpected is the error for a character that cannot start a value (or, at
+// the end of the text, for a text that stops too early).
 func (p *jsonParser) unexpected() error {
 	if p.i >= len(p.s) {
-		return errors.New("unexpected end of JSON input")
+		return p.fail("Unexpected end when reading JSON.")
 	}
 	r, _ := utf8.DecodeRuneInString(p.s[p.i:])
-	return fmt.Errorf("unexpected character %q in JSON at position %d", r, p.i)
+	return p.fail("Unexpected character encountered while parsing value: " + string(r) + ".")
+}
+
+// unexpectedAfter is the error for a character where a separator or the end of
+// the container should be.
+func (p *jsonParser) unexpectedAfter() error {
+	if p.i >= len(p.s) {
+		return p.unterminated()
+	}
+	r, _ := utf8.DecodeRuneInString(p.s[p.i:])
+	return p.fail("After parsing a value an unexpected character was encountered: " + string(r) + ".")
+}
+
+// unterminated is the error for a text that ends inside an array or object.
+func (p *jsonParser) unterminated() error {
+	f := p.top()
+	if f == nil {
+		return p.fail("Unexpected end when reading JSON.")
+	}
+	kind := "JArray"
+	if f.obj {
+		kind = "JObject"
+	}
+	if (f.obj && !f.has) || (!f.obj && f.n == 0) {
+		return p.fail("Error reading " + kind + " from JsonReader.")
+	}
+	return p.fail("Unexpected end of content while loading " + kind + ".")
+}
+
+// badLiteral is the error for a word that starts like true, false, null, NaN,
+// Infinity or undefined but is not one: Json.NET compares the characters one
+// by one and fails at the first that differs.
+func (p *jsonParser) badLiteral(word, kind string) error {
+	if len(p.s)-p.i < len(word) {
+		p.i = len(p.s)
+		return p.fail("Unexpected end when reading JSON.")
+	}
+	k := 0
+	for k < len(word) && p.s[p.i+k] == word[k] {
+		k++
+	}
+	p.i += k
+	return p.fail("Error parsing " + kind + " value.")
 }
 
 func (p *jsonParser) skipSpace() {
@@ -112,9 +264,28 @@ func (p *jsonParser) value(depth int) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
+		p.valueRead()
 		return String(s), nil
 	case c == '-' || c == '.' || c >= '0' && c <= '9':
-		return p.number()
+		v, err := p.number()
+		if err == nil {
+			p.valueRead()
+		}
+		return v, err
+	case c == '/':
+		p.i++
+		if p.i >= len(p.s) {
+			return nil, p.fail("Unexpected end while parsing comment.")
+		}
+		if p.s[p.i] != '*' {
+			r, _ := utf8.DecodeRuneInString(p.s[p.i:])
+			return nil, p.fail("Error parsing comment. Expected: *, got " + string(r) + ".")
+		}
+		p.i--
+		return nil, p.fail("Comments are not supported by this port.")
+	case c == ']' && len(p.stack) == 0:
+		p.i++
+		return nil, p.fail("JsonToken EndArray is not valid for closing JsonType None.")
 	}
 	if c := p.s[p.i]; c == ',' && depth == 0 {
 		// A comma where the document should start is an undefined value,
@@ -124,41 +295,68 @@ func (p *jsonParser) value(depth int) (Value, error) {
 	}
 	start := p.i
 	var v Value
+	kind := ""
 	switch word := p.token(); word {
 	case "true":
-		v = Boolean(true)
+		v, kind = Boolean(true), "boolean"
 	case "false":
-		v = Boolean(false)
+		v, kind = Boolean(false), "boolean"
 	case "null":
-		v = Null{}
+		v, kind = Null{}, "null"
 	case "undefined":
-		v = String("")
+		v, kind = String(""), "undefined"
 	case "NaN":
-		v = Number(nan)
+		v, kind = Number(nan), "NaN"
 	case "Infinity":
-		v = Number(posInf)
+		v, kind = Number(posInf), "Infinity"
 	default:
 		p.i = start
-		return nil, p.unexpected()
+		return nil, p.literalError()
 	}
-	if err := p.afterLiteral(); err != nil {
+	if err := p.afterLiteral(kind); err != nil {
 		return nil, err
 	}
+	p.valueRead()
 	return v, nil
+}
+
+// literalError explains a word that is not a literal, by its first letter.
+func (p *jsonParser) literalError() error {
+	next := byte(0)
+	if p.i+1 < len(p.s) {
+		next = p.s[p.i+1]
+	}
+	switch p.s[p.i] {
+	case 't':
+		return p.badLiteral("true", "boolean")
+	case 'f':
+		return p.badLiteral("false", "boolean")
+	case 'n':
+		if next == 'u' {
+			return p.badLiteral("null", "null")
+		}
+	case 'N':
+		return p.badLiteral("NaN", "NaN")
+	case 'I':
+		return p.badLiteral("Infinity", "Infinity")
+	case 'u':
+		return p.badLiteral("undefined", "undefined")
+	}
+	return p.unexpected()
 }
 
 // afterLiteral checks the character that follows a word literal (true, null,
 // NaN...): Json.NET only accepts a "/" there when it starts a comment, and
 // comments are not ported, so any "/" is an error here. Anything else is left
 // for the caller (white space, a comma, a closing bracket, or trailing text).
-func (p *jsonParser) afterLiteral() error {
+func (p *jsonParser) afterLiteral(kind string) error {
 	if p.i >= len(p.s) || p.s[p.i] != '/' {
 		return nil
 	}
 	if p.i+1 < len(p.s) && (p.s[p.i+1] == '/' || p.s[p.i+1] == '*') {
-		return fmt.Errorf("comments are not supported (position %d in JSON)", p.i)
+		return p.fail("Comments are not supported by this port.")
 	}
-	return p.unexpected()
+	return p.fail("Error parsing " + kind + " value.")
 }
 
 // number reads a number token: decimal with optional sign, fraction and
@@ -166,9 +364,17 @@ func (p *jsonParser) afterLiteral() error {
 // 0x hexadecimal integer.
 func (p *jsonParser) number() (Value, error) {
 	start := p.i
-	tok := p.token()
+	if strings.HasPrefix(p.s[p.i:], "-I") {
+		if !strings.HasPrefix(p.s[p.i:], "-Infinity") {
+			return nil, p.badLiteral("-Infinity", "-Infinity")
+		}
+	}
+	tok, err := p.numberToken()
+	if err != nil {
+		return nil, err
+	}
 	if tok == "-Infinity" {
-		if err := p.afterLiteral(); err != nil {
+		if err := p.afterLiteral("-Infinity"); err != nil {
 			return nil, err
 		}
 		return Number(math.Inf(-1)), nil
@@ -179,8 +385,7 @@ func (p *jsonParser) number() (Value, error) {
 				return Number(float64(int64(n))), nil
 			}
 		}
-		p.i = start
-		return nil, fmt.Errorf("input string %q is not a valid number", tok)
+		return nil, p.badNumber(start, tok)
 	}
 	// A non-negative number with a leading zero is octal when it has only
 	// digits (010 is 8, 08 is an error) and an error unless the zero is
@@ -189,15 +394,13 @@ func (p *jsonParser) number() (Value, error) {
 	if len(tok) > 1 && tok[0] == '0' && tok[1] != '.' && tok[1] != 'e' && tok[1] != 'E' {
 		v, ok := parseOctal64(tok[1:])
 		if !ok {
-			p.i = start
-			return nil, fmt.Errorf("input string %q is not a valid number", tok)
+			return nil, p.badNumber(start, tok)
 		}
 		return Number(v), nil
 	}
 	body := strings.TrimPrefix(tok, "-")
 	if !isDecimalLiteral(body) {
-		p.i = start
-		return nil, fmt.Errorf("input string %q is not a valid number", tok)
+		return nil, p.badNumber(start, tok)
 	}
 	if isBigInteger(body) {
 		// Json.NET reads an integer that does not fit in 64 bits as a
@@ -214,6 +417,48 @@ func (p *jsonParser) number() (Value, error) {
 		f = 0 // an integer token is read as a long: "-0" and "-00" are plain 0
 	}
 	return Number(f), nil
+}
+
+// numberToken reads the characters of a number as JsonTextReader does: those
+// of a fixed set (digits, signs, ".", a-f, A-F, x, X) up to a separator; any
+// other character is an error at its own position.
+func (p *jsonParser) numberToken() (string, error) {
+	start := p.i
+	for p.i < len(p.s) {
+		c := p.s[p.i]
+		switch {
+		case c >= '0' && c <= '9', c >= 'a' && c <= 'f', c >= 'A' && c <= 'F',
+			c == '+', c == '-', c == '.', c == 'x', c == 'X', c == 'I', c == 'n', c == 'i', c == 't', c == 'y':
+			if c == 'I' || c == 'n' || c == 'i' || c == 't' || c == 'y' {
+				// only the letters of -Infinity are read on; anything else
+				// is not in the set
+				if !strings.HasPrefix(p.s[start:], "-Infinity") {
+					return "", p.numberChar()
+				}
+			}
+			p.i++
+		default:
+			r, _ := utf8.DecodeRuneInString(p.s[p.i:])
+			if isJSONSeparator(r) {
+				return p.s[start:p.i], nil
+			}
+			return "", p.numberChar()
+		}
+	}
+	return p.s[start:p.i], nil
+}
+
+func (p *jsonParser) numberChar() error {
+	r, _ := utf8.DecodeRuneInString(p.s[p.i:])
+	return p.fail("Unexpected character encountered while parsing number: " + string(r) + ".")
+}
+
+// badNumber is the error for a malformed number token; Json.NET reports it at
+// the end of the token, with the element already counted in the path.
+func (p *jsonParser) badNumber(start int, tok string) error {
+	p.i = start + len(tok)
+	p.valueRead()
+	return p.fail("Input string '" + tok + "' is not a valid number.")
 }
 
 // parseOctal64 reads octal digits as Convert.ToInt64(s, 8) does: leading
@@ -254,7 +499,7 @@ func (p *jsonParser) str() (string, error) {
 	var b strings.Builder
 	for {
 		if p.i >= len(p.s) {
-			return "", errors.New("unterminated string in JSON")
+			return "", p.fail("Unterminated string. Expected delimiter: " + string(quote) + ".")
 		}
 		c := p.s[p.i]
 		if c == quote {
@@ -268,7 +513,7 @@ func (p *jsonParser) str() (string, error) {
 		}
 		p.i++
 		if p.i >= len(p.s) {
-			return "", errors.New("unterminated string in JSON")
+			return "", p.fail("Unterminated string. Expected delimiter: " + string(quote) + ".")
 		}
 		e := p.s[p.i]
 		p.i++
@@ -308,17 +553,17 @@ func (p *jsonParser) str() (string, error) {
 			}
 			b.WriteRune(r)
 		default:
-			p.i -= 2
-			return "", fmt.Errorf("bad JSON escape sequence \\%c at position %d", e, p.i)
+			return "", p.fail("Bad JSON escape sequence: \\" + string(e) + ".")
 		}
 	}
 }
 
 func (p *jsonParser) hex4() (rune, error) {
-	if p.i+4 > len(p.s) {
-		p.i = len(p.s)
-		return 0, p.unexpected()
+	// JsonTextReader needs a character after the four digits (EnsureChars).
+	if p.i+4 >= len(p.s) {
+		return 0, p.fail("Unexpected end while parsing Unicode escape sequence.")
 	}
+	first := p.i
 	var r rune
 	for k := 0; k < 4; k++ {
 		c := p.s[p.i]
@@ -331,7 +576,8 @@ func (p *jsonParser) hex4() (rune, error) {
 		case c >= 'A' && c <= 'F':
 			d = c - 'A' + 10
 		default:
-			return 0, p.unexpected()
+			p.i = first
+			return 0, p.fail("Invalid Unicode escape sequence: \\u" + p.s[first:first+4] + ".")
 		}
 		r = r<<4 | rune(d)
 		p.i++
@@ -341,22 +587,26 @@ func (p *jsonParser) hex4() (rune, error) {
 
 func (p *jsonParser) array(depth int) (Value, error) {
 	if depth > jsonReaderMaxDepth {
-		return nil, fmt.Errorf("the reader's MaxDepth of %d has been exceeded", jsonReaderMaxDepth)
+		return nil, p.fail(fmt.Sprintf("The reader's MaxDepth of %d has been exceeded.", jsonReaderMaxDepth))
 	}
 	p.i++
+	p.valueRead()
+	p.stack = append(p.stack, jsonFrame{})
 	arr := &Array{}
 	for {
 		p.skipSpace()
 		if p.i >= len(p.s) {
-			return nil, p.unexpected()
+			return nil, p.unterminated()
 		}
 		switch p.s[p.i] {
 		case ']':
 			p.i++
+			p.pop()
 			return arr, nil
 		case ',':
 			// An empty element is "undefined", which reads as an empty string.
 			p.i++
+			p.valueRead()
 			arr.items = append(arr.items, String(""))
 			continue
 		}
@@ -367,16 +617,21 @@ func (p *jsonParser) array(depth int) (Value, error) {
 		arr.items = append(arr.items, v)
 		p.skipSpace()
 		if p.i >= len(p.s) {
-			return nil, p.unexpected()
+			return nil, p.unterminated()
 		}
 		switch p.s[p.i] {
 		case ',':
 			p.i++
 		case ']':
 		default:
-			return nil, p.unexpected()
+			return nil, p.unexpectedAfter()
 		}
 	}
+}
+
+// pop closes the innermost container; it counts as a value of its parent.
+func (p *jsonParser) pop() {
+	p.stack = p.stack[:len(p.stack)-1]
 }
 
 // propertyName reads a quoted or unquoted object name.
@@ -385,15 +640,21 @@ func (p *jsonParser) propertyName() (string, error) {
 		return p.str()
 	}
 	start := p.i
+	if r, _ := utf8.DecodeRuneInString(p.s[p.i:]); !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '$' {
+		return "", p.fail("Invalid property identifier character: " + string(r) + ".")
+	}
 	for p.i < len(p.s) {
 		r, w := utf8.DecodeRuneInString(p.s[p.i:])
 		if r == ':' || isNetSpace(r) {
 			break
 		}
 		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '$' {
-			return "", p.unexpected()
+			return "", p.fail("Invalid JavaScript property identifier character: " + string(r) + ".")
 		}
 		p.i += w
+	}
+	if p.i >= len(p.s) {
+		return "", p.fail("Unexpected end while parsing unquoted property name.")
 	}
 	if p.i == start {
 		return "", p.unexpected()
@@ -403,17 +664,20 @@ func (p *jsonParser) propertyName() (string, error) {
 
 func (p *jsonParser) object(depth int) (Value, error) {
 	if depth > jsonReaderMaxDepth {
-		return nil, fmt.Errorf("the reader's MaxDepth of %d has been exceeded", jsonReaderMaxDepth)
+		return nil, p.fail(fmt.Sprintf("The reader's MaxDepth of %d has been exceeded.", jsonReaderMaxDepth))
 	}
 	p.i++
+	p.valueRead()
+	p.stack = append(p.stack, jsonFrame{obj: true})
 	d := NewDictionary()
 	for {
 		p.skipSpace()
 		if p.i >= len(p.s) {
-			return nil, p.unexpected()
+			return nil, p.unterminated()
 		}
 		if p.s[p.i] == '}' {
 			p.i++
+			p.pop()
 			return d, nil
 		}
 		k, err := p.propertyName()
@@ -421,11 +685,20 @@ func (p *jsonParser) object(depth int) (Value, error) {
 			return nil, err
 		}
 		p.skipSpace()
-		if p.i >= len(p.s) || p.s[p.i] != ':' {
-			return nil, p.unexpected()
+		if p.i >= len(p.s) {
+			return nil, p.unterminated()
+		}
+		if p.s[p.i] != ':' {
+			r, _ := utf8.DecodeRuneInString(p.s[p.i:])
+			return nil, p.fail("Invalid character after parsing property name. Expected ':' but got: " + string(r) + ".")
 		}
 		p.i++
+		f := p.top()
+		f.name, f.has = k, true
 		p.skipSpace()
+		if p.i >= len(p.s) {
+			return nil, p.unterminated()
+		}
 		v, err := p.value(depth)
 		if err != nil {
 			return nil, err
@@ -433,14 +706,14 @@ func (p *jsonParser) object(depth int) (Value, error) {
 		d.set(k, v)
 		p.skipSpace()
 		if p.i >= len(p.s) {
-			return nil, p.unexpected()
+			return nil, p.unterminated()
 		}
 		switch p.s[p.i] {
 		case ',':
 			p.i++
 		case '}':
 		default:
-			return nil, p.unexpected()
+			return nil, p.unexpectedAfter()
 		}
 	}
 }

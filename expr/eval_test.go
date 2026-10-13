@@ -226,11 +226,11 @@ func TestEvalLogicalReturnsOperands(t *testing.T) {
 		// Short-circuit: the failing call is never evaluated.
 		{"true || fromJSON('')", "Boolean:true"},
 		{"false && fromJSON('')", "Boolean:false"},
-		{"false || fromJSON('')", "ERR empty input"},
-		{"true && fromJSON('')", "ERR empty input"},
+		{"false || fromJSON('')", "ERR Error reading JToken from JsonReader. Path '', line 0, position 0."},
+		{"true && fromJSON('')", "ERR Error reading JToken from JsonReader. Path '', line 0, position 0."},
 		// Comparisons evaluate both sides.
-		{"false == fromJSON('')", "ERR empty input"},
-		{"fromJSON('') == false", "ERR empty input"},
+		{"false == fromJSON('')", "ERR Error reading JToken from JsonReader. Path '', line 0, position 0."},
+		{"fromJSON('') == false", "ERR Error reading JToken from JsonReader. Path '', line 0, position 0."},
 		// Precedence: && binds tighter than ||, ! tighter than comparison.
 		{"true || false && false", "Boolean:true"},
 		{"(true || false) && false", "Boolean:false"},
@@ -422,11 +422,11 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"fromJSON(toJSON(github.event.commits[0])).author.name", "String:Ann"},
 
 		// fromJSON
-		{"fromJSON('')", "ERR empty input"},
-		{"fromJSON('  ')", "ERR empty input"},
-		{"fromJSON('\n')", "ERR empty input"},
-		{"fromJSON(null)", "ERR empty input"},
-		{"fromJSON('{')", "ERR Error parsing JSON when evaluating fromJson"},
+		{"fromJSON('')", "ERR Error reading JToken from JsonReader. Path '', line 0, position 0."},
+		{"fromJSON('  ')", "ERR Error reading JToken from JsonReader. Path '', line 1, position 2."},
+		{"fromJSON('\n')", "ERR Error reading JToken from JsonReader. Path '', line 0, position 0."},
+		{"fromJSON(null)", "ERR Error reading JToken from JsonReader. Path '', line 0, position 0."},
+		{"fromJSON('{')", "ERR Error reading JObject from JsonReader. Path '', line 1, position 1."},
 		// Json.NET is lenient: trailing commas, unquoted names, leading zeros,
 		// NaN and Infinity and anything after the first value are accepted.
 		{"fromJSON('[1,]')", "Array:Array"},
@@ -441,7 +441,7 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{"fromJSON('\"\\ud83d\\ude00\"')", "String:😀"},
 		{"fromJSON(1)", "Number:1"},
 		{"fromJSON(true)", "Boolean:true"},
-		{"fromJSON(matrix.node)", "ERR Error parsing JSON when evaluating fromJson"}, // the string "Array"
+		{"fromJSON(matrix.node)", "ERR Unexpected character encountered while parsing value: A. Path '', line 0, position 0."}, // the string "Array"
 		{"fromJSON(1, 2)", "PARSE Too many parameters supplied: '('"},
 
 		// format
